@@ -52,3 +52,12 @@ VETravelPerformance,BudgetHouseholdDvmt,Adjust household DVMT when necessary to 
 VETravelPerformance,CalculateComEnergyAndEmissions,Calculate energy consumption and emissions of light-duty commercial service vehicles and heavy trucks,,,
 VETravelPerformance,CalculatePtranEnergyAndEmissions,Calculate energy consumption and emissions from public transit vehicles,,,
 VEReports,ReportRPATMetrics,Calculates performance metrics for RPAT,IT,,X
+VETravelDemandMM,PredictAADVMT,Predict Annual Average Daily VMT (AADVMT) for households,,,
+VETravelDemandMM,PredictBikePMT,Predit daily biking person miles travelled (PMT) for households,,,
+VETravelDemandMM,PredictBikeTFL,Predit daily biking trip frequencies and average trip length for households,,,
+VETravelDemandMM,PredictDrivers,Predit number of licensed drivers in households,,,
+VETravelDemandMM,PredictTransitPMT,Predit daily transit person miles travelled (PMT) for households,,,
+VETravelDemandMM,PredictTransitTFL,Predit daily transit trip frequencies and average trip length for households,,,
+VETravelDemandMM,PredictVehicles,Predit number of light-duty vehicles in households,,,
+VETravelDemandMM,PredictWalkPMT,Predit daily walking person miles travelled for households,,,
+VETravelDemandMM,PredictWalkTFL,Predit daily walking trip frequencies and average trip length for households,,,
