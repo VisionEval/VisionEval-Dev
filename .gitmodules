@@ -1,0 +1,3 @@
+[submodule "sources/modules/VETravelDemandMM"]
+	path = sources/modules/VETravelDemandMM
+	url = https://github.com/cities-lab/VETravelDemandMM.git
