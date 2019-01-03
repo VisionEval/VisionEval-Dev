@@ -1,7 +1,10 @@
+.Rprofile
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 *.bak
-*.Rcheck
-sources/modules/*.tar.gz
+.DS_Store
+ve-lib
+Log_*.txt
+

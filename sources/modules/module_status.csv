@@ -61,3 +61,7 @@ VETravelDemandMM,PredictTransitTFL,Predit daily transit trip frequencies and ave
 VETravelDemandMM,PredictVehicles,Predit number of light-duty vehicles in households,,,
 VETravelDemandMM,PredictWalkPMT,Predit daily walking person miles travelled for households,,,
 VETravelDemandMM,PredictWalkTFL,Predit daily walking trip frequencies and average trip length for households,,,
+VEScenario,BuildScenarios,Builds scenarios from all possible combinations of level of scenario inputs,I,X,X
+VEScenario,RunScenarios,Runs all scenarios built by BuildScenarios module in parallel,I,X,X
+VEScenario,ScenarioResults,Gathers and combine the outputs from scenario runs,I,X,X
+VEScenario,ViewResults,Displays the results in an html page,I,X,X
