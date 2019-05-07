@@ -9,7 +9,7 @@ suppressPackageStartupMessages({
   library(shinyFiles)
   library(data.table)
   library(shinyBS)
-  library(future)
+  library(future.callr)
   library(testit)
   library(jsonlite)
   library(DT)
@@ -32,7 +32,23 @@ options(DT.options = list(dom = 'tip', rownames = 'f'))
 
 #use of future in shiny
 #http://stackoverflow.com/questions/41610354/calling-a-shiny-javascript-callback-from-within-a-future
-plan(multiprocess) #tell "future" library to use multiprocessing
+# plan(callr) #tell "future" library to use multiprocessing via callr
+
+# Set future processors
+
+planType <- 'callr'  # Will VEGUI work at all with sequential?
+
+if ( exists('planType') && planType == 'callr'){
+  NWorkers <- max(availableCores()-1, 1)
+#  plan(callr, workers = NWorkers, gc=TRUE)
+  plan(callr, workers = NWorkers)
+} else {
+  plan(sequential)
+}
+
+# Set a global variable of the library paths so it can be passed to any
+# child processes called with future
+libs <- .libPaths()
 
 if (interactive()) {
   options(shiny.reactlog = TRUE)
@@ -89,7 +105,12 @@ myFileTypes_ls <- list(
 
 # Get the volumes of local drive
 # Changes to this line may affect tests. See run_vegui_test.R
-volumeRoots = c('.' = '.', '..' = '..', getVolumes("")())
+# JR NOTE:
+# Should be fine, as long as the line starts with "volumeRoots = c("
+# Hacking on something un-parameterized like this violates the whole notion of
+# of what a "test" is.
+volumeRoots = c('Models' = '../models', '.' = '.', '..' = '..', getVolumes("")())
+if (length(volumeRoots)>3) names(volumeRoots)[c(2,3)] <- c( basename(getwd()), basename(normalizePath(file.path(getwd(),".."))) )
 
 # Define utility functions ----------------------------------------
 
@@ -124,4 +145,3 @@ convertRunParam2Lst <- function(rp_df){
 
   lst2
 }
-
