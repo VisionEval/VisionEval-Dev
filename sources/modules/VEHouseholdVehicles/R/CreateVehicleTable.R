@@ -33,7 +33,9 @@
 #HighCarSvc for each record corresponding to difference between driving age
 #persons and owned vehicles. It is LowCarSvc if the household is in a Bzone
 #having a low level of car service and HighCarSvc if the Bzone car service level
-#is high.
+#is high. The table also keeps a record of deadhead mileage proportion to compute
+#the car service mileage from the household car service use. The deadhead mileage
+#proportion is defined as the deadhead mileage divided by fare mileage.
 
 
 #================================================
@@ -111,7 +113,29 @@ CreateVehicleTableSpecifications <- list(
       DESCRIPTION =
         items(
           "The proportion of light-truck owners who would substitute a less-costly car service option for owning their light truck",
-          "Th proportion of automobile owners who would substitute a less-costly car service option for owning their automobile"
+          "The proportion of automobile owners who would substitute a less-costly car service option for owning their automobile"
+        )
+    ),
+    item(
+      NAME =
+        items(
+          "LowCarSvcDeadheadProp",
+          "HighCarSvcDeadheadProp"),
+      FILE = "azone_carsvc_characteristics.csv",
+      TABLE = "Azone",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      NAVALUE = -1,
+      SIZE = 0,
+      PROHIBIT = c("NA", "< 0", "> 1"),
+      ISELEMENTOF = "",
+      UNLIKELY = "",
+      TOTAL = "",
+      DESCRIPTION =
+        items(
+          "The deadhead proportion for low service level car service calculated using deadhead mileage divided by fare mileage",
+          "The deadhead proportion for high service level car service calculated using deadhead mileage divided by fare mileage"
         )
     )
   ),
