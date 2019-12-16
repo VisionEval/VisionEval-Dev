@@ -4,8 +4,15 @@
 \alias{calcVehAgePropByInc}
 \title{Calculate vehicle age distributions by income group.}
 \usage{
-calcVehAgePropByInc(VehAgIgProp, AgeGrp, AgeMargin, IncGrp, IncMargin,
-  MaxIter = 100, Closure = 0.001)
+calcVehAgePropByInc(
+  VehAgIgProp,
+  AgeGrp,
+  AgeMargin,
+  IncGrp,
+  IncMargin,
+  MaxIter = 100,
+  Closure = 0.001
+)
 }
 \arguments{
 \item{VehAgIgProp}{A numeric vector of joint probabilities of vehicle by

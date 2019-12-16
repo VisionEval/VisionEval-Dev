@@ -33,9 +33,9 @@
 #HighCarSvc for each record corresponding to difference between driving age
 #persons and owned vehicles. It is LowCarSvc if the household is in a Bzone
 #having a low level of car service and HighCarSvc if the Bzone car service level
-#is high. The table also keeps a record of deadhead mileage proportion to compute
-#the car service mileage from the household car service use. The deadhead mileage
-#proportion is defined as the deadhead mileage divided by fare mileage.
+#is high. The table also keeps a record of deadhead mileage proportion for dirverless
+# vehicle to compute the car service mileage from the household car service use. 
+#The deadhead mileage proportion is defined as the deadhead mileage divided by fare mileage.
 
 
 #================================================

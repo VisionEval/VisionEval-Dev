@@ -4,8 +4,13 @@
 \alias{calcAgeDistributionByInc}
 \title{Calculate vehicle age distributions by income group.}
 \usage{
-calcAgeDistributionByInc(Seed_AgIg, Margin_Ag, Margin_Ig, MaxIter = 100,
-  Closure = 1e-04)
+calcAgeDistributionByInc(
+  Seed_AgIg,
+  Margin_Ag,
+  Margin_Ig,
+  MaxIter = 100,
+  Closure = 1e-04
+)
 }
 \arguments{
 \item{Seed_AgIg}{A numeric matrix of the joint probabilities of vehicles
