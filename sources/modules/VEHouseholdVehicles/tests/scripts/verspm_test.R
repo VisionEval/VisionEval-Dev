@@ -34,6 +34,8 @@ Tests_ls <- list(
        LoadDatastore = TRUE, SaveDatastore = TRUE, DoRun = TRUE,
        RequiredPackages = "VEHouseholdTravel"),
   list(ModuleName = "AdjustVehicleOwnership",
+       LoadDatastore = TRUE, SaveDatastore = TRUE, DoRun = TRUE),
+  list(ModuleName = "AssignDriverlessVehicles",
        LoadDatastore = TRUE, SaveDatastore = TRUE, DoRun = TRUE)
 )
 
