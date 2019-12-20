@@ -356,7 +356,7 @@ getScenarioResults <- function(ScenarioPath, ...){
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
 #' @name VERSPMResults
-#' @import jsonlite future.callr data.table
+#' @import jsonlite future future.callr data.table
 #' @export
 VERSPMResults <- function(L){
   # Setup
@@ -379,7 +379,7 @@ VERSPMResults <- function(L){
   if ( exists('planType') && planType == 'callr'){
     NWorkers <- L$Global$Model$NWorkers
     NWorkers <- min(max(availableCores()-1, 1), NWorkers)
-    plan(callr, workers = NWorkers, gc=TRUE)
+    plan(callr, workers = NWorkers)
     message("Executing with ", NWorkers, " processors\n")
   } else {
     plan(sequential)
@@ -417,7 +417,7 @@ VERSPMResults <- function(L){
 
   FinalResults_dt <- rbindlist(as.list(Results_env))
   rm(Results_env)
-  gc()
+  gc() # Encourage R to release resources it is done with
 
   ScenNames_ar <- basename(ScenariosPath_ar)
   ScenTab_dt <- data.table(Scenario = ScenNames_ar)
@@ -473,7 +473,12 @@ VERSPMResults <- function(L){
                               AirPollutionEm=AirPollutionEm, FuelUse=FuelUse,
                               VehicleCost=VehicleCost, VehicleCostLow=VehicleCostLow)
                           },by=c("Scenario", InputLabels_ar)]
-
+  
+  # Write the output to csv file
+  write.csv(ScenTab_dt,
+            file.path(ModelPath, L$Global$Model$ScenarioOutputFolder, "VERSPM_scenario_results.csv"),
+            row.names = F)
+  
   # Write the output to JSON file
   JSON <- toJSON(ScenTab_dt)
   JSON <- paste("var data = ", JSON, ";", sep="")
