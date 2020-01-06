@@ -873,6 +873,9 @@ usethis::use_data(Access_df, overwrite = TRUE)
 #' @param OtherOpsEffects_mx a numeric matrix of percentage delay reductions
 #' for user-defined freeway and arterial operations programs by congestion
 #' level.
+#' @param DriverlessDvmtProp_Rc a numeric vector of proportion of DVMT in driverless vehicles
+#' by road class.
+#' @param DriverlessFactor_ls a nested list of functions that gives adjustment factors by road class, type of incident (recurring or non-recurring), and type of metric (delay or smooth).
 #' @return A list containing two matrices. The first is a matrix of average
 #' speed (miles per hour) by congestion level and road class. The second is a
 #' matrix of delay hours per vehicle mile by congestion level and road class.
@@ -880,7 +883,9 @@ usethis::use_data(Access_df, overwrite = TRUE)
 #' @import visioneval
 #' @import stats
 #' @export
-calculateSpeeds <- function(OpsDeployment_, OtherOpsEffects_mx = NULL) {
+calculateSpeeds <- function(OpsDeployment_, OtherOpsEffects_mx = NULL,
+                            DriverlessDvmtProp_Rc = NULL,
+                            DriverlessFactor_ls = NULL) {
   #Calculate recurring and non-recurring (incident-related) delay
   BaseTravelRate_mx <- 1 / as.matrix(BaseSpeeds_df)
   Delay_mx <-
@@ -904,13 +909,36 @@ calculateSpeeds <- function(OpsDeployment_, OtherOpsEffects_mx = NULL) {
   #Calculate joint effect
   DelayFactor_mx <-
     RampFactor_mx * IncidentFactor_mx * SignalFactor_mx * AccessFactor_mx
+  
+  DriverlessFactor_ls <- unlist(DriverlessFactor_ls, recursive = TRUE,
+                                use.names = TRUE)
+  names(DriverlessFactor_ls) <- gsub("\\.Delay\\.","_",names(DriverlessFactor_ls))
   if (!is.null(OtherOpsEffects_mx)) {
-    OtherOpsDeploy_ <-
-      rep(OpsDeployment_[c("OtherFwyOpsDeployProp", "OtherArtOpsDeployProp")], each = 2)
-    OtherOpsFactor_mx <-
-      1 - sweep(OtherOpsEffects_mx, 2, OtherOpsDeploy_, "*") / 100
-    DelayFactor_mx <- DelayFactor_mx * OtherOpsFactor_mx
+    Ty <- colnames(OtherOpsEffects_mx)
+    if (!is.null(DriverlessDvmtProp_Rc)) {
+      DriverlessDvmtProp_Ty <- setNames(numeric(length(Ty)), Ty)
+      DriverlessDvmtProp_Ty[c("Fwy_Rcr", "Fwy_NonRcr")] <-
+        DriverlessDvmtProp_Rc["Fwy"]
+      DriverlessDvmtProp_Ty[c("Art_Rcr", "Art_NonRcr")] <-
+        DriverlessDvmtProp_Rc["Art"]
+      OtherOpsDeploy_Ty <- sapply(Ty, function(x) {
+        DriverlessFactor_ls[[x]](DriverlessDvmtProp_Ty[x])})
+      OtherOpsFactor_mx <-
+        1 - sweep(OtherOpsEffects_mx, 2, OtherOpsDeploy_Ty, "*") / 100
+      #Select the maximum reduction. This is the minimum factor.
+      DelayFactor_mx <- pmin(DelayFactor_mx, OtherOpsFactor_mx) 
+    } else {
+      OtherOpsDeploy_Ty <- setNames(numeric(length(Ty)), Ty)
+      OtherOpsDeploy_Ty[c("Fwy_Rcr", "Fwy_NonRcr")] <- 
+        OpsDeployment_["OtherFwyOpsDeployProp"]
+      OtherOpsDeploy_Ty[c("Art_Rcr", "Art_NonRcr")] <- 
+        OpsDeployment_["OtherArtOpsDeployProp"]
+      OtherOpsFactor_mx <-
+        1 - sweep(OtherOpsEffects_mx, 2, OtherOpsDeploy_Ty, "*") / 100
+      DelayFactor_mx <- DelayFactor_mx * OtherOpsFactor_mx
+    }
   }
+  
   #Calculate adjusted delay
   AdjDelay_mx <- BaseDelay_mx * DelayFactor_mx
   Delay_mx <- cbind(
@@ -1153,9 +1181,86 @@ CalculateRoadPerformanceSpecifications <- list(
   #Level of geography module is applied at
   RunBy = "Region",
   #Specify new tables to be created by Inp if any
+  NewInpTable = items(
+    item(
+      TABLE = "DriverlessEffectAdjParam",
+      GROUP = "Global",
+      LENGTH = 6
+    )
+  ),
+  Inp = items(
+    item(
+      NAME = "Measure",
+      FILE = "driverless_effect_adj_param.csv",
+      TABLE = "DriverlessEffectAdjParam",
+      GROUP = "Global",
+      TYPE = "character",
+      UNITS = "ID",
+      NAVALUE = "NA",
+      SIZE = 14,
+      PROHIBIT = "",
+      ISELEMENTOF = c(
+        "FwyRcrDelay",
+        "ArtRcrDelay",
+        "FwyNonRcrDelay",
+        "ArtNonRcrDelay",
+        "FwySmooth",
+        "ArtSmooth"
+        ),
+      UNLIKELY = "",
+      TOTAL = "",
+      DESCRIPTION =
+        "The labels for operations effectiveness measures on arterial and freeway lanes."
+    ),
+    item(
+      NAME = "Beta",
+      FILE = "driverless_effect_adj_param.csv",
+      TABLE = "DriverlessEffectAdjParam",
+      GROUP = "Global",
+      TYPE = "integer",
+      UNITS = "integer",
+      NAVALUE = "NA",
+      SIZE = 0,
+      PROHIBIT = "",
+      ISELEMENTOF = c(1:10),
+      UNLIKELY = "",
+      TOTAL = "",
+      DESCRIPTION =
+        "The power value to be used in the exponential function to adjusts the operations effectiveness for driverless vehicles."
+    )
+  ),
   #Specify new tables to be created by Set if any
   #Specify input data
   Get = items(
+    item(
+      NAME = "Measure",
+      TABLE = "DriverlessEffectAdjParam",
+      GROUP = "Global",
+      TYPE = "character",
+      UNITS = "ID",
+      NAVALUE = "NA",
+      SIZE = 14,
+      PROHIBIT = "",
+      ISELEMENTOF = c(
+        "FwyRcrDelay",
+        "ArtRcrDelay",
+        "FwyNonRcrDelay",
+        "ArtNonRcrDelay",
+        "FwySmooth",
+        "ArtSmooth"
+      )
+    ),
+    item(
+      NAME = "Beta",
+      TABLE = "DriverlessEffectAdjParam",
+      GROUP = "Global",
+      TYPE = "integer",
+      UNITS = "integer",
+      NAVALUE = "NA",
+      SIZE = 0,
+      PROHIBIT = "",
+      ISELEMENTOF = c(1:10)
+    ),
     item(
       NAME = "StateAbbrLookup",
       TABLE = "Region",
@@ -1274,6 +1379,18 @@ CalculateRoadPerformanceSpecifications <- list(
       TYPE = "currency",
       UNITS = "USD",
       PROHIBIT = c("< 0"),
+      ISELEMENTOF = ""
+    ),
+    item(
+      NAME = items(
+        "LdvDriverlessProp",
+        "HvyTrkDriverlessProp",
+        "BusDriverlessProp"),
+      TABLE = "Marea",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      PROHIBIT = c("< 0", "> 1"),
       ISELEMENTOF = ""
     ),
     item(
@@ -1588,8 +1705,6 @@ CalculateRoadPerformance <- function(L) {
         c("Art_Rcr", "Art_NonRcr", "Fwy_Rcr", "Fwy_NonRcr")
       ))
   }
-  #Calculate speed and delay by Marea and congestion level
-  SpeedAndDelay_ls <- list()
   OpsDeployNames_ <- c(
     "RampMeterDeployProp",
     "IncidentMgtDeployProp",
@@ -1599,23 +1714,88 @@ CalculateRoadPerformance <- function(L) {
     "OtherArtOpsDeployProp")
   OpsDeployment_MaOp <- do.call(cbind, L$Year$Marea[OpsDeployNames_])
   rownames(OpsDeployment_MaOp) <- Ma
-  for (ma in Ma) {
-    SpeedAndDelay_ls[[ma]] <-
-      calculateSpeeds(OpsDeployment_MaOp[ma,], OtherOpsEffects_mx)
+  #Create matrix of driverless DVMT proportions by Marea and vehicle type
+  DriverlessDvmtProp_MaTy <- cbind(
+    Ldv = L$Year$Marea$LdvDriverlessProp,
+    HvyTrk = L$Year$Marea$HvyTrkDriverlessProp,
+    Bus = L$Year$Marea$BusDriverlessProp
+  )
+  rownames(DriverlessDvmtProp_MaTy) <- L$Year$Marea$Marea
+  
+  
+  #Calculate speed and delay by Marea and congestion level
+  DriverlessAdjParam_ <- unattr(L$Global$DriverlessEffectAdjParam$Beta)
+  names(DriverlessAdjParam_) <- L$Global$DriverlessEffectAdjParam$Measure
+  effectAdj <- function(AdjBeta, DvmtProp = NULL){
+    function(DvmtProp){
+      (DvmtProp ^ AdjBeta)
+    }
   }
-  #Convert to matrices
-  FwySpeed_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-    x$Speed[,"Fwy"]
-  }))
-  ArtSpeed_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-    x$Speed[,"Art"]
-  }))
-  FwyDelay_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-    x$Delay[,"Fwy"]
-  }))
-  ArtDelay_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-    x$Delay[,"Art"]
-  }))
+  DriverlessFactor_ls <- list(
+    Art = list(
+      Delay = list(Rcr = effectAdj(AdjBeta = DriverlessAdjParam_["ArtRcrDelay"]),
+                   NonRcr = effectAdj(AdjBeta = DriverlessAdjParam_["ArtNonRcrDelay"])
+      ),
+      Smooth = effectAdj(AdjBeta = DriverlessAdjParam_["ArtSmooth"])
+    ),
+    Fwy = list(
+      Delay = list(Rcr = effectAdj(AdjBeta = DriverlessAdjParam_["FwyRcrDelay"]),
+                   NonRcr = effectAdj(AdjBeta = DriverlessAdjParam_["FwyNonRcrDelay"])
+      ),
+      Smooth = effectAdj(AdjBeta = DriverlessAdjParam_["FwySmooth"])
+    )
+  )
+  
+  #Calculate average driverless DVMT proportion by Marea and lane type
+  #-------------------------------------------------------------------
+  #Define function to calculate average driverless DVMT proportion
+  calcAveDriverlessDvmtProp <- function(LdvDvmt_Rc, LdvDriverlessProp,
+                                        HvyTrkDvmt_Rc, HvyTrkDriverlessProp,
+                                        BusDvmt_Rc, BusDriverlessProp) {
+    Dvmt_TyRc <- rbind(LdvDvmt_Rc, HvyTrkDvmt_Rc, BusDvmt_Rc)
+    DvmtPropByTy_TyRc <- sweep(Dvmt_TyRc, 2, colSums(Dvmt_TyRc), "/")
+    DriverlessProp_Ty <- c(LdvDriverlessProp, HvyTrkDriverlessProp, BusDriverlessProp)
+    colSums(sweep(DvmtPropByTy_TyRc, 1, DriverlessProp_Ty, "*"))
+  }
+  
+  # DriverlessDvmtProp_Rc <- setNames(numeric(length(Rc)), Rc)
+  # DriverlessDvmtProp_Rc["Art"] <- calcAveDriverlessDvmtProp(L$Year$Marea$LdvFwyArtDvmt,
+  #                                                    L$Year$Marea$LdvDriverlessProp,
+  #                                                    L$Year$Marea$HvyTrkArtDvmt,
+  #                                                    L$Year$Marea$HvyTrkDriverlessProp,
+  #                                                    L$Year$Marea$BusArtDvmt,
+  #                                                    L$Year$Marea$BusDriverlessProp)
+  # DriverlessDvmtProp_Rc["Fwy"] <- calcAveDriverlessDvmtProp(L$Year$Marea$LdvFwyArtDvmt,
+  #                                                           L$Year$Marea$LdvDriverlessProp,
+  #                                                           L$Year$Marea$HvyTrkFwyDvmt,
+  #                                                           L$Year$Marea$HvyTrkDriverlessProp,
+  #                                                           L$Year$Marea$BusFwyDvmt,
+  #                                                           L$Year$Marea$BusDriverlessProp)
+  # DriverlessDvmtProp_Rc["Oth"] <- calcAveDriverlessDvmtProp(L$Year$Marea$LdvOthDvmt,
+  #                                                           L$Year$Marea$LdvDriverlessProp,
+  #                                                           L$Year$Marea$HvyTrkOthDvmt,
+  #                                                           L$Year$Marea$HvyTrkDriverlessProp,
+  #                                                           L$Year$Marea$BusOthDvmt,
+  #                                                           L$Year$Marea$BusDriverlessProp)
+  # 
+  # for (ma in Ma) {
+  #   SpeedAndDelay_ls[[ma]] <-
+  #     calculateSpeeds(OpsDeployment_MaOp[ma,], OtherOpsEffects_mx, DriverlessDvmtProp_Rc,
+  #                     DriverlessFactor_ls)
+  # }
+  # #Convert to matrices
+  # FwySpeed_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
+  #   x$Speed[,"Fwy"]
+  # }))
+  # ArtSpeed_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
+  #   x$Speed[,"Art"]
+  # }))
+  # FwyDelay_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
+  #   x$Delay[,"Fwy"]
+  # }))
+  # ArtDelay_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
+  #   x$Delay[,"Art"]
+  # }))
 
   #Make matrices of DVMT by metropolitan area, vehicle type and road class
   #-----------------------------------------------------------------------
@@ -1692,11 +1872,28 @@ CalculateRoadPerformance <- function(L) {
         calculateCongestion("Fwy", LaneMi_MaRc[ma,"Fwy"], Dvmt_Rc["Fwy"])
       ArtDvmt_Cl <-
         calculateCongestion("Art", LaneMi_MaRc[ma,"Art"], Dvmt_Rc["Art"])
+      #Calculate average driverless DVMT proportion by road class
+      DriverlessDvmtProp_Rc <- calcAveDriverlessDvmtProp(
+        LdvDvmt_Rc = LdvDvmt_Rc[c("Fwy", "Art")], 
+        LdvDriverlessProp = DriverlessDvmtProp_MaTy[ma, "Ldv"],
+        HvyTrkDvmt_Rc = HvyTrkDvmt_MaRc[ma, c("Fwy", "Art")],
+        HvyTrkDriverlessProp = DriverlessDvmtProp_MaTy[ma, "HvyTrk"],
+        BusDvmt_Rc = BusDvmt_MaRc[ma, c("Fwy", "Art")],
+        BusDriverlessProp = DriverlessDvmtProp_MaTy[ma, "Bus"])
+      #Calculate speed by congestion level
+      SpeedAndDelay_ls <-
+        calculateSpeeds(OpsDeployment_MaOp[ma,], OtherOpsEffects_mx, DriverlessDvmtProp_Rc,
+                        DriverlessFactor_ls)
+      #Convert to matrices
+      FwySpeed_Cl <- SpeedAndDelay_ls$Speed[,"Fwy"]
+      ArtSpeed_Cl <- SpeedAndDelay_ls$Speed[,"Art"]
+      FwyDelay_Cl <- SpeedAndDelay_ls$Delay[,"Fwy"]
+      ArtDelay_Cl <- SpeedAndDelay_ls$Delay[,"Art"]
       #Calculate equivalent average speed
       FwyAveSpeed <-
-        calcAveEqSpeed(FwyDvmt_Cl, FwySpeed_MaCl[ma,], FwyPrices_MaCl[ma,], VOT)
+        calcAveEqSpeed(FwyDvmt_Cl, FwySpeed_Cl, FwyPrices_MaCl[ma,], VOT)
       ArtAveSpeed <-
-        calcAveEqSpeed(ArtDvmt_Cl, ArtSpeed_MaCl[ma,], ArtPrices_MaCl[ma,], VOT)
+        calcAveEqSpeed(ArtDvmt_Cl, ArtSpeed_Cl, ArtPrices_MaCl[ma,], VOT)
     }
     Dvmt_VtRc <- rbind(
       Ldv = LdvDvmt_Rc,
@@ -1707,7 +1904,8 @@ CalculateRoadPerformance <- function(L) {
     colnames(Dvmt_VtRc) <- c("Fwy", "Art", "Oth")
     list(Dvmt_VtRc = Dvmt_VtRc,
          FwyDvmt_Cl = FwyDvmt_Cl,
-         ArtDvmt_Cl = ArtDvmt_Cl)
+         ArtDvmt_Cl = ArtDvmt_Cl,
+         SpeedAndDelay_ls = SpeedAndDelay_ls)
   }
 
   #If base year calculate LambdaAdj factor to match input ratio of freeway and
@@ -1769,11 +1967,11 @@ CalculateRoadPerformance <- function(L) {
   for (ma in Ma[Ma != "None"]) {
     AveSpeed_MaRc[ma, "Fwy"] <- calcAveSpd(
       Dvmt_Cl = BalanceResults_ls[[ma]]$FwyDvmt_Cl,
-      Spd_Cl = SpeedAndDelay_ls[[ma]]$Speed[,"Fwy"]
+      Spd_Cl = BalanceResults_ls[[ma]]$SpeedAndDelay_ls$Speed[,"Fwy"]
     )
     AveSpeed_MaRc[ma, "Art"] <- calcAveSpd(
       Dvmt_Cl = BalanceResults_ls[[ma]]$ArtDvmt_Cl,
-      Spd_Cl = SpeedAndDelay_ls[[ma]]$Speed[,"Art"]
+      Spd_Cl = BalanceResults_ls[[ma]]$SpeedAndDelay_ls$Speed[,"Art"]
     )
     AveSpeed_MaRc[ma, "Oth"] <- OthSpeed
   }
@@ -1796,11 +1994,11 @@ CalculateRoadPerformance <- function(L) {
   for (ma in Ma[Ma != "None"]) {
     AveDelay_MaRc[ma, "Fwy"] <- calcAveDly(
       Dvmt_Cl = BalanceResults_ls[[ma]]$FwyDvmt_Cl,
-      Spd_Cl = SpeedAndDelay_ls[[ma]]$Speed[,"Fwy"]
+      Spd_Cl = BalanceResults_ls[[ma]]$SpeedAndDelay_ls$Speed[,"Fwy"]
     )
     AveDelay_MaRc[ma, "Art"] <- calcAveDly(
       Dvmt_Cl = BalanceResults_ls[[ma]]$ArtDvmt_Cl,
-      Spd_Cl = SpeedAndDelay_ls[[ma]]$Speed[,"Art"]
+      Spd_Cl = BalanceResults_ls[[ma]]$SpeedAndDelay_ls$Speed[,"Art"]
     )
     AveDelay_MaRc[ma, "Oth"] <- 0
   }
@@ -1907,15 +2105,19 @@ CalculateRoadPerformance <- function(L) {
   #Average freeway speed by congestion level
   FwySpdByLevel_ls <-
     as.list(data.frame(
-      do.call(rbind, lapply(SpeedAndDelay_ls, function(x) x$Speed[,"Fwy"]))
+      do.call(rbind, lapply(BalanceResults_ls, function(x) x$SpeedAndDelay_ls$Speed[,"Fwy"]))
     ))
   names(FwySpdByLevel_ls) <- paste0("Fwy", names(FwySpdByLevel_ls), "CongSpeed")
+  FwySpdByLevel_ls <- lapply(FwySpdByLevel_ls,
+                             function(x) {names(x) <- unattr(Ma); x})
   #Average arterial speed by congestion level
   ArtSpdByLevel_ls <-
     as.list(data.frame(
-      do.call(rbind, lapply(SpeedAndDelay_ls, function(x) x$Speed[,"Art"]))
+      do.call(rbind, lapply(BalanceResults_ls, function(x) x$SpeedAndDelay_ls$Speed[,"Art"]))
     ))
   names(ArtSpdByLevel_ls) <- paste0("Art", names(ArtSpdByLevel_ls), "CongSpeed")
+  ArtSpdByLevel_ls <- lapply(ArtSpdByLevel_ls,
+                             function(x) {names(x) <- unattr(Ma); x})
 
   #Save performance measures
   #-------------------------
@@ -1970,6 +2172,12 @@ documentModule("CalculateRoadPerformance")
 # library(visioneval)
 # library(filesstrings)
 # source("tests/scripts/test_functions.R")
+# load("data/DvmtSplit_LM.rda")
+# load("data/BaseSpeeds_df.rda")
+# load("data/Ramp_df.rda")
+# load("data/Signal_df.rda")
+# load("data/Incident_df.rda")
+# load("data/Access_df.rda")
 # #Set up test environment
 # TestSetup_ls <- list(
 #   TestDataRepo = "../Test_Data/VE-RSPM",

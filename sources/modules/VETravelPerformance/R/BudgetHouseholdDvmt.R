@@ -343,6 +343,24 @@ BudgetHouseholdDvmtSpecifications <- list(
       ISELEMENTOF = c("Urban", "Town", "Rural")
     ),
     item(
+      NAME = "Dvmt",
+      TABLE = "Household",
+      GROUP = "Year",
+      TYPE = "compound",
+      UNITS = "MI/DAY",
+      PROHIBIT = c("NA", "< 0"),
+      ISELEMENTOF = ""
+    ),
+    item(
+      NAME = "DeadheadDvmtAdjProp",
+      TABLE = "Household",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      PROHIBIT = c("NA", "< 0", "> 1"),
+      ISELEMENTOF = ""
+    ),
+    item(
       NAME = "AveVehCostPM",
       TABLE = "Household",
       GROUP = "Year",
@@ -553,7 +571,6 @@ BudgetHouseholdDvmtSpecifications <- list(
   ),
   #Specify call status of module
   Call = items(
-    CalcDvmt = "CalculateHouseholdDvmt",
     ReduceDvmt = "ApplyDvmtReductions",
     CalcVehTrips = "CalculateVehicleTrips",
     CalcAltTrips = "CalculateAltModeTrips"
@@ -650,17 +667,20 @@ BudgetHouseholdDvmt <- function(L, M) {
   #Apply the DVMT model
   #-----------------------------------------------
   #Run the household DVMT model
-  Dvmt_Hh <- M$CalcDvmt(L$CalcDvmt)$Year$Household$Dvmt
+  Dvmt_Hh <- L$Year$Household$Dvmt
 
   #Calculate the budget-adjusted household DVMT
   #--------------------------------------------
   Adj_ls <- local({
+    #Calculate DVMT without car service deadhead miles
+    DhAdjProp <- L$Year$Household$DeadheadDvmtAdjProp
+    NoDhDvmt_Hh <- Dvmt_Hh * (1 - DhAdjProp)
     #Calculate budget based on the adjusted income
     VehOpBudget_Hh <- AdjIncome_Hh * BudgetProp_Hh
     #Calculate the DVMT which fits in budget given DVMT cost per mile
     BudgetDvmt_Hh <- VehOpBudget_Hh / L$Year$Household$AveVehCostPM / 365
     #Adjusted DVMT is the minimum of the 'budget' DVMT and 'modeled' DVMT
-    AdjDvmt_Hh <- pmin(BudgetDvmt_Hh, Dvmt_Hh)
+    AdjDvmt_Hh <- pmin(BudgetDvmt_Hh, NoDhDvmt_Hh)
     #Establish a lower minimum to avoid zero values
     MinDvmt <- quantile(AdjDvmt_Hh, 0.01)
     AdjDvmt_Hh[AdjDvmt_Hh < MinDvmt] <- MinDvmt
@@ -677,20 +697,21 @@ BudgetHouseholdDvmt <- function(L, M) {
     AdjDvmt_MaLt[is.na(AdjDvmt_MaLt)] <- 0
     #Return list of results
     list(
-      Dvmt_Hh = AdjDvmt_Hh,
-      UrbanDvmt = unname(AdjDvmt_MaLt[,"Urban"]),
-      TownDvmt = unname(AdjDvmt_MaLt[,"Town"]),
-      RuralDvmt = unname(AdjDvmt_MaLt[,"Rural"])
+      Dvmt_Hh = AdjDvmt_Hh * (1 + DhAdjProp),
+      UrbanDvmt = unname(AdjDvmt_MaLt[,"Urban"]) * (1 + DhAdjProp),
+      TownDvmt = unname(AdjDvmt_MaLt[,"Town"]) * (1 + DhAdjProp),
+      RuralDvmt = unname(AdjDvmt_MaLt[,"Rural"]) * (1 + DhAdjProp),
+      NoDhDvmt_Hh = AdjDvmt_Hh
     )
   })
 
   #Calculate household vehicle trips and alternative mode trips
   #------------------------------------------------------------
   #Calculate vehicle trips
-  L$CalcVehTrips$Year$Household$Dvmt <- Adj_ls$Dvmt_Hh
+  L$CalcVehTrips$Year$Household$Dvmt <- Adj_ls$NoDhDvmt_Hh
   VehicleTrips_Hh <- M$CalcVehTrips(L$CalcVehTrips)$Year$Household$VehicleTrips
   #Calculate alternative mode trips
-  L$CalcAltTrips$Year$Household$Dvmt <- Adj_ls$Dvmt_Hh
+  L$CalcAltTrips$Year$Household$Dvmt <- Adj_ls$NoDhDvmt_Hh
   AltTrips_ls <- M$CalcAltTrips(L$CalcAltTrips)$Year$Household
 
   #Return the results
@@ -742,15 +763,15 @@ documentModule("BudgetHouseholdDvmt")
 # )
 # setUpTests(TestSetup_ls)
 # #Run test module
-# TestDat_ <- testModule(
-#   ModuleName = "BudgetHouseholdDvmt",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
-#   DoRun = FALSE,
-#   RequiredPackages = "VEHouseholdTravel"
-# )
-# L <- TestDat_$L
-# M <- TestDat_$M
+TestDat_ <- testModule(
+  ModuleName = "BudgetHouseholdDvmt",
+  LoadDatastore = TRUE,
+  SaveDatastore = TRUE,
+  DoRun = FALSE,
+  RequiredPackages = "VEHouseholdTravel"
+)
+L <- TestDat_$L
+M <- TestDat_$M
 # R <- BudgetHouseholdDvmt(TestDat_$L, TestDat_$M)
 #
 # TestDat_ <- testModule(

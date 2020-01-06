@@ -163,41 +163,46 @@ PROHIBIT - Values that are prohibited. Values in the datastore do not meet any o
 
 ISELEMENTOF - Categorical values that are permitted. Values in the datastore are one or more of the listed values.
 
-|NAME                |TABLE |GROUP |TYPE      |UNITS      |PROHIBIT     |ISELEMENTOF |
-|:-------------------|:-----|:-----|:---------|:----------|:------------|:-----------|
-|Marea               |Marea |Year  |character |ID         |             |            |
-|FwySmooth           |Marea |Year  |double    |proportion |NA, < 0, > 1 |            |
-|ArtSmooth           |Marea |Year  |double    |proportion |NA, < 0, > 1 |            |
-|LdvFwyDvmt          |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|LdvArtDvmt          |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|LdvOthDvmt          |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|HvyTrkFwyDvmt       |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|HvyTrkArtDvmt       |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|HvyTrkOthDvmt       |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|BusFwyDvmt          |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|BusArtDvmt          |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|BusOthDvmt          |Marea |Year  |compound  |MI/DAY     |NA, < 0      |            |
-|FwyNoneCongSpeed    |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|FwyModCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|FwyHvyCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|FwySevCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|FwyExtCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|ArtNoneCongSpeed    |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|ArtModCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|ArtHvyCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|ArtSevCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|ArtExtCongSpeed     |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|OthSpd              |Marea |Year  |compound  |MI/HR      |< 0          |            |
-|FwyDvmtPropNoneCong |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|FwyDvmtPropModCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|FwyDvmtPropHvyCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|FwyDvmtPropSevCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|FwyDvmtPropExtCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|ArtDvmtPropNoneCong |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|ArtDvmtPropModCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|ArtDvmtPropHvyCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|ArtDvmtPropSevCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
-|ArtDvmtPropExtCong  |Marea |Year  |double    |proportion |< 0, > 1     |            |
+|NAME                 |TABLE                    |GROUP  |TYPE      |UNITS      |PROHIBIT     |ISELEMENTOF                                                                    |
+|:--------------------|:------------------------|:------|:---------|:----------|:------------|:------------------------------------------------------------------------------|
+|Measure              |DriverlessEffectAdjParam |Global |character |ID         |             |FwyRcrDelay, ArtRcrDelay, FwyNonRcrDelay, ArtNonRcrDelay, FwySmooth, ArtSmooth |
+|Beta                 |DriverlessEffectAdjParam |Global |integer   |integer    |             |1, 2, 3, 4, 5, 6, 7, 8, 9, 10                                                  |
+|Marea                |Marea                    |Year   |character |ID         |             |                                                                               |
+|FwySmooth            |Marea                    |Year   |double    |proportion |NA, < 0, > 1 |                                                                               |
+|ArtSmooth            |Marea                    |Year   |double    |proportion |NA, < 0, > 1 |                                                                               |
+|LdvFwyDvmt           |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|LdvArtDvmt           |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|LdvOthDvmt           |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|HvyTrkFwyDvmt        |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|HvyTrkArtDvmt        |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|HvyTrkOthDvmt        |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|BusFwyDvmt           |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|BusArtDvmt           |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|BusOthDvmt           |Marea                    |Year   |compound  |MI/DAY     |NA, < 0      |                                                                               |
+|FwyNoneCongSpeed     |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|FwyModCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|FwyHvyCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|FwySevCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|FwyExtCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|ArtNoneCongSpeed     |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|ArtModCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|ArtHvyCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|ArtSevCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|ArtExtCongSpeed      |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|OthSpd               |Marea                    |Year   |compound  |MI/HR      |< 0          |                                                                               |
+|FwyDvmtPropNoneCong  |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|FwyDvmtPropModCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|FwyDvmtPropHvyCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|FwyDvmtPropSevCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|FwyDvmtPropExtCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|ArtDvmtPropNoneCong  |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|ArtDvmtPropModCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|ArtDvmtPropHvyCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|ArtDvmtPropSevCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|ArtDvmtPropExtCong   |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|LdvDriverlessProp    |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|HvyTrkDriverlessProp |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
+|BusDriverlessProp    |Marea                    |Year   |double    |proportion |< 0, > 1     |                                                                               |
 
 ## Datasets Produced by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:

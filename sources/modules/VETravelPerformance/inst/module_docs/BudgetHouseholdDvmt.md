@@ -85,7 +85,7 @@ Coefficients:
 (Intercept)  4.09804    0.46071   8.895 2.35e-06 ***
 LogInc      -0.56182    0.04363 -12.876 5.62e-08 ***
 ---
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Residual standard error: 0.1878 on 11 degrees of freedom
 Multiple R-squared:  0.9378,	Adjusted R-squared:  0.9321 
@@ -148,26 +148,28 @@ PROHIBIT - Values that are prohibited. Values in the datastore do not meet any o
 
 ISELEMENTOF - Categorical values that are permitted. Values in the datastore are one or more of the listed values.
 
-|NAME           |TABLE     |GROUP |TYPE      |UNITS    |PROHIBIT |ISELEMENTOF        |
-|:--------------|:---------|:-----|:---------|:--------|:--------|:------------------|
-|Marea          |Marea     |Year  |character |ID       |         |                   |
-|Marea          |Household |Year  |character |ID       |         |                   |
-|HhId           |Household |Year  |character |ID       |NA       |                   |
-|HhSize         |Household |Year  |people    |PRSN     |NA, <= 0 |                   |
-|Income         |Household |Year  |currency  |USD.2001 |NA, < 0  |                   |
-|LocType        |Household |Year  |character |category |NA       |Urban, Town, Rural |
-|AveVehCostPM   |Household |Year  |currency  |USD.2001 |NA, < 0  |                   |
-|OwnCostSavings |Household |Year  |currency  |USD.2001 |NA, < 0  |                   |
-|HasPaydIns     |Household |Year  |integer   |binary   |         |0, 1               |
-|AveGPM         |Household |Year  |compound  |GGE/MI   |NA, < 0  |                   |
-|AveKWHPM       |Household |Year  |compound  |KWH/MI   |NA, < 0  |                   |
-|AveCO2ePM      |Household |Year  |compound  |GM/MI    |NA, < 0  |                   |
-|HhId           |Worker    |Year  |character |ID       |NA       |                   |
-|IsCashOut      |Worker    |Year  |integer   |binary   |         |0, 1               |
-|ParkingCost    |Worker    |Year  |currency  |USD.2001 |NA, < 0  |                   |
-|PaysForParking |Worker    |Year  |integer   |binary   |         |0, 1               |
-|HhId           |Vehicle   |Year  |character |ID       |NA       |                   |
-|InsCost        |Vehicle   |Year  |currency  |USD.2001 |NA, < 0  |                   |
+|NAME                |TABLE     |GROUP |TYPE      |UNITS      |PROHIBIT     |ISELEMENTOF        |
+|:-------------------|:---------|:-----|:---------|:----------|:------------|:------------------|
+|Marea               |Marea     |Year  |character |ID         |             |                   |
+|Marea               |Household |Year  |character |ID         |             |                   |
+|HhId                |Household |Year  |character |ID         |NA           |                   |
+|HhSize              |Household |Year  |people    |PRSN       |NA, <= 0     |                   |
+|Income              |Household |Year  |currency  |USD.2001   |NA, < 0      |                   |
+|LocType             |Household |Year  |character |category   |NA           |Urban, Town, Rural |
+|Dvmt                |Household |Year  |compound  |MI/DAY     |NA, < 0      |                   |
+|DeadheadDvmtAdjProp |Household |Year  |double    |proportion |NA, < 0, > 1 |                   |
+|AveVehCostPM        |Household |Year  |currency  |USD.2001   |NA, < 0      |                   |
+|OwnCostSavings      |Household |Year  |currency  |USD.2001   |NA, < 0      |                   |
+|HasPaydIns          |Household |Year  |integer   |binary     |             |0, 1               |
+|AveGPM              |Household |Year  |compound  |GGE/MI     |NA, < 0      |                   |
+|AveKWHPM            |Household |Year  |compound  |KWH/MI     |NA, < 0      |                   |
+|AveCO2ePM           |Household |Year  |compound  |GM/MI      |NA, < 0      |                   |
+|HhId                |Worker    |Year  |character |ID         |NA           |                   |
+|IsCashOut           |Worker    |Year  |integer   |binary     |             |0, 1               |
+|ParkingCost         |Worker    |Year  |currency  |USD.2001   |NA, < 0      |                   |
+|PaysForParking      |Worker    |Year  |integer   |binary     |             |0, 1               |
+|HhId                |Vehicle   |Year  |character |ID         |NA           |                   |
+|InsCost             |Vehicle   |Year  |currency  |USD.2001   |NA, < 0      |                   |
 
 ## Datasets Produced by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:

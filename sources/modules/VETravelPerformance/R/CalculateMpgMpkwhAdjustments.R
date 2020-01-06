@@ -380,6 +380,35 @@ CalculateMpgMpkwhAdjustmentsSpecifications <- list(
   #Specify data to be loaded from data store
   Get = items(
     item(
+      NAME = "Measure",
+      TABLE = "DriverlessEffectAdjParam",
+      GROUP = "Global",
+      TYPE = "character",
+      UNITS = "ID",
+      NAVALUE = "NA",
+      SIZE = 14,
+      PROHIBIT = "",
+      ISELEMENTOF = c(
+        "FwyRcrDelay",
+        "ArtRcrDelay",
+        "FwyNonRcrDelay",
+        "ArtNonRcrDelay",
+        "FwySmooth",
+        "ArtSmooth"
+      )
+    ),
+    item(
+      NAME = "Beta",
+      TABLE = "DriverlessEffectAdjParam",
+      GROUP = "Global",
+      TYPE = "integer",
+      UNITS = "integer",
+      NAVALUE = "NA",
+      SIZE = 0,
+      PROHIBIT = "",
+      ISELEMENTOF = c(1:10)
+    ),
+    item(
       NAME = "Marea",
       TABLE = "Marea",
       GROUP = "Year",
@@ -451,6 +480,18 @@ CalculateMpgMpkwhAdjustmentsSpecifications <- list(
         "ArtDvmtPropHvyCong",
         "ArtDvmtPropSevCong",
         "ArtDvmtPropExtCong"),
+      TABLE = "Marea",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      PROHIBIT = c("< 0", "> 1"),
+      ISELEMENTOF = ""
+    ),
+    item(
+      NAME = items(
+        "LdvDriverlessProp",
+        "HvyTrkDriverlessProp",
+        "BusDriverlessProp"),
       TABLE = "Marea",
       GROUP = "Year",
       TYPE = "double",
@@ -607,14 +648,46 @@ CalculateMpgMpkwhAdjustments <- function(L) {
   CongProp_MaClRc[,,"Oth"] <- array(0.2, dim = c(length(Ma), 5))
   #Calculate DVMT proportions by road class for each vehicle type
   DvmtNames_ <- c("FwyDvmt", "ArtDvmt", "OthDvmt")
+  Ma <- L$Year$Marea$Marea
+  Rc <- c("Fwy", "Art", "Oth")
   Vt <- c("Ldv", "HvyTrk", "Bus")
-  DvmtProp_ls <- lapply(Vt, function(x) {
-    Dvmt_MaRc <- as.matrix(data.frame(L$Year$Marea[paste0(x, DvmtNames_)]))
-    rownames(Dvmt_MaRc) <- Ma
-    colnames(Dvmt_MaRc) <- c("Fwy", "Art", "Oth")
-    sweep(Dvmt_MaRc, 1, rowSums(Dvmt_MaRc), "/")
-  })
+  #Calculate DVMT by Marea, road class, and vehicle type
+  Dvmt_MaRcVt <- 
+    array(0, dim = c(length(Ma), length(Rc), length(Vt)), dimnames = list(Ma, Rc, Vt))
+  for (vt in Vt) {
+    Dvmt_MaRcVt[,,vt] <- unlist(L$Year$Marea[paste0(vt, DvmtNames_)])
+  }
+  if(length(Ma) > 1){
+    DvmtProp_ls <- lapply(Vt, function(x) {
+      Dvmt_MaRc <- Dvmt_MaRcVt[,,x]
+      sweep(Dvmt_MaRc, 1, rowSums(Dvmt_MaRc), "/")
+    })
+  } else {
+    DvmtProp_ls <- lapply(Vt, function(x) {
+      Dvmt_MaRc <- Dvmt_MaRcVt[,,x]
+      Dvmt_MaRc <- t(as.matrix(Dvmt_MaRc))
+      rownames(Dvmt_MaRc) <- Ma
+      sweep(Dvmt_MaRc, 1, rowSums(Dvmt_MaRc), "/")
+    })
+  }
   names(DvmtProp_ls) <- Vt
+  
+  #Calculate average driverless DVMT proportions by Marea and road class
+  #----------------------------------------------------------------------
+  DriverlessDvmtProp_MaVt <- array(0, dim = c(length(Ma), length(Vt)), dimnames = list(Ma, Vt))
+  DriverlessDvmtProp_MaVt[,"Ldv"] <- L$Year$Marea$LdvDriverlessProp
+  DriverlessDvmtProp_MaVt[,"HvyTrk"] <- L$Year$Marea$HvyTrkDriverlessProp
+  DriverlessDvmtProp_MaVt[,"Bus"] <- L$Year$Marea$BusDriverlessProp
+  AveDriverlessDvmtProp_MaRc <- local({
+    AveDriverlessDvmtProp_MaRc <- array(0, dim = c(length(Ma), length(Rc)), dimnames = list(Ma, Rc))
+    for (ma in Ma) {
+      Dvmt_RcVt <- Dvmt_MaRcVt[ma,,]
+      DvmtPropByVt_RcVt <- sweep(Dvmt_RcVt, 1, rowSums(Dvmt_RcVt), "/")
+      DriverlessProp_Vt <- DriverlessDvmtProp_MaVt[ma,]
+      AveDriverlessDvmtProp_MaRc[ma,] <- rowSums(sweep(DvmtPropByVt_RcVt, 2, DriverlessProp_Vt, "*"))
+    }
+    AveDriverlessDvmtProp_MaRc
+  })
 
   #-------------------------------------------------------------------------
   #CALCULATE MAXIMUM SPEED-SMOOTH/ECO-DRIVE FACTORS AT EACH CONGESTION LEVEL
@@ -647,6 +720,28 @@ CalculateMpgMpkwhAdjustments <- function(L) {
   #-----------------------------------------------------
   #CALCULATE SPEED SMOOTHING ADJUSTMENTS BY VEHICLE TYPE
   #-----------------------------------------------------
+  #Calculate speed and delay by Marea and congestion level
+  DriverlessAdjParam_ <- (L$Global$DriverlessEffectAdjParam$Beta)
+  names(DriverlessAdjParam_) <- L$Global$DriverlessEffectAdjParam$Measure
+  effectAdj <- function(AdjBeta, DvmtProp = NULL){
+    function(DvmtProp){
+      (DvmtProp ^ AdjBeta)
+    }
+  }
+  DriverlessFactor_ls <- list(
+    Art = list(
+      Delay = list(Rcr = effectAdj(AdjBeta = DriverlessAdjParam_["ArtRcrDelay"]),
+                   NonRcr = effectAdj(AdjBeta = DriverlessAdjParam_["ArtNonRcrDelay"])
+      ),
+      Smooth = effectAdj(AdjBeta = DriverlessAdjParam_["ArtSmooth"])
+    ),
+    Fwy = list(
+      Delay = list(Rcr = effectAdj(AdjBeta = DriverlessAdjParam_["FwyRcrDelay"]),
+                   NonRcr = effectAdj(AdjBeta = DriverlessAdjParam_["FwyNonRcrDelay"])
+      ),
+      Smooth = effectAdj(AdjBeta = DriverlessAdjParam_["FwySmooth"])
+    )
+  )
   #Function calculates average speed smoothing adjustment by vehicle type
   calcAveSpdSmAdj <- function(vt, ma) {
     #Calculate DVMT proportions by Cl and Rc for each Marea
@@ -658,10 +753,22 @@ CalculateMpgMpkwhAdjustments <- function(L) {
       Fwy = L$Year$Marea$FwySmooth[L$Year$Marea$Marea == ma],
       Art = L$Year$Marea$ArtSmooth[L$Year$Marea$Marea == ma],
       Oth = 0
-    ) * 0.5
+    )
+    #If there is driverless DVMT apply the ajustment functions to 
+    #adjust speed smoothing fractions
+    AveDriverlessDvmtProp_Rc <- AveDriverlessDvmtProp_MaRc[ma,]
+    if (sum(AveDriverlessDvmtProp_Rc) != 0) {
+      SmoothFractions_Rc["Fwy"] <- 
+        SmoothFractions_Rc["Fwy"] * DriverlessFactor_ls[["Fwy"]][["Smooth"]](AveDriverlessDvmtProp_Rc["Fwy"])
+      SmoothFractions_Rc["Art"] <- 
+        SmoothFractions_Rc["Art"] * DriverlessFactor_ls[["Art"]][["Smooth"]](AveDriverlessDvmtProp_Rc["Art"])
+    }
+    
     #Calculate the smoothing factors from the maximum values for the vehicle
     #type and the smoothing fractions
-    SpdSmMaxFactor_ClRc <- SpdSmMaxFactors_ls[[vt]][ma,,]
+    #Maximum practical smoothing by congestion level and road class for the metropolitan area
+    SpdSmMaxFactor_ClRc <- SpdSmMaxFactors_ls[[vt]][ma,,] * 0.5
+    #Apply the smoothing fractions calculated above
     SpdSmFactor_ClRc <-
       sweep(SpdSmMaxFactor_ClRc, 2, SmoothFractions_Rc, "*") + 1
     #Calculate the weighted average factor

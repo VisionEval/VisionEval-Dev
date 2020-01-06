@@ -158,6 +158,31 @@ CalculateRoadDvmtSpecifications <- list(
       ISELEMENTOF = ""
     ),
     item(
+      NAME =
+        items(
+          "VehYear"),
+      TABLE = "RegionDriverlessProps",
+      GROUP = "Global",
+      TYPE = "time",
+      UNITS = "YR",
+      PROHIBIT = "NA",
+      ISELEMENTOF = ""
+    ),
+    item(
+      NAME =
+        items(
+          "ComSvcDriverlessProp",
+          "HvyTrkDriverlessProp",
+          "PtVanDriverlessProp",
+          "BusDriverlessProp"),
+      TABLE = "RegionDriverlessProps",
+      GROUP = "Global",
+      TYPE = "double",
+      UNITS = "proportion",
+      PROHIBIT = c("< 0", "> 1"),
+      ISELEMENTOF = ""
+    ),
+    item(
       NAME = "Marea",
       TABLE = "Marea",
       GROUP = "Year",
@@ -241,6 +266,15 @@ CalculateRoadDvmtSpecifications <- list(
       ISELEMENTOF = ""
     ),
     item(
+      NAME = "DriverlessDvmtProp",
+      TABLE = "Household",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      PROHIBIT = c("NA", "< 0", "> 1"),
+      ISELEMENTOF = ""
+    ),
+    item(
       NAME = "HvyTrkDvmtIncomeFactor",
       TABLE = "Region",
       GROUP = "Global",
@@ -307,6 +341,50 @@ CalculateRoadDvmtSpecifications <- list(
   ),
   #Specify data to saved in the data store
   Set = items(
+    item(
+      NAME = "LdvDriverlessProp",
+      TABLE = "Marea",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      SIZE = 0,
+      PROHIBIT = c("< 0", "> 1"),
+      ISELEMENTOF = "",
+      DESCRIPTION = "Proportion of DVMT of light duty vehicles that is driverless for households in each Marea."
+    ),
+    item(
+      NAME = "HvyTrkDriverlessProp",
+      TABLE = "Marea",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      SIZE = 0,
+      PROHIBIT = c("< 0", "> 1"),
+      ISELEMENTOF = "",
+      DESCRIPTION = "Proportion of DVMT of heavy trucks that is driverless in each Marea."
+    ),
+    item(
+      NAME = "BusDriverlessProp",
+      TABLE = "Marea",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      SIZE = 0,
+      PROHIBIT = c("< 0", "> 1"),
+      ISELEMENTOF = "",
+      DESCRIPTION = "Proportion of DVMT of Bus that is driverless in each Marea."
+    ),
+    item(
+      NAME = "AveDriverlessProp",
+      TABLE = "Marea",
+      GROUP = "Year",
+      TYPE = "double",
+      UNITS = "proportion",
+      SIZE = 0,
+      PROHIBIT = c("< 0", "> 1"),
+      ISELEMENTOF = "",
+      DESCRIPTION = "Placeholder. Do not have a description at the moment."
+    ),
     item(
       NAME = "HvyTrkDvmt",
       TABLE = "Region",
@@ -795,6 +873,54 @@ CalculateRoadDvmt <- function(L) {
     Out_ls$Year$Region$HvyTrkUrbanDvmt <- HvyTrkUrbanDvmt
     Out_ls$Year$Region$HvyTrkNonUrbanDvmt <- HvyTrkNonUrbanDvmt
   }
+  
+  #Calculate driverless DVMT proportions for ComSvc, HvyTrk, PtVan, and Bus
+  #------------------------------------------------------------------------
+  Year <- L$G$Year
+  RegionDriverlessProps_df <- data.frame(L$Global$RegionDriverlessProps)
+  RegionDriverlessProps_df[,"VehYear"] <- as.integer(gsub("\\.\\d+","",
+                                                     RegionDriverlessProps_df[,"VehYear"]))
+  approxWithNaCheck <- function(Years_, Values_, Year) {
+    YearDiff_ <- abs(Years_ - Year)
+    if (any(YearDiff_ == 0)) {
+      Values_[which(YearDiff_ == 0)]
+    } else {
+      Min2Vals_ <-sort(YearDiff_)[1:2]
+      YearBnds_ <- which(YearDiff_ %in% Min2Vals_)
+      if (any(is.na(Values_[YearBnds_]))) {
+        BndValues_ <- Values_[YearBnds_]
+        if (all(is.na(BndValues_))) {
+          NA
+        } else {
+          BndValues_[!is.na(BndValues_)]
+        }
+        BndValues_[!is.na(BndValues_)]
+      } else {
+        approx(Years_, Values_, Year)$y
+      }
+    }
+  }
+  
+  #Calculate dirverless DVMT proportion using approximation function for model year
+  RegionDriverlessProps_ <- c(
+    ComSvc = approxWithNaCheck(RegionDriverlessProps_df$VehYear,
+                               RegionDriverlessProps_df$ComSvcDriverlessProp,
+                               as.numeric(Year)),
+    HvyTrk = approxWithNaCheck(RegionDriverlessProps_df$VehYear,
+                               RegionDriverlessProps_df$HvyTrkDriverlessProp,
+                               as.numeric(Year)),
+    PtVan = approxWithNaCheck(RegionDriverlessProps_df$VehYear,
+                               RegionDriverlessProps_df$PtVanDriverlessProp,
+                               as.numeric(Year)),
+    Bus = approxWithNaCheck(RegionDriverlessProps_df$VehYear,
+                               RegionDriverlessProps_df$BusDriverlessProp,
+                               as.numeric(Year))
+  )
+  
+  #Assign values to the output list
+  Out_ls$Year$Marea$HvyTrkDriverlessProp <- unattr(RegionDriverlessProps_["HvyTrk"])
+  Out_ls$Year$Marea$BusDriverlessProp <- unattr(RegionDriverlessProps_["Bus"])
+  
 
   #Calculate ComSvc prediction factors and DVMT
   #--------------------------------------------
@@ -865,6 +991,33 @@ CalculateRoadDvmt <- function(L) {
     LdvUrbanRoadProp_Ma <- L$Global$Marea$LdvUrbanRoadProp
     UrbanLdvDvmt_Ma <- DvmtDemand_Ma * LdvUrbanRoadProp_Ma + L$Year$Marea$VanDvmt
   }
+  
+  #Calculate household driverless DVMT proportion for each Marea
+  ComSvcDriverlessProp <- unattr(RegionDriverlessProps_["ComSvc"])
+  PtVanDriverlessProp <- unattr(RegionDriverlessProps_["PtVan"])
+  HhDriverlessDvmtProp_Ma <- setNames(numeric(length(Ma)), Ma)
+  for (ma in Ma) {
+    HhDriverlessDvmtProp_Ma[ma] <- local({
+      IsMa <- L$Year$Household$Marea == ma
+      Dvmt_Hh <- L$Year$Household$Dvmt[IsMa]
+      DriverlessProp_Hh <- L$Year$Household$DriverlessDvmtProp[IsMa]
+      sum(DriverlessProp_Hh * Dvmt_Hh) / sum(Dvmt_Hh)
+    })
+  }
+  HhDvmtWts_Ma <- HhDvmt_Ma * LdvUrbanRoadProp_Ma / UrbanLdvDvmt_Ma
+  ComSvcDvmtWts_Ma <- ComSvcDvmt_Ma * LdvUrbanRoadProp_Ma / UrbanLdvDvmt_Ma
+  PtVanDvmtWts_Ma <- L$Year$Marea$VanDvmt / UrbanLdvDvmt_Ma
+  LdvDriverlessProp_Ma <-  HhDriverlessDvmtProp_Ma * HhDvmtWts_Ma + 
+    ComSvcDriverlessProp * ComSvcDvmtWts_Ma + 
+    PtVanDriverlessProp * PtVanDvmtWts_Ma
+  #Assign values to outputs list
+  Out_ls$Year$Marea$LdvDriverlessProp <- LdvDriverlessProp_Ma
+  
+  #Calculate average driverless proportion (placeholder)
+  #-----------------------------------------------------
+  #Assign values to outputs list
+  #TODO
+  Out_ls$Year$Marea$AveDriverlessProp <- 0
 
   #Calculate household proportion of DVMT on urban roads
   #-----------------------------------------------------
@@ -943,8 +1096,18 @@ documentModule("CalculateRoadDvmt")
 #   # SaveDatastore = TRUE
 #   SaveDatastore = FALSE
 # )
+# #Define test setup parameters
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-RSPM",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "verspm",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
 # setUpTests(TestSetup_ls)
-# #Run test module
+#Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "CalculateRoadDvmt",
 #   LoadDatastore = TRUE,

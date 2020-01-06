@@ -85,7 +85,7 @@ If a value other than NA is provided in the `UzaNameLookup` field of the `marea_
 |Boise City/ID                           |Coeur d'Alene/ID                       |Idaho Falls/ID                                 |
 |Lewiston/ID                             |Nampa/ID                               |Pocatello/ID                                   |
 |Bloomington--Normal/IL                  |Champaign/IL                           |Chicago/IL                                     |
-|Danville/IL                             |DeKalb/IL                              |Decatur/IL                                     |
+|Danville/IL                             |Decatur/IL                             |DeKalb/IL                                      |
 |Kankakee/IL                             |Peoria/IL                              |Rockford/IL                                    |
 |Round Lake Beach--McHenry--Grayslake/IL |Springfield/IL                         |Anderson/IN                                    |
 |Bloomington/IN                          |Columbus/IN                            |Elkhart/IN                                     |
@@ -252,13 +252,13 @@ DESCRIPTION - A description of the data.
 ### other_ops_effectiveness.csv
 This input file is OPTIONAL.
 
-|   |NAME       |TYPE      |UNITS      |PROHIBIT   |ISELEMENTOF              |UNLIKELY |DESCRIPTION                                                                                                                                   |
-|:--|:----------|:---------|:----------|:----------|:------------------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------------------|
-|23 |Level      |character |category   |           |None, Mod, Hvy, Sev, Ext |         |Congestion levels: None = none, Mod = moderate, Hvy = heavy, Sev = severe, Ext = extreme                                                      |
-|24 |Art_Rcr    |double    |percentage |< 0, > 100 |                         |         |Percentage reduction of recurring arterial delay that would occur with full deployment of other user-defined arterial operations measures     |
-|25 |Art_NonRcr |double    |percentage |< 0, > 100 |                         |         |Percentage reduction of non-recurring arterial delay that would occur with full deployment of other user-defined arterial operations measures |
-|26 |Fwy_Rcr    |double    |percentage |< 0, > 100 |                         |         |Percentage reduction of recurring freeway delay that would occur with full deployment of other user-defined freeway operations measures       |
-|27 |Fwy_NonRcr |double    |percentage |< 0, > 100 |                         |         |Percentage reduction of non-recurring freeway delay that would occur with full deployment of other user-defined freeway operations measures   |
+|   |NAME       |TYPE      |UNITS      |PROHIBIT |ISELEMENTOF              |UNLIKELY |DESCRIPTION                                                                                                                                   |
+|:--|:----------|:---------|:----------|:--------|:------------------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------------------|
+|23 |Level      |character |category   |         |None, Mod, Hvy, Sev, Ext |         |Congestion levels: None = none, Mod = moderate, Hvy = heavy, Sev = severe, Ext = extreme                                                      |
+|24 |Art_Rcr    |double    |percentage |NA       |                         |         |Percentage reduction of recurring arterial delay that would occur with full deployment of other user-defined arterial operations measures     |
+|25 |Art_NonRcr |double    |percentage |NA       |                         |         |Percentage reduction of non-recurring arterial delay that would occur with full deployment of other user-defined arterial operations measures |
+|26 |Fwy_Rcr    |double    |percentage |NA       |                         |         |Percentage reduction of recurring freeway delay that would occur with full deployment of other user-defined freeway operations measures       |
+|27 |Fwy_NonRcr |double    |percentage |NA       |                         |         |Percentage reduction of non-recurring freeway delay that would occur with full deployment of other user-defined freeway operations measures   |
 ### marea_congestion_charges.csv
 |   |NAME           |TYPE     |UNITS |PROHIBIT |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                         |
 |:--|:--------------|:--------|:-----|:--------|:-----------|:--------|:---------------------------------------------------------------------------------------------------|
