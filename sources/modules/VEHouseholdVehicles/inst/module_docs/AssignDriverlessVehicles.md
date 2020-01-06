@@ -30,8 +30,8 @@ DESCRIPTION - A description of the data.
 |NAME                     |TYPE   |UNITS      |PROHIBIT |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                                                                                                                |
 |:------------------------|:------|:----------|:--------|:-----------|:--------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |VehYear                  |time   |YR         |NA, < 0  |            |         |The year represents the vehicle model year for household vehicles (automobile and light truck) and operation year for car service vehicles, commercial service vehicles, and heavy trucks. |
-|AutoDriverlessProp       |double |proportion |NA, < 0  |            |> 1.5    |The proportion of automobiles sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                            |
-|LtTrkDriverlessProp      |double |proportion |NA, < 0  |            |> 1.5    |The proportion of light trucks sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                           |
+|AutoSalesDriverlessProp  |double |proportion |NA, < 0  |            |> 1.5    |The proportion of automobiles sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                            |
+|LtTrkSalesDriverlessProp |double |proportion |NA, < 0  |            |> 1.5    |The proportion of light trucks sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                           |
 |LowCarSvcDriverlessProp  |double |proportion |NA, < 0  |            |> 1.5    |The proportion of the car service fleet DVMT in low car service areas in the corresponding year that are driverless. Values for intervening years are interpolated                         |
 |HighCarSvcDriverlessProp |double |proportion |NA, < 0  |            |> 1.5    |The proportion of the car service fleet DVMT in high car service areas in the corresponding year that are driverless. Values for intervening years are interpolated                        |
 |ComSvcDriverlessProp     |double |proportion |NA, < 0  |            |> 1.5    |The proportion of the commercial service vehicle fleet DVMT in the corresponding year that are driverless. Values for intervening years are interpolated.                                  |
@@ -59,8 +59,8 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 |NAME                     |TABLE                 |GROUP  |TYPE      |UNITS      |PROHIBIT |ISELEMENTOF                |
 |:------------------------|:---------------------|:------|:---------|:----------|:--------|:--------------------------|
 |VehYear                  |RegionDriverlessProps |Global |time      |YR         |NA, < 0  |                           |
-|AutoDriverlessProp       |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|LtTrkDriverlessProp      |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
+|AutoSalesDriverlessProp  |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
+|LtTrkSalesDriverlessProp |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
 |LowCarSvcDriverlessProp  |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
 |HighCarSvcDriverlessProp |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
 |ComSvcDriverlessProp     |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |

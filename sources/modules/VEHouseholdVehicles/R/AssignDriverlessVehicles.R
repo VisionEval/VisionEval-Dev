@@ -62,8 +62,8 @@ AssignDriverlessVehiclesSpecifications <- list(
     item(
       NAME =
         items(
-          "AutoDriverlessProp",
-          "LtTrkDriverlessProp"),
+          "AutoSalesDriverlessProp",
+          "LtTrkSalesDriverlessProp"),
       FILE = "region_driverless_vehicle_prop.csv",
       TABLE = "RegionDriverlessProps",
       GROUP = "Global",
@@ -146,8 +146,8 @@ AssignDriverlessVehiclesSpecifications <- list(
     item(
       NAME =
         items(
-          "AutoDriverlessProp",
-          "LtTrkDriverlessProp"),
+          "AutoSalesDriverlessProp",
+          "LtTrkSalesDriverlessProp"),
       TABLE = "RegionDriverlessProps",
       GROUP = "Global",
       TYPE = "double",
@@ -358,14 +358,14 @@ AssignDriverlessVehicles <- function(L) {
   OwnedAuto_ <- VehType_ == "Auto" & CarSvcLvl_ == "Own"
   VehDriverlessProp_[OwnedAuto_] <- approx(as.numeric(RegionDriverlessPropByYear_df$VehYear),
                                            as.numeric(
-                                             RegionDriverlessPropByYear_df$AutoDriverlessProp),
+                                             RegionDriverlessPropByYear_df$AutoSalesDriverlessProp),
                                            VehYear_[OwnedAuto_],
                                            yleft = 0)$y
   
   OwnedLtTrk_ <- VehType_ == "LtTrk" & CarSvcLvl_ == "Own"
   VehDriverlessProp_[OwnedLtTrk_] <- approx(as.numeric(RegionDriverlessPropByYear_df$VehYear),
                                            as.numeric(
-                                             RegionDriverlessPropByYear_df$LtTrkDriverlessProp),
+                                             RegionDriverlessPropByYear_df$LtTrkSalesDriverlessProp),
                                            VehYear_[OwnedLtTrk_],
                                            yleft = 0)$y
   OwnedVeh_ <- OwnedAuto_ | OwnedLtTrk_
