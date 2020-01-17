@@ -106,7 +106,7 @@
 #
 #* The adjusted household income is multiplied by the maximum operating cost proportion to calculate the household operating cost budget.
 #
-#* The CalculateHouseholdDvmt module is run to calculate household DVMT.
+#* The DVMT for budget consideration is modeled by removing deadhead mileage from the DVMT calculated in CalculateVehicleOperatingCost.
 #
 #* The modeled DVMT is compared to the maximum DVMT that the household would travel given the calculated operating cost budget and the average operating cost per vehicle mile calculated by the 'CalculateVehicleOperatingCost' module. If the modeled DVMT is greater than the DVMT that could be traveled within the household budget, the DVMT which fits the budget is substituted for the modeled DVMT. The ApplyDvmtReductions models are run to adjust household DVMT to account for travel demand management programs and user assumptions regarding diversion of single-occupant vehicle travel to bicycles, electric bicycles, scooters, etc.
 #
@@ -690,7 +690,7 @@ BudgetHouseholdDvmt <- function(L, M) {
     #Calculate adjusted urban and rural DVMT by Marea and location type
     AdjDvmt_MaLt <- array(0, dim = c(length(Ma), length(Lt)), dimnames = list(Ma, Lt))
     AdjDvmt_MxLx <- tapply(
-      AdjDvmt_Hh,
+      AdjDvmt_Hh * (1 + DhAdjProp),
       list(L$Year$Household$Marea, L$Year$Household$LocType),
       sum)
     AdjDvmt_MaLt[rownames(AdjDvmt_MxLx), colnames(AdjDvmt_MxLx)] <- AdjDvmt_MxLx
@@ -698,9 +698,9 @@ BudgetHouseholdDvmt <- function(L, M) {
     #Return list of results
     list(
       Dvmt_Hh = AdjDvmt_Hh * (1 + DhAdjProp),
-      UrbanDvmt = unname(AdjDvmt_MaLt[,"Urban"]) * (1 + DhAdjProp),
-      TownDvmt = unname(AdjDvmt_MaLt[,"Town"]) * (1 + DhAdjProp),
-      RuralDvmt = unname(AdjDvmt_MaLt[,"Rural"]) * (1 + DhAdjProp),
+      UrbanDvmt = unname(AdjDvmt_MaLt[,"Urban"]),
+      TownDvmt = unname(AdjDvmt_MaLt[,"Town"]),
+      RuralDvmt = unname(AdjDvmt_MaLt[,"Rural"]),
       NoDhDvmt_Hh = AdjDvmt_Hh
     )
   })
@@ -763,15 +763,15 @@ documentModule("BudgetHouseholdDvmt")
 # )
 # setUpTests(TestSetup_ls)
 # #Run test module
-TestDat_ <- testModule(
-  ModuleName = "BudgetHouseholdDvmt",
-  LoadDatastore = TRUE,
-  SaveDatastore = TRUE,
-  DoRun = FALSE,
-  RequiredPackages = "VEHouseholdTravel"
-)
-L <- TestDat_$L
-M <- TestDat_$M
+# TestDat_ <- testModule(
+#   ModuleName = "BudgetHouseholdDvmt",
+#   LoadDatastore = TRUE,
+#   SaveDatastore = TRUE,
+#   DoRun = FALSE,
+#   RequiredPackages = "VEHouseholdTravel"
+# )
+# L <- TestDat_$L
+# M <- TestDat_$M
 # R <- BudgetHouseholdDvmt(TestDat_$L, TestDat_$M)
 #
 # TestDat_ <- testModule(

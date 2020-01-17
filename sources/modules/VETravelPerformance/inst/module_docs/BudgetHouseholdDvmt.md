@@ -85,7 +85,7 @@ Coefficients:
 (Intercept)  4.09804    0.46071   8.895 2.35e-06 ***
 LogInc      -0.56182    0.04363 -12.876 5.62e-08 ***
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 0.1878 on 11 degrees of freedom
 Multiple R-squared:  0.9378,	Adjusted R-squared:  0.9321 
@@ -121,7 +121,7 @@ The module calculates the household operating cost budget and adjusts household 
 
 * The adjusted household income is multiplied by the maximum operating cost proportion to calculate the household operating cost budget.
 
-* The CalculateHouseholdDvmt module is run to calculate household DVMT.
+* The DVMT for budget consideration is modeled by removing deadhead mileage from the DVMT calculated in CalculateVehicleOperatingCost.
 
 * The modeled DVMT is compared to the maximum DVMT that the household would travel given the calculated operating cost budget and the average operating cost per vehicle mile calculated by the 'CalculateVehicleOperatingCost' module. If the modeled DVMT is greater than the DVMT that could be traveled within the household budget, the DVMT which fits the budget is substituted for the modeled DVMT. The ApplyDvmtReductions models are run to adjust household DVMT to account for travel demand management programs and user assumptions regarding diversion of single-occupant vehicle travel to bicycles, electric bicycles, scooters, etc.
 

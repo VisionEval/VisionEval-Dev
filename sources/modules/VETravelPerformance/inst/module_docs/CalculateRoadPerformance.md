@@ -251,6 +251,22 @@ Where:
 
 The module applies this function to calculate the rural to urban road speed ratio from the rural to urban household speed ratio derived from the NHTS and the respective proportions of household DVMT on urban roadways for rural and urban households. The ratio, calculated by marea, is then applied to the average urban LDV speed calculated for the marea to derive the average rural LDV speed. Some guards are applied to assure that the results are sensible because some combinations of rural and urban household DVMT proportions (however unlikely) can produce road speed ratios that result in unlikely average rural road speeds.
 
+### Model to calculate the effect of driverless vehicles on congestion metrics.
+
+The AV models for adjusting delay and speed smoothing, have inputs in the other_ops_effectiveness.csv and marea_speed_smooth_ecodrive.csv files which specify assumptions regarding the adjustments with 100% driverless DVMT. The model applies a function which adjusts those values based on the proportion of DVMT that is driverless. The form of this function is:
+
+![](driverless_effect_adj_eq4.png)
+
+**Equation 4. Calculation of effect of driverless vehicles**
+
+Where:
+
+* *MAXDELAY* = delay assuming 100% driverless DVMT
+* *PROPDRIVERLESSDVMT* = proportion of DVMT that is in driverless vehicles
+* *BETA* = exponential smoothing parameter
+
+If BETA has a value of 1, the relationship is linear. The higher the value of BETA the less the incremental effect at lower driverless DVMT proportions and the greater the effect at higher driverless DVMT proportions.
+
 ## How the Module Works
 
 This module models traffic congestion in urbanized areas and the effects of congestion on vehicle speeds and delays. In the process, it splits the freeway-arterial light-duty vehicle (LDV) DVMT forecast into freeway and arterial components as a function of the respective speeds and congestion charges on freeways and arterials. Outputs of the module include the following:
@@ -267,6 +283,8 @@ Following are the procedures the module caries out:
 
 * **Calculate speed and delay by congestion level**: The speed and delay models described above are applied to calculate speed and delay by congestion level on urban freeways and arterials in the urban portion of each marea (i.e. the urbanized area) considering the deployment of operations programs.
 
+* **Adjust speed and delay by road class after considering the effect of driverless vehicles**: The speed and delay calculated above are adjusted by a factor calculated as an exponential function of proportion of DVMT that are driverless.
+
 * **Load and structure data on DVMT and prices**: Urban DVMT data by vehicle type (LDV, heavy truck, bus) and marea is loaded from the datastore and structured to facilitate computation. Similarly congestion pricing data is loaded and structured.
 
 * **Define function to calculate average equivalent speed**: Since both average speeds and pricing affect the balance of LDV DVMT on freeways and arterials, the two need to be represented in equivalent terms. The function which does this does the following to create a composite value for freeways or arterials when supplied the necessary data:
@@ -277,7 +295,7 @@ Following are the procedures the module caries out:
 
  * The sum of DVHT and the DVHT equivalent of congestion pricing is divided into the DVMT to arrive at the equivalent average speed.
 
-* **Define function to calculate freeway and arterial congestion and split LDV DVMT**: Since relative speeds affect the split of LDV DVMT between freeways and arterials and since those speeds are affected by how the split effects congestion, the calculations are performed iteratively until an equilibrium condition is achieved. That is determined to have happened when the freeway to arterial DVMT ratio changes by less than 0.01% from iteration to iteration. The iterations are started with the assumption that average freeway speeds and average arterial speeds are the respective uncongested speeds (Table 1). The steps in each iteration are as follows:
+* **Define function to calculate freeway and arterial congestion and split LDV DVMT**: Since relative speeds affect the split of LDV DVMT between freeways and arterials and since those speeds are affected by the proportion of vehicles that are driverless and how the split effects congestion, the calculations are performed iteratively until an equilibrium condition is achieved. That is determined to have happened when the freeway to arterial DVMT ratio changes by less than 0.01% from iteration to iteration. The iterations are started with the assumption that average freeway speeds and average arterial speeds are the respective uncongested speeds (Table 1). The steps in each iteration are as follows:
 
  * The LDV DVMT split model is applied to calculate the freeway and arterial components of LDV DVMT.
 
@@ -286,6 +304,10 @@ Following are the procedures the module caries out:
  * The freeway-arterial DVMT ratio is calculated and compared with the ratio calculated in the previous iteration. If it differs by less than 0.01% the iterations stop. In the first iteration, the DVMT ratio is compared to 1.
 
  * The freeway and arterial congestion models are used to split freeway DVMT by congestion level and split arterial DVMT by congestion level.
+
+ * The proportion of DVMT that is driverless is calculated for freeway and arterial lanes.
+
+ * The speed and delay by road class is recalculated after adjusting for the effect of driverless vehicles as done earlier.
 
  * The average equivalent freeway speed and the average equivalent arterial speed are calculated using the function described above.
 

@@ -7,8 +7,18 @@
 ## CalculateHhVehicleOperatingCosts Module
 #### January 23, 2019
 #
-#This module calculates vehicle operating costs per mile of travel and uses those costs to determine the proportional split of DVMT among household vehicles. The module also calculates the average out-of-pocket costs per mile of vehicle travel by household, as well as the cost of social and environmental impacts, and road use taxes per mile of vehicle travel.
+#This module calculates vehicle operating costs per mile of travel and uses those costs to determine the proportional split of DVMT among household vehicles. The module also calculates the average out-of-pocket costs per mile of vehicle travel by household, as well as the cost of social and environmental impacts, and road use taxes per mile of vehicle travel. Three operating costs are calculated:
 #
+#* *Out-of-pocket cost* to use the vehicle including fuel (energy), maintenance/tires/repairs, road use taxes, pollution taxes (e.g. carbon tax), parking charges, and pay-as-you-drive insurance cost;
+#* *Social/environmental costs* including air pollution, water pollution, and energy security costs; and,
+#* *Composite cost* which is the sum of the out-of-pocket cost and the monetary equivalent for the time spend accessing and traveling in the vehicle. The module reflects the presence of driverless vehicles by adjusting these costs.
+#
+# The effect of driverless vehicles on these costs are accounted by allowing the following for driverless vehicles:
+#* lower travel time disutility;
+#* lower access time;
+#* parking fee avoidance;
+#* additional DVMT; and
+#* deadhead mileage for car services.
 #
 ### Model Parameter Estimation
 #
@@ -62,6 +72,31 @@
 #*  *DVMT* is the average daily vehicle miles traveled of the household
 #*  *VOT* is the value-of-time (a model parameter)
 #
+# The equivalent travel time unit cost for driverless vehicles are calculated by making following adjustments to the above equation
+#
+#* Adjusting the utility of travel time
+#
+#![](driverless_run_time_utility.png)
+#
+#**Equation 4. Adjustment of travel time utility for dirverless vehicles**
+#
+#Where:
+#*  *AveSpeed* is the average vehicle travel speed (miles per hour) calculated for the household
+#*  *RunTimeUtilityAdj* is the travel time utility adjustment for driverless vehicles provided by user as input in *region_driverless_vehicle_parameters.csv*
+#
+#* Adjusting the access time utility
+#
+#![](driverless_access_time_utility.png)
+#
+#**Equation 5. Adjustment of access time utility for dirverless vehicles**
+#
+#Where:
+#*  *AccessTime* is the average amount of time spent on each end of the vehicle trip to get from the origin to the vehicle and from the vehicle to the destination (user input for household vehicles and car service vehicles by service level)
+#*  *Trips* is the average number of daily vehicle trips of the household
+#*  *DVMT* is the average daily vehicle miles traveled of the household
+#*  *PropRemoteAccess* is the proportion of trips in driverless vehicles that are remotely controlled provided by user as input in *region_driverless_vehicle_parameters.csv* 
+#*  *AccessTimeUtilityAdj* is the access time utility adjustment for dirverless vehicles provided by user as input in *region_driverless_vehicle_parameters.csv*
+#
 #The values of *X* and *Y*, the miles traveled by each vehicle, are calculated by determining the values that maximize utility subject to the budget constraint. The calculation is simplified by assuming that the values of *a* and *b* are 1. In other words, it is assumed that all household vehicles provide that same travel utility to the household independent of price. Factors like comfort, convenience, performance, dependability, and style that may affect percieved utility are not considered for the following reasons:
 #
 #*  The model includes a limited number of vehicle characteristics (auto or light truck, age, powertrain) that may be weakly related to the vehicle attributes that affect perceived vehicle utility; and,
@@ -74,41 +109,41 @@
 #
 #![](mrs_eq4.png)
 #
-#**Equation 4. Marginal Rate of Substitution and Price Ratio**
+#**Equation 6. Marginal Rate of Substitution and Price Ratio**
 #
 #The implication of Equation 4 is that the utility of using the 2 household vehicles will be maximized when the value of *X* times the price of *X* is equal to the value of *Y* times the price of *Y*:
 #
 #![](quantity_price_relationship_eq5.png)
 #
-#**Equation 5. Quantity-Price Relationship Which Maximizes Utility**
+#**Equation 7. Quantity-Price Relationship Which Maximizes Utility**
 #
 #The values of *X* and *Y* can be replaced by a constant *K* times the reciprocal of the price so that the equality is shown in Equation 6 and Equation 7:
 #
 #![](reciprocal_price_relation_eq6.png)
 #
-#**Equation 6. Utility Maximizing Quantity Replaced by Constant and Reciprocal of Price**
+#**Equation 8. Utility Maximizing Quantity Replaced by Constant and Reciprocal of Price**
 #
 #![](reciprocal_price_relation_eq7.png)
 #
-#**Equation 7. Replacing Reciprocal of Price**
+#**Equation 9. Replacing Reciprocal of Price**
 #
 #Given that the DVMT of each vehicle can be calculated as a constant multiplied by a reciprocal of price, total DVMT (*T*) is calculated as follows:
 #
 #![](total_dvmt_eq8.png)
 #
-#**Equation 8. Total DVMT of 2-Vehicle Household**
+#**Equation 10. Total DVMT of 2-Vehicle Household**
 #
 #The proportion of DVMT allocated to each vehicle is therefore the ratio of *K* and *T* times the reciprocal of price.
 #
 #![](dvmt_proportions_eq9.png)
 #
-#**Equation 9. Proportional Allocation of DVMT**
+#**Equation 11. Proportional Allocation of DVMT**
 #
 #Finally since the ratio of *K* and *T* is equal to the inverse of the sum of the price reciprocals, the utility maximixing proportion of household DVMT allocated to a household vehicle is the reciprocal of the the price (i.e. unit cost) of using that vehicle divided by the sum of the price reciprocals of all household vehicles. This relationship holds for any number of household vehicles.
 #
 #![](dvmt_proportions_eq10.png)
 #
-#**Equation 10. Utility Maximizing Proportion of Household DVMT Allocated to a Vehicle**
+#**Equation 12. Utility Maximizing Proportion of Household DVMT Allocated to a Vehicle**
 #
 #### Models for Calculating Out-of-pocket Costs
 #
@@ -171,6 +206,8 @@
 #
 #Following are the steps for calculating vehicle costs, allocating household DVMT among household vehicles, and calculating related performance measures.
 #
+#* **Revise household DVMT**: Remove added driverless DVMT and the car service deadhead DVMT, if any, were added in previous iterations to household DVMT.
+#
 #* **Calculate maintenance, repair, and tire (MRT) cost**: The MRT cost for each vehicle is selected from Table 3 based on the vehicle type, powertrain, and age.
 #
 #* **Fuel and energy cost**: The fuel energy cost per mile is calculated by multiplying the fuel cost ($/gallon) by the fuel consumption rate (gallons/mile). The electric energy cost per mile is calculated similarly; electricity cost ($/KWH) times electricity consumption rate (KWH/mile). The composite cost for each vehicle is calculated as a weighted average where the fuel and electricity costs per mile are weighted by the proportions of vehicle DVMT powered by fuel and electricity respectively.
@@ -181,21 +218,33 @@
 #
 #* **Other social costs**: The 'energy security' cost component (dollars/gallon) is multiplied by the vehicle fuel consumption rate (gallons/mile) and the proportion of the vehicle DVMT powered by fuel to calculate an equivalent rate per mile. This cost rate and the other social cost component rates are summed to calculate a total other social cost rate per mile. This value is multiplied by the user input for the proportion of other social costs paid by the user to calculate the user cost per mile.
 #
-#* **Parking cost**: Parking cost is calculated from the household work parking cost and other parking cost. The residential parking cost is not counted because it is included in the vehicle ownership cost calculations. The total daily work parking cost for each household is the sum of parking costs of workers who pay for parking (see AssignParkingRestrictions module). The other parking cost (i.e. cost of parking for shopping) is the average daily rate assigned each household (see AssignParkingRestrictions) normalized by the ratio of household vehicle trips and the average number of trips of all households. The daily work and other parking costs for the household are summed and divided by the household DVMT to get the average cost per mile. This is applied to all household vehicles.
+#* **Parking cost**: Parking cost is calculated from the household work parking cost and other parking cost. The residential parking cost is not counted because it is included in the vehicle ownership cost calculations. The total daily work parking cost for each household is the sum of parking costs of workers who pay for parking (see AssignParkingRestrictions module). The other parking cost (i.e. cost of parking for shopping) is the average daily rate assigned each household (see AssignParkingRestrictions) normalized by the ratio of household vehicle trips and the average number of trips of all households. The daily work and other parking costs for the household are summed and divided by the household DVMT to get the average cost per mile. This is applied to all household vehicles. The parking fee for driverless vehicles is then calculated by multiplying the ParkingFeeAvoidance parameter with parking costs calculated in the earlier step.
 #
 #* **Pay-as-you-drive (PAYD) insurance**: For households who have PAYD insurance, the average rate (dollars/mile) for the household is calculated by summing the annual insurance cost for all the household vehicles and dividing by the annual VMT for the household. This rate is applied uniformly to all of the household's vehicles.
 #
 #* **Car-service cost**: The cost of using a car service (dollars/mile) is a user input by car service level (low, high).
 #
-#* **Cost equivalent of travel time**: An average vehicle travel rate (hours/mile) is calculated and converted into an equivalent dollar value using Equation 3.
+#* **Cost equivalent of travel time (driverless effect)**: An average vehicle travel rate (hours/mile) is calculated and converted into an equivalent dollar value using Equation 3 with the modification detailed in Equation 4 and Equation 5.
 #
 #* **Calculate composite cost rate**: The out-of-pocket cost rates are summed with the cost equivalent travel time to arrive at a composite cost rate.
 #
 #* **Allocate household DVMT to vehicles**: The proportion of household DVMT allocated to each vehicle is calculated using Equation 10.
 #
+#* **Cost equivalent of travel time (w/o driverless effect)**: An average vehicle travel rate (hours/mile) is calculated and converted into an equivalent dollar value using Equation 3.
+#
+#* **Calculate added passenger DVMT**: The increase in DVMT for driverless vehicle is equivalent to percentage increase in cost equivalent of travel time w/o utility adjustment for driverless vehicles when compared to one with the adjustments for driverless vehicles.
+#
+#* **Calculate remote access DVMT**: For driverless vehicles the remote access DVMT is calculated as a product of vehicle DVMT, PropRemoteAccess, and RemoteAccessDvmtAdj.
+#
+#* **Calculate car service deadhead DVMT**: For driverless vehicle with access type either low or high the deadhead DVMT is calculated by using respective deadhead proportions provided as input by user in *region_driverless_vehicle_parameters.csv*.
+#
+#* **Re-calculate vehicle DVMT**: The vehicle DVMT is adjusted by summing initial allocation of DVMT and the driverless vehicle and car service deadhead adjustments.
+#
+#* **Re-calculate DVMT split between household vehicles**: The DVMT split between household vehicles is re-calculated using vehicle DVMT calculated in the previous step.
+#
 #* **Calculate household averages**: Once household DVMT proportions have been computed for each vehicle, household average values can be computed. These include:
 #
-#   * Average out-of-pocket travel cost rate (dollars/mile): this is used in the household travel budget model
+#   * Average out-of-pocket travel cost rate (dollars/mile): this is used in the household travel budget model which adjust for deadhead mileage
 #
 #   * Average social impacts cost (dollars/mile): this is a performance measure
 #
@@ -206,6 +255,8 @@
 #   * Average electric energy consumption rate (KWH/mile): this is a performance measure
 #
 #   * Average carbon emissions rate (grams CO2e/mile): this is a performance measure
+#
+#* **Re-calculate total household DVMT**: The DVMT for the households is re-calculated by summing up the household vehicles DVMT calculated in the earlier step.
 #
 #</doc>
 

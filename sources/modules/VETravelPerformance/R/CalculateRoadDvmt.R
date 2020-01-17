@@ -7,9 +7,11 @@
 ## CalculateRoadDvmt Module
 #### January 27, 2019
 #
-#When run for the base year, this module computes several factors used in computing roadway DVMT including factors for calculating commercial service vehicle travel and heavy truck travel. While base year heavy truck DVMT and commercial service vehicle DVMT are calculated directly from inputs and model parameters, future year DVMT is calculated as a function of the declared growth basis which for heavy trucks may be population or income, and for commercial service vehicles may be population, income, or household DVMT. Factors are calculated for each basis. In non-base years, the module uses these factors to compute heavy truck and commercial service DVMT.
+#When run for the base year, this module computes several factors used in computing roadway DVMT including factors for calculating commercial service vehicle travel and heavy truck travel. While base year heavy truck DVMT and commercial service vehicle DVMT are calculated directly from inputs and model parameters, future year DVMT is calculated as a function of the declared growth basis which for heavy trucks may be population or income, and for commercial service vehicles may be population, income, or household DVMT. Factors are calculated for each basis. In non-base years, the module uses these factors to compute heavy truck and commercial service DVMT. This module also calculates the proportions of light duty vehicles, heavy truck, and bus DVMT that are driverless.
 #
 #In the base year, the module computes factors for allocating light-duty vehicle (LDV) travel demand of marea households and related commercial service vehicle demand to urban roadways in the mareas and to non-urban roadways. These factors are used to compute urban area roadway DVMT which is used in the calculation of urban area congestion. The factors are applied to calculate urban roadway LDV DVMT in non-base years. In addition, the module allocates urban LDV roadway DVMT proportions to households, identifying the proportion of each household's DVMT that takes place on urban area roadways. This proportion is used in the adjustment of the fuel economy of household vehicles as a function of urban area congestion.
+#
+#The proportions of DVMT that are driverless, as computed by module, for LDV, heavy truck, and bus is used to determine road performance.
 #
 #Finally, the module adds together the urban LDV DVMT, urban heavy truck DVMT, and public transit DVMT and allocates it to road classes (freeway, arterial, other) for use in congestion calculations by the CalculateTravelPerformance module.
 #
@@ -28,6 +30,8 @@
 #* *Calculate ratio of urban light-duty vehicle roadway DVMT to urban light-duty vehicle (LDV) travel demand*: The CalculateHouseholdDvmt module in the VEHouseholdTravel package calculates the DVMT of households irrespective of where that travel occurs. Likewise commercial service vehicle travel that is calculated is the travel associated with households and the employment of household workers. For each marea to calculate the ratio of light-duty urban roadway DVMT to light-duty vehicle travel demand of urban area households (household DVMT, commercial service DVMT, and public transit DVMT) is calculated. This calculation uses the base year urban roadway DVMT calculated by the Initialize module, the modeled base year household DVMT, the base year commercial service DVMT calculated from the modeled base year household DVMT and the 2010 estimate of the ratio of commercial service DVMT to household DVMT calculated by the 'LoadDefaultRoadDvmtValues.R' script, and the base year public transit van DVMT calculated by the AssignTransitService module in the VETransportSupply package.
 #
 #* *Calculate marea urban base year road DVMT by vehicle type (LDV, heavy truck, bus) and road class (freeway, arterial, other)*: Base year urban roadway LDV DVMT and heavy truck DVMT are calculated as described above. Bus DVMT is calculated by the AssignTransitService module. These respective DVMT quantities are split between road classes using the proportional factors calculated by the Initialize module which either uses user inputs in the 'marea_dvmt_split_by_road_class.csv' file or default values calculated from Highway Statistics data by the LoadDefaultRoadDvmtValues.R script where data is not supplied by the user. For light-duty urban road DVMT, the freeway and arterial proportion of DVMT is combined. The CalculateRoadPerformance module splits this into freeway and arterial components based on operating conditions and prices.
+#
+#* *Calculate driverless DVMT proportions*: The driverless DVMT proportion for heavy truck and bus is calculated by linearly interpolating the proportion values provided in 'region_driverless_vehicle_prop.csv' as input for model year. Similarly, the driverless DVMT proportion for household vehicles, commercial service vehicles, and public transit is calculated by linearly interpolating the input values for model year. The proprtion of DVMT that is driverless for light duty vehicles is then calculated as the weighted sum of driverless DVMT proportions for household vehicles, CSV, and public transit.
 #
 #
 #</doc>
@@ -375,7 +379,7 @@ CalculateRoadDvmtSpecifications <- list(
       DESCRIPTION = "Proportion of DVMT of Bus that is driverless in each Marea."
     ),
     item(
-      NAME = "AveDriverlessProp",
+      NAME = "HhDriverlessDvmtProp",
       TABLE = "Marea",
       GROUP = "Year",
       TYPE = "double",
@@ -383,7 +387,7 @@ CalculateRoadDvmtSpecifications <- list(
       SIZE = 0,
       PROHIBIT = c("< 0", "> 1"),
       ISELEMENTOF = "",
-      DESCRIPTION = "Placeholder. Do not have a description at the moment."
+      DESCRIPTION = "Proportion of household DVMT that is driverless in each Marea."
     ),
     item(
       NAME = "HvyTrkDvmt",
@@ -1012,12 +1016,7 @@ CalculateRoadDvmt <- function(L) {
     PtVanDriverlessProp * PtVanDvmtWts_Ma
   #Assign values to outputs list
   Out_ls$Year$Marea$LdvDriverlessProp <- LdvDriverlessProp_Ma
-  
-  #Calculate average driverless proportion (placeholder)
-  #-----------------------------------------------------
-  #Assign values to outputs list
-  #TODO
-  Out_ls$Year$Marea$AveDriverlessProp <- 0
+  Out_ls$Year$Marea$HhDriverlessDvmtProp <- HhDriverlessDvmtProp_Ma
 
   #Calculate household proportion of DVMT on urban roads
   #-----------------------------------------------------

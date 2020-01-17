@@ -7,11 +7,11 @@
 ## CalculateMpgMpkwhAdjustments Module
 #### January 23, 2019
 #
-#This module calculates adjustments to fuel economy and electric energy efficiency (for plug-in vehicles) resulting from traffic congestion, speed smoothing (i.e. active traffic management which reduces speed variation), and eco-driving. Eco-driving is the practice of driving in ways that increase fuel economy and reduce carbon emissions.
+#This module calculates adjustments to fuel economy and electric energy efficiency (for plug-in vehicles) resulting from traffic congestion, speed smoothing (i.e. active traffic management which reduces speed variation or deployment of connected autnomous vehicles), and eco-driving. Eco-driving is the practice of driving in ways that increase fuel economy and reduce carbon emissions.
 #
 ### Model Parameter Estimation
 #
-#This module calculates adjustments to the average fuel economy of internal combustion engine vehicles and the average electric energy efficiency of plug in vehicles. Adjustments are made in response to congestion, speed smoothing, and eco-driving.
+#This module calculates adjustments to the average fuel economy of internal combustion engine vehicles and the average electric energy efficiency of plug in vehicles. Adjustments are made in response to congestion, speed smoothing, and eco-driving. The effect of driverless vehicles is reflected in the adjustment of speed smoothing.
 #
 ##### Model of the Effects of Speed on Fuel Economy
 #
@@ -71,6 +71,8 @@
 #
 #**Figure 2. Maximum theoretical proportional improvement in fuel economy from speed smoothing by speed**
 #
+#The effect of driverless vehicles on speed smoothing is represented by adjusting the effect by a factor which is an exponential function of proportion of DVMT that is driverless.
+#
 ### How the Module Works
 #
 #### Calculating the effects of modeled speeds on fuel economy
@@ -96,9 +98,9 @@
 #
 #### Calculating the effects of speed smoothing and eco-driving
 #
-#The module calculates average proportional improvement in fuel economy (FE) due to active traffic management on urban area freeways and arterials by marea and vehicle type (light-duty, heavy truck, bus). The calculations are sensitive to user inputs on the relative deployment of active traffic management on freeways and arterials by marea ('marea_speed_smooth_ecodrive.csv' file). The potentials for active traffic management on non-urban roads and on roads other than freeways and arterials are not evaluated. The module also calculates the average FE improvement for eco-drivers by marea and vehicle type. The potential benefit for eco-driving on urban area roads is calculated from the modeled speeds and DVMT split by congestion level and road class. The potential on non-urban roads is calculate from the speed data for uncongested roadways. It should also be noted that the the FE benefits only apply to internal combustion engine (ICE) vehicles. Following is a summary of the methodology:
+#The module calculates average proportional improvement in fuel economy (FE) due to active traffic management on urban area freeways and arterials by marea and vehicle type (light-duty, heavy truck, bus). The calculations are sensitive to user inputs on the relative deployment of active traffic management on freeways and arterials by marea ('marea_speed_smooth_ecodrive.csv' file). These calculations are also adjusted by smoothing parameters for driverless vehicles by road class ('region_driverless_dvmt_param.csv' file). The potentials for active traffic management on non-urban roads and on roads other than freeways and arterials are not evaluated. The module also calculates the average FE improvement for eco-drivers by marea and vehicle type. The potential benefit for eco-driving on urban area roads is calculated from the modeled speeds and DVMT split by congestion level and road class. The potential on non-urban roads is calculate from the speed data for uncongested roadways. It should also be noted that the the FE benefits only apply to internal combustion engine (ICE) vehicles. Following is a summary of the methodology:
 #
-#* The calculations use the arrays of speeds and DVMT proportions by marea, congestion level, and road class, and the list of DVMT proportions by marea, road class, and vehicle type described in the previous section.
+#* The calculations use the arrays of speeds and DVMT proportions by marea, congestion level, and road class, and the list of DVMT proportions by marea, road class, and vehicle type described in the previous section. It also uses a list of DVMT proportion that are driverless by marea and road class.
 #
 #* The maximum theoretical benefits of speed smoothing and eco-driving for each vehicle type by marea, congestion level, and road class is calculated by applying the smooth-spline models described above to the speed data by marea, congestion level, and road class. For light-duty vehicles, the LdIce model is applied. For heavy trucks and buses, the HdIce model is applied. It is assumed that no-benefits accrue to roads other than freeways and arterials.
 #
@@ -107,6 +109,8 @@
 #  * The maximum achieveable FE benefits are calculated by multiplying the maximum theoretical benefits by 0.5 (see model estimation section above).
 #
 #  * The expected FE benefits are calculated by multiplying the maximum achieveable FE benefits for freeways and arterials by the respective user inputs for proportional deployment of speed smoothing on freeways and arterials by marea.
+#
+#  * Adjust the expected FE benefits by a factor deteremined by exponentional function of proportion of DVMT that is driverless with the exponential parameter provided by user as input.
 #
 #  * The average FE benefits by marea and vehicle type are calculated as a DVMT weighted average of the FE benefits by congestion level and road class for the marea and vehicle type.
 #

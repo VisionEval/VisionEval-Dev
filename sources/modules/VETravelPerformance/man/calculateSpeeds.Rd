@@ -4,7 +4,12 @@
 \alias{calculateSpeeds}
 \title{Calculate speeds and delay by road class and congestion level.}
 \usage{
-calculateSpeeds(OpsDeployment_, OtherOpsEffects_mx = NULL)
+calculateSpeeds(
+  OpsDeployment_,
+  OtherOpsEffects_mx = NULL,
+  DriverlessDvmtProp_Rc = NULL,
+  DriverlessFactor_ls = NULL
+)
 }
 \arguments{
 \item{OpsDeployment_}{a numeric vector identifying the proportional degree of
@@ -15,6 +20,11 @@ coordination, accessmanagement, other) where 0 means no deployment and
 \item{OtherOpsEffects_mx}{a numeric matrix of percentage delay reductions
 for user-defined freeway and arterial operations programs by congestion
 level.}
+
+\item{DriverlessDvmtProp_Rc}{a numeric vector of proportion of DVMT in driverless vehicles
+by road class.}
+
+\item{DriverlessFactor_ls}{a nested list of functions that gives adjustment factors by road class, type of incident (recurring or non-recurring), and type of metric (delay or smooth).}
 }
 \value{
 A list containing two matrices. The first is a matrix of average
