@@ -269,25 +269,38 @@ processEstimationInputs <- function(Inp_ls, FileName, ModuleName) {
 #'
 #' This function is used to load a dataset identified by name from the
 #' VisionEval package which contains the dataset. Using this function is the
-#' preferred alternative to hard-wiring the loading using package::dataset
-#' notation because it enables users to switch between module versions contained
-#' in different packages. For example, there may be different versions of the
-#' VEPowertrainsAndFuels package which have different default assumptions about
-#' light-duty vehicle powertrain mix and characteristics by model year. Using
-#' this function, the module developer only needs to identify the dataset name.
-#' The function uses DatasetsByPackage_df data frame in the model state list
-#' to identify the package which contains the dataset. It then retrieves and
-#' returns the dataset
+#' preferred alternative to hard-wiring the loading a dataset using the
+#' 'package::dataset' notation because it enables users to switch between module
+#' versions contained in different packages. For example, there may be different
+#' versions of the VEPowertrainsAndFuels package which have different default
+#' assumptions about light-duty vehicle powertrain mix and characteristics by
+#' model year. Using this function, the module developer only needs to identify
+#' the dataset name. The module developer should also specify a 'DefaultPackage'
+#' name to simplify module development and testing. For example, the default
+#' 'VEPowertrainsAndFuels' package can be specified. During module development
+#' and testing the dataset will be loaded from that package, but during a model
+#' run the dataset will be loaded from the package that is specified to be used
+#' in the model run. The function uses 'DatasetsByPackage_df' data frame in the
+#' model state list to identify the package which contains the dataset. If
+#' 'DatasetsByPackage_df' is not present in the model state list, as is the case
+#' during module development and testing, the the dataset is retrieved from the
+#' 'DefaultPackage'.
 #'
 #' @param DatasetName A string identifying the name of the dataset.
+#' @param DefaultPackage A string identifying the name of the package to
+#'   retrieve the dataset from during module development and testing.
 #' @return The identified dataset.
 #' @export
-loadPackageDataset <- function(DatasetName) {
+loadPackageDataset <- function(DatasetName, DefaultPackage = NULL) {
   if (exists(DatasetName)) {
     return(eval(parse(text = DatasetName)))
   } else {
-    Dat_df <- getModelState()$DatasetsByPackage_df
-    PkgName <- with(Dat_df, Package[Dataset == DatasetName])
+    if (!is.null(getModelState()$DatasetsByPackage_df)) {
+      Dat_df <- getModelState()$DatasetsByPackage_df
+      PkgName <- with(Dat_df, Package[Dataset == DatasetName])
+    } else {
+      PkgName <- DefaultPackage
+    }
     FullName <- paste(PkgName, DatasetName, sep = "::")
     return(eval(parse(text = FullName)))
   }
@@ -2178,3 +2191,120 @@ documentModule <- function(ModuleName){
   #-----------------------------------
   writeLines(unlist(RevDocs_ls), paste0("inst/module_docs/", ModuleName, ".md"))
 }
+
+
+#FETCH MODULE DATASETS FROM DATASTORE
+#====================================
+#' Returns the datasets that a module requires.
+#'
+#' \code{fetchModuleData} a visioneval framework module developer function
+#' that fetches from the datastore a complete list of all the data required
+#' by a module to run.
+#'
+#' The purpose of this function is to help module developers with debugging
+#' modules during a model run. It is not uncommon for a new module to fail
+#' during a module run due to an edge case that was not thought of during
+#' module development. In such circumstances, it can be difficult to determine
+#' the cause of the error without stepping though the module code; and to do
+#' that requires creating from the datastore the datasets which cause the error
+#' to occur. This function fetches the datasets from the datastore and returns
+#' them in the form they are required to be in to run the module.
+#'
+#' @param ModuleName a string identifying the name of the module.
+#' @param PackageName a string identifying the name of the package that the
+#' module is in.
+#' @param Year a string identifying the model run year to retrieve the data
+#' for.
+#' @param Geo a string identifying the geography to retrieve the data for if
+#' the module's 'RunBy' specification is not 'Region'. This argument is
+#' omitted if the 'RunBy' specification is 'Region'.
+#' @return A list in standardized form containing all the datasets required by
+#' a module to run.
+#' @export
+fetchModuleData <- function(ModuleName, PackageName, Year, Geo = NULL) {
+
+  #Load the package and module
+  #---------------------------
+  Function <- paste0(PackageName, "::", ModuleName)
+  Specs <- paste0(PackageName, "::", ModuleName, "Specifications")
+  M <- list()
+  M$Func <- eval(parse(text = Function))
+  M$Specs <- processModuleSpecs(eval(parse(text = Specs)))
+  #Load any modules identified by 'Call' spec if any
+  if (is.list(M$Specs$Call)) {
+    Call <- list(
+      Func = list(),
+      Specs = list()
+    )
+    for (Alias in names(M$Specs$Call)) {
+      #Called module function when specified as package::module
+      Function <- M$Specs$Call[[Alias]]
+      #Called module function when only module is specified
+      if (length(unlist(strsplit(Function, "::"))) == 1) {
+        Pkg_df <- getModelState()$ModulesByPackage_df
+        Function <-
+          paste(Pkg_df$Package[Pkg_df$Module == Function], Function, sep = "::")
+        rm(Pkg_df)
+      }
+      #Called module specifications
+      Specs <- paste0(Function, "Specifications")
+      #Assign the function and specifications of called module to alias
+      Call$Func[[Alias]] <- eval(parse(text = Function))
+      Call$Specs[[Alias]] <- processModuleSpecs(eval(parse(text = Specs)))
+      Call$Specs[[Alias]]$RunBy <- M$Specs$RunBy
+    }
+  }
+
+  #Get data from datastore
+  #-----------------------
+  #If RunBy is 'Region' get all data
+  if (M$Specs$RunBy == "Region") {
+    #Get data from datastore
+    L <- getFromDatastore(M$Specs, RunYear = Year)
+    if (exists("Call")) {
+      for (Alias in names(Call$Specs)) {
+        L[[Alias]] <-
+          getFromDatastore(Call$Specs[[Alias]], RunYear = Year)
+      }
+    }
+  #If RunBy is not 'Region' get data for Geo
+  } else {
+    #Check that Geo has been specified
+    if (is.null(Geo)) {
+      Msg <- paste0(
+        "The RunBy specification for module ", ModuleName, " is ",
+        M$Specs$RunBy, ".", "You must specify the name of the ", M$Specs$RunBy,
+        " you want to retrieve the datasets for using the 'Geo' argument."
+      )
+    }
+    #Identify the units of geography to iterate over
+    GeoCategory <- M$Specs$RunBy
+    #Create the geographic index list
+    GeoIndex_ls <- createGeoIndexList(c(M$Specs$Get, M$Specs$Set), GeoCategory, Year)
+    if (exists("Call")) {
+      for (Alias in names(Call$Specs)) {
+        GeoIndex_ls[[Alias]] <-
+          createGeoIndexList(Call$Specs[[Alias]]$Get, GeoCategory, Year)
+      }
+    }
+    #Get data from datastore for Geo
+    L <-
+      getFromDatastore(M$Specs, RunYear = Year, Geo, GeoIndex_ls)
+    if (exists("Call")) {
+      for (Alias in names(Call$Specs)) {
+        L[[Alias]] <-
+          getFromDatastore(Call$Specs[[Alias]], RunYear = Year, Geo, GeoIndex_ls = GeoIndex_ls[[Alias]])
+      }
+    }
+  }
+
+  #Return the Results
+  #------------------
+  if (exists("Call")) {
+    return(list(L = L, M = Call$Func))
+  } else {
+    return(list(L = L))
+  }
+
+}
+
