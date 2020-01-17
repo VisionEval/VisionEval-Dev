@@ -15,7 +15,8 @@ Description: This package contains modules which predict household vehicle
     service availability and the cost of owning a car per mile of travel is
     higher than the cost per mile of using a car service. The cost of owning
     vehicles is calculated as a function of the vehicle age, type, and vehicle
-    miles traveled.
+    miles traveled. It also randomly assigns household vehicles to be driverless based
+    on the driverless vehicle proportions provided in the inputs.
 License: Apache License 2.0
 LazyData: TRUE
 Depends: R (>= 3.1.0)
