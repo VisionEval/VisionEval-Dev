@@ -245,7 +245,7 @@ usethis::use_data(VERPATResultsSpecifications, overwrite = TRUE)
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
 #' @name VERPATResults
-#' @import jsonlite future data.table
+#' @import jsonlite future future.callr data.table
 #' @export
 VERPATResults <- function(L){
   # Setup
@@ -265,24 +265,39 @@ VERPATResults <- function(L){
   InputLabels_ar <- L$Global$Model$InputLabels
 
   # Set future processors
-  NWorkers <- L$Global$Model$NWorkers
-  NWorkers <- min(max(availableCores()-1, 1), NWorkers)
-  plan(multiprocess, workers = NWorkers, gc=TRUE)
+  if ( exists('planType') && planType == 'callr'){
+    NWorkers <- L$Global$Model$NWorkers
+    NWorkers <- min(max(availableCores()-1, 1), NWorkers)
+    plan(callr, workers = NWorkers)
+    message("Executing with ", NWorkers, " processors\n")
+  } else {
+    plan(sequential)
+    message("Executing with sequential processing\n")
+  }
 
+  # Make sure that child processes inherit the libraries from master
+  libs <- .libPaths() # Set .libPaths(libs) in call to child process
+  
   Results_env <- new.env()
   for(sc_path in ScenariosPath_ar){
+    message('Getting results for ', basename(sc_path), '\n')
     Results_env[[basename(sc_path)]] <- data.table(Scenario=basename(sc_path),
                                                    Table=NA,
                                                    Data=NA,
                                                    Units=NA)
-    Results_env[[basename(sc_path)]] %<-% tryCatch({ScResults <- getScenarioResults(
-      ScenarioPath = sc_path,
-      Output = L$Global$Tables$Name,
-      Year = L$G$Year,
-      Table = TRUE
-    )
-    Scenarios_df$Results[which(Scenarios_df$Name==basename(sc_path))] <<- "Completed"
-    ScResults},
+    Results_env[[basename(sc_path)]] %<-% tryCatch({
+
+      # Ensure libraries from master process are inherited
+      .libPaths(libs)
+      ScResults <- getScenarioResults(
+        ScenarioPath = sc_path,
+        Output = L$Global$Tables$Name,
+        Year = L$G$Year,
+        Table = TRUE
+      )
+      Scenarios_df$Results[which(Scenarios_df$Name==basename(sc_path))] <<- "Completed"
+      ScResults
+    },
     warning = function(w) print(w),
     error = function(e) {print(e)
       Scenarios_df$Results[which(Scenarios_df$Name==basename(sc_path))] <<- "Result Error"}
@@ -291,7 +306,7 @@ VERPATResults <- function(L){
 
   FinalResults_dt <- rbindlist(as.list(Results_env))
   rm(Results_env)
-  gc()
+  gc() # encourage R to release space we're done with
 
   ScenNames_ar <- basename(ScenariosPath_ar)
   ScenTab_dt <- data.table(Scenario = ScenNames_ar)
@@ -301,73 +316,84 @@ VERPATResults <- function(L){
   setnames(Levels_dt,colnames(Levels_dt),LevelNames_ar)
   ScenTab_dt <- cbind(ScenTab_dt,Levels_dt)
   ScenTab_dt <- ScenTab_dt[FinalResults_dt,on=.(Scenario)]
-  ScenTab_dt <- ScenTab_dt[,{Bzone <- Data[Table=="Bzone"][[1]]
-  Marea <- Data[Table=="Marea"][[1]]
-  Azone <- Data[Table=="Azone"][[1]]
-  BzoneUnits <- Units[Table=="Bzone"][[1]]
-  MareaUnits <- Units[Table=="Marea"][[1]]
-  AzoneUnits <- Units[Table=="Azone"][[1]]
-  #Get the population to compute per capita values
-  Pop <- sum(Bzone$UrbanPop)
-  #Calculate fatalities and injuries per 1000 persons by scenario
-  FatalityInjury <- sum(Marea[,.(FatalIncidentMetric, InjuryIncidentMetric)])
-  FatalityInjuryRate <- 1000 * FatalityInjury / Pop
-  #Calculate average cost per person
-  Cost <- sum(Bzone$CostsMetric)
-  AveCost <- Cost / Pop
-  #Calculate average DVMT per person
-  Dvmt <- sum(Bzone$DvmtPolicy)
-  AveDvmt <- Dvmt / Pop
-  AveDvmt <- convertUnits(AveDvmt, "compound",
-                          BzoneUnits[which(colnames(Bzone)=="DvmtPolicy")],
-                          "MI/DAY")$Value
-  #Calculate average emissions per person
-  # Withouth EV
-  # Emissions <- sum(Bzone$EmissionsMetric)
-  # AveEmissions <- 365 * Emissions / Pop
-  # AveEmissions <- convertUnits(AveEmissions, "compound",
-  #                              BzoneUnits[which(colnames(Bzone)=="EmissionsMetric")],
-  #                              "MT/YR")$Value
-  FuelEmissions <- sum(Bzone$FuelEmissionsMetric)
-  PowerEmissions <- sum(Bzone$PowerEmissionsMetric)
-  AveFuelEmissions <- 365 * FuelEmissions / Pop
-  AvePowerEmissions <- 365 * PowerEmissions / Pop
-  AveEmissions <- convertUnits(AveFuelEmissions, "compound",
-                               BzoneUnits[which(colnames(Bzone)=="FuelEmissionsMetric")],
-                               "MT/DAY")$Value +
-    convertUnits(AvePowerEmissions, "compound",
-                 BzoneUnits[which(colnames(Bzone)=="PowerEmissionsMetric")],
-                 "MT/YR")$Value
-  #Calculate average fuel consumed per person
-  Fuel <- sum(Bzone$FuelMetric)
-  AveFuel <- 365 * Fuel / Pop
-  AveFuel <- convertUnits(AveFuel, "compound",
-                          BzoneUnits[which(colnames(Bzone)=="FuelMetric")],
-                          "GAL/DAY")$Value
-  #Calculate average vehicle hours per person
-  VehHr <- Marea$VehHrLtVehPolicy
-  AveVehHr <- VehHr / Pop
-  AveVehHr <- convertUnits(AveVehHr, "time",
-                           BzoneUnits[which(colnames(Bzone)=="VehHrLtVehPolicy")],
-                           "HR")$Value
-  .(FatalityInjuryRate=FatalityInjuryRate, AveCost=AveCost,
-    AveDvmt=AveDvmt, AveEmissions=AveEmissions,
-    AveFuel=AveFuel, AveVehHr=AveVehHr)
-  },by=c("Scenario", InputLabels_ar)]
+  message('Summarizing results across scenarios\n')
+  ScenTab_dt <- ScenTab_dt[, {
+    Bzone <- Data[Table=="Bzone"][[1]]
+    Marea <- Data[Table=="Marea"][[1]]
+    Azone <- Data[Table=="Azone"][[1]]
+    BzoneUnits <- Units[Table=="Bzone"][[1]]
+    MareaUnits <- Units[Table=="Marea"][[1]]
+    AzoneUnits <- Units[Table=="Azone"][[1]]
+    #Get the population to compute per capita values
+    Pop <- sum(Bzone$UrbanPop)
+    #Calculate fatalities and injuries per 1000 persons by scenario
+    FatalityInjury <- sum(Marea[,.(FatalIncidentMetric, InjuryIncidentMetric)])
+    FatalityInjuryRate <- 1000 * FatalityInjury / Pop
+    #Calculate average cost per person
+    Cost <- sum(Bzone$CostsMetric)
+    AveCost <- Cost / Pop
+    #Calculate average DVMT per person
+    Dvmt <- sum(Bzone$DvmtPolicy)
+    AveDvmt <- Dvmt / Pop
+    AveDvmt <- convertUnits(AveDvmt, "compound",
+                            BzoneUnits[which(colnames(Bzone)=="DvmtPolicy")],
+                            "MI/DAY")$Value
+    #Calculate average emissions per person
+    # Withouth EV
+    # Emissions <- sum(Bzone$EmissionsMetric)
+    # AveEmissions <- 365 * Emissions / Pop
+    # AveEmissions <- convertUnits(AveEmissions, "compound",
+    #                              BzoneUnits[which(colnames(Bzone)=="EmissionsMetric")],
+    #                              "MT/YR")$Value
+    FuelEmissions <- sum(Bzone$FuelEmissionsMetric)
+    PowerEmissions <- sum(Bzone$PowerEmissionsMetric)
+    AveFuelEmissions <- 365 * FuelEmissions / Pop
+    AvePowerEmissions <- 365 * PowerEmissions / Pop
+    AveEmissions <- convertUnits(AveFuelEmissions, "compound",
+                                 BzoneUnits[which(colnames(Bzone)=="FuelEmissionsMetric")],
+                                 "MT/DAY")$Value +
+      convertUnits(AvePowerEmissions, "compound",
+                   BzoneUnits[which(colnames(Bzone)=="PowerEmissionsMetric")],
+                   "MT/YR")$Value
+    #Calculate average fuel consumed per person
+    Fuel <- sum(Bzone$FuelMetric)
+    AveFuel <- 365 * Fuel / Pop
+    AveFuel <- convertUnits(AveFuel, "compound",
+                            BzoneUnits[which(colnames(Bzone)=="FuelMetric")],
+                            "GAL/DAY")$Value
+    #Calculate average vehicle hours per person
+    VehHr <- Marea$VehHrLtVehPolicy
+    AveVehHr <- VehHr / Pop
+    AveVehHr <- convertUnits(AveVehHr, "time",
+                             BzoneUnits[which(colnames(Bzone)=="VehHrLtVehPolicy")],
+                             "HR")$Value
+    .(FatalityInjuryRate=FatalityInjuryRate, AveCost=AveCost,
+      AveDvmt=AveDvmt, AveEmissions=AveEmissions,
+      AveFuel=AveFuel, AveVehHr=AveVehHr)
+  },
+  by=c("Scenario", InputLabels_ar)]
+
+  write.csv(ScenTab_dt,
+            file.path(ModelPath, L$Global$Model$ScenarioOutputFolder, "VERPAT_scenario_results.csv"),
+            row.names = F)
+  
   # Write the output to JSON file
   JSON <- toJSON(ScenTab_dt)
   JSON <- paste("var data = ", JSON, ";", sep="")
   File <- file(file.path(ModelPath, L$Global$Model$ScenarioOutputFolder, "verpat.js"), "w")
+  message('Writing results to ', File, '\n')
   writeLines(JSON, con=File)
   close(File)
 
   # Write the output configuration file
   JSON <- paste("var outputconfig = ", VERPATOutputConfig$VERPAT, ";", sep="")
   File <- file(file.path(ModelPath, L$Global$Model$ScenarioOutputFolder, "output-cfg.js"), "w")
+  message('Writing output configuration to', File, '\n')
   writeLines(JSON, con=File)
   close(File)
 
   # Write scenario progress report
+  message('Writing scenario progress report\n')
   write.csv(Scenarios_df, file.path(ModelPath,
                                     L$Global$Model$ScenarioOutputFolder,
                                     "ScenarioProgressReport.csv"),

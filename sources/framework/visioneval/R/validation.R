@@ -1302,23 +1302,8 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
               "' is incorrect. The value for '", name, "' is not a string."
             )
           Errors_ <- c(Errors_, Msg)
-        } else {
-          Value_ <- unlist(strsplit(Value, "::"))
-          if (length(Value_) != 2) {
-            Msg <-
-              paste0(
-                "'Call' specification for module '", ModuleName,
-                "' is incorrect. The value for '", name,
-                "' is not formatted correctly. ",
-                "It must be formatted like PackageName::ModuleName ",
-                "where 'PackageName' is the name of a package and ",
-                "'ModuleName' is the name of a module."
-              )
-            Errors_ <- c(Errors_, Msg)
-          }
         }
       }
-
     }
   }
 
@@ -1554,59 +1539,73 @@ parseInputFieldNames <-
                  "can be recognized as one of the names specified for the ",
                  "input file ", FileName)
         Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
-        rm(Msg)
-        next()
-      }
-      #Decode the Year and Multiplier portions
-      FieldType <- Specs_ls[[which(SpecdNames_ == Name)]]$TYPE
-      if (FieldType == "currency") {
-        Fields_ls[[i]]$Year <- getYear(NameSplit_[2])
-        Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[3])
       } else {
-        Fields_ls[[i]]$Year <- NA
-        Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[2])
-      }
-      #If currency type, check that value is correct or give an error
-      if (FieldType == "currency") {
-        AllowedYears_ <- as.character(getModelState()$Deflators$Year)
-        if (is.na(Fields_ls[[i]]$Year)) {
-          Msg <-
-            paste0("Field name ", FieldName, " in input file ", FileName,
-                   " has a specification TYPE of currency, but the parsed year ",
-                   "component is missing or is not a valid year. ",
-                   "See documentation for details on how to properly name ",
-                   "a field name that has a year component. ")
-          Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
-          rm(Msg)
+        #Decode the Year and Multiplier portions
+        FieldType <- Specs_ls[[which(SpecdNames_ == Name)]]$TYPE
+        if (FieldType == "currency") {
+          Fields_ls[[i]]$Year <- getYear(NameSplit_[2])
+          Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[3])
         } else {
-          if (!(Fields_ls[[i]]$Year %in% AllowedYears_)) {
+          Fields_ls[[i]]$Year <- NA
+          Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[2])
+        }
+        #If currency type, check that value is correct or give an error
+        if (FieldType == "currency") {
+          AllowedYears_ <- as.character(getModelState()$Deflators$Year)
+          if (is.na(Fields_ls[[i]]$Year)) {
             Msg <-
               paste0("Field name ", FieldName, " in input file ", FileName,
                      " has a specification TYPE of currency, but the parsed year ",
-                     "component is not one for which there is a deflator. ",
-                     "If the year component is correct, then the deflators file ",
-                     "must be corrected to include a deflator for the year. ",
-                     "See documentation for details on the deflator file requirements.")
+                     "component is missing or is not a valid year. ",
+                     "See documentation for details on how to properly name ",
+                     "a field name that has a year component. ")
             Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
             rm(Msg)
+          } else {
+            if (!(Fields_ls[[i]]$Year %in% AllowedYears_)) {
+              Msg <-
+                paste0("Field name ", FieldName, " in input file ", FileName,
+                       " has a specification TYPE of currency, but the parsed year ",
+                       "component is not one for which there is a deflator. ",
+                       "If the year component is correct, then the deflators file ",
+                       "must be corrected to include a deflator for the year. ",
+                       "See documentation for details on the deflator file requirements.")
+              Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
+              rm(Msg)
+            }
           }
         }
-      }
-      #Check whether multiplier is correct or give an error
-      if (is.nan(Fields_ls[[i]]$Multiplier)) {
-        Msg <-
-          paste0("Field name ", FieldName, " in input file ", FileName,
-                 " has parsed multiplier component that is not valid. ",
-                 "See documentation for details on how to properly name ",
-                 "a field name that has a multiplier component. ")
-        Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
-        rm(Msg)
+        #Check whether multiplier is correct or give an error
+        if (is.nan(Fields_ls[[i]]$Multiplier)) {
+          Msg <-
+            paste0("Field name ", FieldName, " in input file ", FileName,
+                   " has parsed multiplier component that is not valid. ",
+                   "See documentation for details on how to properly name ",
+                   "a field name that has a multiplier component. ")
+          Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
+          rm(Msg)
+        }
       }
     }
-    names(Fields_ls) <- unlist(lapply(Fields_ls, function(x) x$Name))
+    DataNames_ <- unlist(lapply(Fields_ls, function(x) x$Name))
+    names(Fields_ls) <- DataNames_
+    #Identify whether any required fields are missing from the file
+    if (!all(SpecdNames_ %in% DataNames_)) {
+      MissingFields_ <- SpecdNames_[!(SpecdNames_ %in% DataNames_)]
+      Msg <-
+        paste0("One or more fields that must be in input file ", FileName,
+               " are not present. The missing field(s) are: ",
+               paste(MissingFields_, collapse = ", "))
+      MissingFields_ls <- list(
+        Error = Msg,
+        Name = "Missing Fields",
+        Year = NA,
+        Multiplier = NA
+      )
+      Fields_ls$MissingFields <- MissingFields_ls
+    }
     Fields_ls
   }
-
 # items <- item <- list
 # Specs_ls <-
 #   items(
@@ -1647,10 +1646,13 @@ parseInputFieldNames <-
 #' are no duplicates. Any file whose 'GROUP' specification is 'Global' or
 #' 'BaseYear' and whose 'TABLE' specification is a geographic specification
 #' other than 'Region' is checked to determine if it has a 'Geo' column and the
-#' entries are checked for completeness. The data in each column are checked
-#' against specifications to determine conformance. The function returns a list
-#' which contains a list of error messages and a list of the data inputs. The
-#' function also writes error messages and warnings to the log file.
+#' entries are checked for completeness. Entries for years other than the
+#' specified model run years are ignored. Data from input files is sorted by
+#' years and geography as needed to assure that it is consistent even when user
+#' input files are not consistent. The data in each column are checked against
+#' specifications to determine conformance. The function returns a list which
+#' contains a list of error messages and a list of the data inputs. The function
+#' also writes error messages and warnings to the log file.
 #'
 #' @param ModuleSpec_ls a list of module specifications that is consistent with
 #' the VisionEval requirements.
@@ -1701,21 +1703,49 @@ processModuleInputs <-
             ModuleName, "' is not present in the 'inputs' directory."
           )
         FileErr_ <- c(FileErr_, Msg)
+        FileErr_ls <- c(FileErr_ls, FileErr_)
         next()
       }
-      #Read in the data file
-      Data_df <- read.csv(file.path(Dir, File), as.is = TRUE)
+      #Read in the data file and check that it is properly formatted
+      Data_df <- try(read.csv(file.path(Dir, File), as.is = TRUE), silent = TRUE)
+      if (class(Data_df) == "try-error") {
+        Msg <-
+          paste0(
+            "Input file error. File '", File, "' required by '",
+            ModuleName, "' is not properly formatted. Could be caused by rows ",
+            "not having same number of entries or values not properly comma ",
+            "separated."
+          )
+
+        FileErr_ <- c(FileErr_, Msg)
+        FileErr_ls <- c(FileErr_ls, FileErr_)
+        next()
+      }
+
+      # Remove the Byte order mark that sometimes appears in the beginning of
+      # UTF-8 files on Windows.  Byte Order Mark can't be saved in this
+      # windows encoded text file so I include it as raw
+      # The real solution is to use read.csv with fileEncoding='UTF-8-BOM'
+      # but that requires knowing the encoding of the CSV file ahead of time
+      # The BOM is \uEFBBBF or rawToChar(as.raw(c(0xef, 0xbb, 0xbf)))
+      # but it gets converted to 0xef 0x2e 0x2e when it is read in on a
+      # machine using WIN1252 locale.
+      # See https://stackoverflow.com/questions/39593637/dealing-with-byte-order-mark-bom-in-r
+      bom <- rawToChar(as.raw(c(0xef, 0x2e, 0x2e)))
+      names(Data_df) <- stringr::str_replace(names(Data_df), bom, "")
+
       #Parse the field names of the data file
       ParsedNames_ls <- parseInputFieldNames(names(Data_df), Spec_ls, File)
       ParsingErrors_ <- unlist(lapply(ParsedNames_ls, function(x) x$Error))
-      names(Data_df) <- names(ParsedNames_ls)
       if (length(ParsingErrors_) != 0) {
         writeLog(
           c("Input file field name errors as follows:", ParsingErrors_))
         FileErr_ <- c(FileErr_, ParsingErrors_)
-      } else {
-        rm(ParsingErrors_)
+        FileErr_ls <- c(FileErr_ls, FileErr_)
+        next()
       }
+      names(Data_df) <- names(ParsedNames_ls)
+      rm(ParsingErrors_)
       #Identify the group and table the data is to be placed in
       Group <- unique(unlist(lapply(Spec_ls, function(x) x$GROUP)))
       if (length(Group) != 1) {
@@ -1743,7 +1773,9 @@ processModuleInputs <-
       if (is.null(Data_ls[[Group]][[Table]])) {
         Data_ls[[Group]][[Table]] <- list()
       }
+
       #If Group is Year and Table is not Region, check Geo and Year fields
+      #-------------------------------------------------------------------
       if (Group  == "Year" & Table != "Region") {
         #Check that there are 'Year' and 'Geo' fields
         HasYearField <- "Year" %in% names(Data_df)
@@ -1758,15 +1790,35 @@ processModuleInputs <-
               "and/or 'Geo' fields."
             )
           FileErr_ <- c(FileErr_, Msg)
+          FileErr_ls <- c(FileErr_ls, FileErr_)
           next()
         }
+        #Remove rows from Data_df for years other than model run years
+        Data_df <- Data_df[Data_df$Year %in% G$Years,]
         #Check that the file thas inputs for all years and geographic units
         #If so, save Year and Geo to table
         CorrectYearGeo <-
           checkInputYearGeo(Data_df$Year, Data_df$Geo, Group, Table)
         if (CorrectYearGeo$CompleteInput & !CorrectYearGeo$DupInput) {
-          Data_ls[[Group]][[Table]]$Year <- Data_df$Year
-          Data_ls[[Group]][[Table]]$Geo <- Data_df$Geo
+          #If Year and Geo data have not be added to the table then add them
+          if (is.null(Data_ls[[Group]][[Table]]$Year)) {
+            Data_ls[[Group]][[Table]]$Year <- Data_df$Year
+            Data_ls[[Group]][[Table]]$Geo <- Data_df$Geo
+            #Otherwise sort the input dataframe to be consistent
+          } else {
+            Data_df <- local({
+              #Year and Geo vector to match against
+              YearGeoToMatch_ <- paste(
+                Data_ls[[Group]][[Table]]$Year,
+                Data_ls[[Group]][[Table]]$Geo,
+                sep = "-"
+              )
+              #Year and Geo vector in Data_df
+              DataYearGeo_ <- paste(Data_df$Year, Data_df$Geo, sep = "-")
+              #Sort Data_df to match the Year and Geo order in the table
+              Data_df[match(YearGeoToMatch_, DataYearGeo_),]
+            })
+          }
         } else {
           if (!CorrectYearGeo$CompleteInput) {
             Msg <-
@@ -1788,11 +1840,14 @@ processModuleInputs <-
               )
             FileErr_ <- c(FileErr_, Msg)
           }
+          FileErr_ls <- c(FileErr_ls, FileErr_)
           next()
         }
       }
+
       #If Group is BaseYear or Global, and if Table is Azone, Bzone, Czone, or
       #Marea, check that geography is complete and correct
+      #-----------------------------------------------------------------------
       if (Group %in% c("BaseYear", "Global") &
           Table %in% c("Azone", "Bzone", "Czone", "Marea")) {
         #Check that there is a 'Geo' field
@@ -1806,11 +1861,13 @@ processModuleInputs <-
               " but the input file is missing required 'Geo' field."
             )
           FileErr_ <- c(FileErr_, Msg)
+          FileErr_ls <- c(FileErr_ls, FileErr_)
           next()
         }
         #Check that the 'Geo' field is complete and not duplicated
         GeoDuplicated <- any(duplicated(Data_df$Geo))
         GeoIncomplete <- any(!(G$Geo_df[[Table]] %in% Data_df$Geo))
+        #If duplicated or incomplete print out errors
         if (GeoDuplicated | GeoIncomplete) {
           if (GeoDuplicated) {
             DupGeo_ <- unique(Data_df$Geo[GeoDuplicated])
@@ -1836,12 +1893,25 @@ processModuleInputs <-
             FileErr_ <- c(FileErr_, Msg)
             rm(IncompleteGeo_)
           }
+          FileErr_ls <- c(FileErr_ls, FileErr_)
           next()
+          #If no errors, process Geo
         } else {
-          Data_ls[[Group]][[Table]]$Geo <- Data_df$Geo
+          #If Geo not in table, add to table
+          if (is.null(Data_ls[[Group]][[Table]]$Geo)) {
+            Data_ls[[Group]][[Table]]$Geo <- Data_df$Geo
+            #Otherwise reorder Data_df to match Geo order in table
+          } else {
+            Data_df <- local({
+              GeoToMatch_ <- Data_ls[[Group]][[Table]]$Geo
+              Data_df[match(GeoToMatch_, Data_df$Geo),]
+            })
+          }
         }
       }
+
       #If Group is Year and Table is Region, check years are complete
+      #--------------------------------------------------------------
       if (Group  == "Year" & Table == "Region") {
         #Check that there is a 'Year' field
         HasYearField <- "Year" %in% names(Data_df)
@@ -1854,8 +1924,11 @@ processModuleInputs <-
               " but the input file is missing required 'Year' field."
             )
           FileErr_ <- c(FileErr_, Msg)
+          FileErr_ls <- c(FileErr_ls, FileErr_)
           next()
         }
+        #Remove rows from Data_df for years other than model run years
+        Data_df <- Data_df[Data_df$Year %in% G$Years,]
         #Check that the 'Year' field is complete and not duplicated
         YearDuplicated <- any(duplicated(Data_df$Year))
         YearIncomplete <- any(!(G$Years %in% Data_df$Year))
@@ -1884,12 +1957,23 @@ processModuleInputs <-
             FileErr_ <- c(FileErr_, Msg)
             rm(IncompleteYear_)
           }
+          FileErr_ls <- c(FileErr_ls, FileErr_)
           next()
+          #Process Year input
         } else {
-          Data_ls[[Group]][[Table]]$Year <- Data_df$Year
+          #If table doesn't contain Year entry, add
+          if (is.null(Data_ls[[Group]][[Table]]$Year)) {
+            Data_ls[[Group]][[Table]]$Year <- Data_df$Year
+            #Otherwise sort Data_df to match Year order in table
+          } else {
+            YearToMatch_ <- Data_ls[[Group]][[Table]]$Year
+            Data_df[match(YearToMatch_, Data_df$Year),]
+          }
         }
       }
+
       #Check and load data into list
+      #-----------------------------
       DataErr_ls <- list(Errors = character(0), Warnings = character(0))
       for (Name in names(Spec_ls)) {
         ThisSpec_ls <- Spec_ls[[Name]]
@@ -1968,5 +2052,3 @@ processModuleInputs <-
       Warnings = unlist(FileWarn_ls),
       Data = Data_ls)
   }
-
-
