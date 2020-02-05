@@ -6,11 +6,17 @@
 
 #Load libraries
 #--------------
+cat('run_model.R: script entered\n')
 library(visioneval)
+cat('run_model.R: libraries loaded\n')
+
+# Set future::plan for number of processors
+planType <- 'callr'
 
 #Initialize model
 #----------------
 initializeModel(
+  ModelScriptFile = "run_model.R",
   ParamDir = "defs",
   RunParamFile = "run_parameters.json",
   GeoFile = "geo.csv",
@@ -48,3 +54,4 @@ for(Year in getYears()) {
     RunYear = Year
   )
 }
+cat('run_model.R: run complete.\n')

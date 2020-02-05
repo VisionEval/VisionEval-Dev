@@ -28,13 +28,6 @@
 #</doc>
 
 
-#=================================
-#Packages used in code development
-#=================================
-#Uncomment following lines during code development. Recomment when done.
-# library(visioneval)
-
-
 #=============================================
 #SECTION 1: ESTIMATE AND SAVE MODEL PARAMETERS
 #=============================================
@@ -579,7 +572,8 @@ AssignDrivers <- function(L) {
     HhIdx <- match(names(NumDrivers_Hh), L$Year$Household$HhId)
     Out_ls$Year$Household[[BinName]][HhIdx] <- unname(NumDrivers_Hh)
     rm(MetroPer_df, Driver_, NumDrivers_Hh, HhIdx)
-    # Run nonmetropolitan model
+    # Run nonmetropolitan model(if any)
+    if (any(Per_df$LocType!="Urban")) {
     NonMetroPer_df <- Per_df[Per_df$LocType != "Urban",]
     Driver_ <- applyBinomialModel(
       DriverModel_ls$NonMetro,
@@ -597,6 +591,7 @@ AssignDrivers <- function(L) {
     HhIdx <- match(names(NumDrivers_Hh), L$Year$Household$HhId)
     Out_ls$Year$Household[[BinName]][HhIdx] <- unname(NumDrivers_Hh)
     rm(NonMetroPer_df, Driver_, NumDrivers_Hh, HhIdx)
+    }
   }
 
   #Tabulate number of driving age persons in each household
@@ -626,6 +621,23 @@ documentModule("AssignDrivers")
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
+# #Load packages and test functions
+# library(filesstrings)
+# library(visioneval)
+# library(ordinal)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-State",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "vestate",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "AssignDrivers",
 #   LoadDatastore = TRUE,
@@ -634,10 +646,8 @@ documentModule("AssignDrivers")
 # )
 # L <- TestDat_$L
 # R <- AssignDrivers(L)
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
+#
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "AssignDrivers",
 #   LoadDatastore = TRUE,
