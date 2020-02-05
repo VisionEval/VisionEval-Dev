@@ -1,14 +1,15 @@
 
-# FutureTaskProcessor.R 
+# FutureTaskProcessor.R
 # https://gist.github.com/PeterVermont/a4a29d2c6b88e4ee012a869dedb5099c#file-futuretaskprocessor-r
 
-# The file that 'source's this should also call plan(multiprocess, workers=<desired number of workers>)
-# for example: plan(multiprocess, workers=min((myNumTasks+1), MAX_PROCESSES))
+# The file that 'source's this should also call plan(callr, workers=<desired number of workers>)
+# for example: plan(callr, workers=min((myNumTasks+1), MAX_PROCESSES))
 # it is not required to specify workers -- if not then it will default to future::availableCores()
 # use myNumTasks+1 because future uses one process for itself.
 
-if (!require(future)) install.packages("future")
-library(future)
+if (!require(future.callr)) install.packages("future.callr")
+library(future.callr)
+
 
 asyncTasksRunning <- list()
 
@@ -260,9 +261,9 @@ fakeDataProcessing <- function(name, duration, sys_sleep = FALSE) {
 } #end fakeDataProcessing
 
 
-testAsync <- function(loops = future::availableCores() - 1) {
-  plan(multiprocess)
-  print(paste0("future::availableCores(): ", future::availableCores()))
+testAsync <- function(loops = future.callr::availableCores() - 1) {
+  plan(callr)
+  print(paste0("future.callr::availableCores(): ", future.callr::availableCores()))
   loops <- 10 #
   baseWait <- 3
   for (loopNumber in 1:loops) {

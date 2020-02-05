@@ -1,8 +1,8 @@
 Package: VEHouseholdVehicles
 Type: Package
 Title: Model household vehicles
-Version: 0.9
-Date: 4/8/18
+Version: 0.9.5
+Date: 11/6/18
 Author: Brian Gregor [aut, cre], Aditya Gore <aditya.gore@rsginc.com> [cre]
 Maintainer: Brian Gregor <gregorb@or-analytics.com>, Aditya Gore <aditya.gore@rsginc.com>
 Copyright: AASHTO
@@ -23,11 +23,10 @@ Imports:
     visioneval,
     ordinal,
     reshape2,
-    stats,
-    devtools,
-    VE2001NHTS,
-    VEHouseholdTravel
+    usethis,
+    VE2001NHTS
 Suggests:
     knitr
+Encoding: UTF-8
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1

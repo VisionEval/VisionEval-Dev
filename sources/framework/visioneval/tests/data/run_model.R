@@ -6,12 +6,15 @@
 
 #Load libraries
 #--------------
+cat('run_model.R: script entered\n')
 library(visioneval)
 library(VESyntheticFirms)
+cat('run_model.R: libraries loaded\n')
 
 #Initialize model
 #----------------
 initializeModel(
+  ModelScriptFile = "run_model.R",
   ParamDir = "defs",
   RunParamFile = "run_parameters.json",
   GeoFile = "geo.csv",
@@ -46,5 +49,6 @@ for(Year in getYears()) {
     ) #Comment for parsing test purposes
 
 }
+cat('run_model.R: run complete.\n')
 
 

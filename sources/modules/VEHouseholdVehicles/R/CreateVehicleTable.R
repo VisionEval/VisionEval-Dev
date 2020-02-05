@@ -1,15 +1,23 @@
 #====================
 #CreateVehicleTable.R
 #====================
-#This module creates a vehicle table and populates it with household ID and
-#geography fields
-
-
-#=================================
-#Packages used in code development
-#=================================
-#Uncomment following lines during code development. Recomment when done.
-# library(visioneval)
+#
+#<doc>
+#
+## CreateVehicleTable Module
+#### September 10, 2018
+#
+#This module creates a vehicle table and populates it with household ID and geography fields.
+#
+### Model Parameter Estimation
+#
+#This module has no estimated parameters.
+#
+### How the Module Works
+#
+#This module initializes the 'Vehicle' table and populates it with the household ID (HhId), vehicle ID (VehID), Azone ID (Azone), Marea ID (Marea), and vehicle access type (VehicleAccess) datasets. The Vehicle table has a record for every vehicle owned by the household. If there are more driving age persons than vehicles in the household, there is also a record for each driving age person for which there is no vehicle. The VehicleAccess designation is Own for each vehicle owned by a household. The designation is either LowCarSvc or HighCarSvc for each record corresponding to difference between driving age persons and owned vehicles. It is LowCarSvc if the household is in a Bzone having a low level of car service and HighCarSvc if the Bzone car service level is high.
+#
+#</doc>
 
 
 #=============================================
@@ -65,8 +73,8 @@ CreateVehicleTableSpecifications <- list(
       TOTAL = "",
       DESCRIPTION =
         items(
-          "Average cost in dollars per mile for travel by high service level car service",
-          "Average cost in dollars per mile for travel by low service level car service"
+          "Average cost in dollars per mile for travel by high service level car service exclusive of the cost of fuel, road use taxes, and carbon taxes (and any other social costs charged to vehicle use).",
+          "Average cost in dollars per mile for travel by low service level car service exclusive of the cost of fuel, road use taxes, and carbon taxes (and any other social costs charged to vehicle use)."
         )
     ),
     item(
@@ -119,6 +127,17 @@ CreateVehicleTableSpecifications <- list(
       TYPE = "character",
       UNITS = "ID",
       PROHIBIT = "",
+      ISELEMENTOF = ""
+    ),
+    item(
+      NAME = items(
+        "NumLtTrk",
+        "NumAuto"),
+      TABLE = "Household",
+      GROUP = "Year",
+      TYPE = "vehicles",
+      UNITS = "VEH",
+      PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = ""
     ),
     item(
@@ -181,6 +200,18 @@ CreateVehicleTableSpecifications <- list(
       ISELEMENTOF = c("Own", "LowCarSvc", "HighCarSvc"),
       SIZE = 10,
       DESCRIPTION = "Identifier whether vehicle is owned by household (Own), if vehicle is low level car service (LowCarSvc), or if vehicle is high level car service (HighCarSvc)"
+    ),
+    item(
+      NAME = "Type",
+      TABLE = "Vehicle",
+      GROUP = "Year",
+      TYPE = "character",
+      UNITS = "category",
+      NAVALUE = -1,
+      PROHIBIT = "NA",
+      ISELEMENTOF = c("Auto", "LtTrk"),
+      SIZE = 5,
+      DESCRIPTION = "Vehicle body type: Auto = automobile, LtTrk = light trucks (i.e. pickup, SUV, Van)"
     )
   )
 )
@@ -201,7 +232,7 @@ CreateVehicleTableSpecifications <- list(
 #' }
 #' @source CreateVehicleTable.R script.
 "CreateVehicleTableSpecifications"
-devtools::use_data(CreateVehicleTableSpecifications, overwrite = TRUE)
+usethis::use_data(CreateVehicleTableSpecifications, overwrite = TRUE)
 
 
 #=======================================================
@@ -233,9 +264,9 @@ devtools::use_data(CreateVehicleTableSpecifications, overwrite = TRUE)
 #' for the module.
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
+#' @name CreateVehicleTable
 #' @import visioneval
 #' @export
-#'
 CreateVehicleTable <- function(L) {
   #Initialize the output list
   Out_ls <- initDataList()
@@ -244,6 +275,8 @@ CreateVehicleTable <- function(L) {
   NumCarSvc_Hh <- L$Year$Household$DrvAgePersons - NumOwned_Hh
   NumCarSvc_Hh[NumCarSvc_Hh < 0] <- 0
   NumVeh_Hh <- NumOwned_Hh + NumCarSvc_Hh
+  NumLtTrk_Hh <- L$Year$Household$NumLtTrk
+  NumAuto_Hh <- L$Year$Household$NumAuto
   #Create a vehicle table
   Out_ls$Year$Vehicle <- list()
   attributes(Out_ls$Year$Vehicle)$LENGTH <- sum(NumVeh_Hh)
@@ -268,30 +301,55 @@ CreateVehicleTable <- function(L) {
   CarSvcLevel_Hh <- paste0(L$Year$Household$CarSvcLevel, "CarSvc")
   Out_ls$Year$Vehicle$VehicleAccess <-
     unlist(mapply(assignVehAccess, NumOwned_Hh, NumCarSvc_Hh, CarSvcLevel_Hh))
+  #Assign vehicle type designation
+  assignVehType <- function(NumLtTrk, NumAuto, NumCarSvc) {
+    c(rep("LtTrk", NumLtTrk), rep("Auto", NumAuto), rep("Auto", NumCarSvc))
+  }
+  Out_ls$Year$Vehicle$Type <-
+    unlist(mapply(assignVehType, NumLtTrk_Hh, NumAuto_Hh, NumCarSvc_Hh))
   #Return the outputs list
   Out_ls
 }
 
 
-#================================
-#Code to aid development and test
-#================================
+#===============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
+#===============================================================
+#Run module automatic documentation
+#----------------------------------
+documentModule("CreateVehicleTable")
+
 #Test code to check specifications, loading inputs, and whether datastore
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
+# #Load packages and test functions
+# library(filesstrings)
+# library(visioneval)
+# library(ordinal)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-RSPM",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "verspm",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "CreateVehicleTable",
 #   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
+#   SaveDatastore = FALSE,
 #   DoRun = FALSE
 # )
 # L <- TestDat_$L
 # R <- CreateVehicleTable(L)
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
+#
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "CreateVehicleTable",
 #   LoadDatastore = TRUE,

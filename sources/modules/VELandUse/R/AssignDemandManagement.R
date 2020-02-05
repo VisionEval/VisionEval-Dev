@@ -1,19 +1,28 @@
 #========================
 #AssignDemandManagement.R
 #========================
-#This module assigns demand management program participation to households and
-#to workers. Households are assigned to individualized marketing program
-#participation. Workers are assigned to employee commute options participation.
-#The module computes the net proportional reduction in household DVMT based on
-#the participation in travel demand management programs.
-
-
-#=================================
-#Packages used in code development
-#=================================
-#Uncomment following lines during code development. Recomment when done.
-library(visioneval)
-
+#
+#<doc>
+#
+## AssignDemandManagement Module
+#### November 6, 2018
+#
+#This module assigns demand management program participation to households and to workers. Households are assigned to individualized marketing program participation. Workers are assigned to employee commute options participation. The module computes the net proportional reduction in household DVMT based on the participation in travel demand management programs.
+#
+### Model Parameter Estimation
+#
+#This module has parameters for the proportional reduction in household vehicle miles traveled (VMT) for worker participation in employee commute options (ECO) program and for household participation in an individualized marketing program (IMP). The default VMT reduction values are contained in the *tdm_parameters.csv* file in the *inst/extdata* directory of this package: 9% for IMP, and 5.4% for ECO. Documentation for those values is in the accompanying *tdm_parameters.txt* file.
+#
+#A model is also estimated to predicts the proportion of household VMT in work tours. The percentage reduction on household VMT as a function of employee commute options programs depends on the number of household workers participating and the proportion of household travel in work tours. A relationship between household size, the number of household workers, and the proportion of household DVMT in work tours is calculated using the *HhTours_df* dataset from the VE2001NHTS package. The following table show the tabulations of total miles, work tour miles, and work tour miles per worker by household size. The proportion of household miles in work tours per household workers is computed from these data.
+#
+#<tab:TdmModel_ls$PropMilesPerWkr_df>
+#
+### How the Module Works
+#Users provide inputs on the proportion of households residing in each Bzone who participate in individualized marketing programs (IMP) and the proportion of workers working in each Bzone who participate in employee commute options (ECO) programs. These proportions are used in random draws to determine whether a household is an IMP program participant and whether a worker is an ECO program participant. The number of workers is participating is summed for each household.
+#
+#The proportional reduction in the DVMT of each household is calculated for IMP program participation and ECO program participation and the maximum of those is used. The maximum value is used rather than combining the values of the two programs because it is likely that there is a substantial amount of overlap in what these programs accomplish. The proportional reduction in VMT due to IMP participation is simply the value specified in the *tdm_parameters.csv* file. The proportional reduction in VMT due to ECO participation is product of the proportional reduction in VMT specified in the *tdm_parameters.csv*, the modeled proportion of household VMT in work travel per worker for the household size, and the number of workers who participate.
+#
+#</doc>
 
 #=============================================
 #SECTION 1: ESTIMATE AND SAVE MODEL PARAMETERS
@@ -133,6 +142,15 @@ PropMilesPerWkr_Sz <- TourMiles_SzX[,"WorkPerWorker"] / TourMiles_SzX[,"Total"]
 #PropMilesPerWkr_Sz
 #plot(1:8, PropMilesPerWkr_Sz, type = "b")
 TdmModel_ls$PropMilesPerWkr <- PropMilesPerWkr_Sz
+#Make table to document
+TdmModel_ls$PropMilesPerWkr_df <- data.frame(
+  "Household_Size" = rownames(TourMiles_SzX),
+  "Total_Miles" = round(TourMiles_SzX[,"Total"]),
+  "Work_Tour_Miles" = round(TourMiles_SzX[,"Work"]),
+  "Work_Miles_Per_Worker" = round(TourMiles_SzX[,"WorkPerWorker"]),
+  "Prop._Per_Worker" = round(unname(PropMilesPerWkr_Sz), 3),
+  "N" = TourMiles_SzX[,"N"]
+  )
 rm(TourMiles_df, TourMiles_ls, TourMiles_SzX, HhSizeCat_, PropMilesPerWkr_Sz)
 
 #-----------------------
@@ -151,7 +169,7 @@ rm(TourMiles_df, TourMiles_ls, TourMiles_SzX, HhSizeCat_, PropMilesPerWkr_Sz)
 #'  }
 #' @source AssignDemandManagement.R
 "TdmModel_ls"
-devtools::use_data(TdmModel_ls, overwrite = TRUE)
+usethis::use_data(TdmModel_ls, overwrite = TRUE)
 
 
 #================================================
@@ -322,7 +340,7 @@ AssignDemandManagementSpecifications <- list(
 #' }
 #' @source AssignDemandManagement.R script.
 "AssignDemandManagementSpecifications"
-devtools::use_data(AssignDemandManagementSpecifications, overwrite = TRUE)
+usethis::use_data(AssignDemandManagementSpecifications, overwrite = TRUE)
 
 
 #=======================================================
@@ -337,7 +355,7 @@ devtools::use_data(AssignDemandManagementSpecifications, overwrite = TRUE)
 #-------------------------------------------------------------------------
 #' Main module function to assign TDM participation and effect on DVMT.
 #'
-#' \code{AssignParkingRestrictions} assigns households and workers to
+#' \code{AssignDemandManagement} assigns households and workers to
 #' participation in TDM programs and calculates the proportional reduction in
 #' household DVMT due to this participation.
 #'
@@ -349,6 +367,7 @@ devtools::use_data(AssignDemandManagementSpecifications, overwrite = TRUE)
 #' for the module.
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
+#' @name AssignDemandManagement
 #' @import visioneval stats
 #' @export
 AssignDemandManagement <- function(L) {
@@ -399,13 +418,34 @@ AssignDemandManagement <- function(L) {
   Out_ls
 }
 
-#================================
-#Code to aid development and test
-#================================
+#===============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
+#===============================================================
+#Run module automatic documentation
+#----------------------------------
+documentModule("AssignDemandManagement")
+
 #Test code to check specifications, loading inputs, and whether datastore
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
+# #Load packages and test functions
+# library(filesstrings)
+# library(visioneval)
+# library(fields)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-RSPM",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "verspm",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "AssignDemandManagement",
 #   LoadDatastore = TRUE,
@@ -413,14 +453,4 @@ AssignDemandManagement <- function(L) {
 #   DoRun = FALSE
 # )
 # L <- TestDat_$L
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
-# TestDat_ <- testModule(
-#   ModuleName = "AssignDemandManagement",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
-#   DoRun = TRUE
-# )
-
+# R <- AssignDemandManagement(L)

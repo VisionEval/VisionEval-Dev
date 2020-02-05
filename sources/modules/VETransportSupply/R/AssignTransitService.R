@@ -1,26 +1,46 @@
 #======================
 #AssignTransitService.R
 #======================
-#This module assigns transit service level to the metropolitan area (Marea) and
-#neighborhoods (Bzone). Annual revenue-miles (i.e. transit miles in revenue
-#service) by transit mode type are read from input file and then converted to
-#bus equivalents using factors derived from urbanized are data from the National
-#Transit Database (NTD). This script reads in data taken from the 2015 NTD and
-#calculates the conversion factors which are the only model parameters at this
-#time. The AssignTransitService function calculates the bus equivalent revenue
-#miles for the metropolitan area from inputs for revenue miles by mode type. The
-#module also reads in an input file of neighborhood transit service level and
-#assigns to Bzones.
 
-
-#=================================
-#Packages used in code development
-#=================================
-#The following commented lines of code are in the script for code development
-#purposes only. Uncomment them if needed to work on the script. Recomment when
-#done.
-# library(visioneval)
-# library(car)
+#<doc>
+#
+## AssignTransitService Module
+#### November 5, 2018
+#
+#This module assigns transit service level to the metropolitan area (Marea) and neighborhoods (Bzones). Annual revenue-miles (i.e. transit miles in revenue service) by transit mode type are read from an input file. The following 8 modes are recognized:
+#* DR = Demand-responsive
+#* VP = Vanpool and similar
+#* MB = Standard motor bus
+#* RB = Bus rapid transit and commuter bus
+#* MG = Monorail/automated guideway
+#* SR = Streetcar/trolley bus/inclined plain
+#* HR = Heavy Rail/Light Rail
+#* CR = Commuter Rail/Hybrid Rail/Cable Car/Aerial Tramway
+#
+#Revenue miles are converted to bus (i.e. MB) equivalents using factors derived from urbanized are data from the National Transit Database (NTD). Bus-equivalent revenue miles are used in models which predict vehicle ownership and household DVMT.
+#
+#Revenue miles by mode type are also translated (using NTD data) into vehicle miles by 3 vehicle types: van, bus, and rail. Miles by vehicle type are used to calculate public transit energy consumption and emissions.
+#
+#The module also reads in user supplied data on relative public transit accessibility by Bzone as explained below.
+#
+### Model Parameter Estimation
+#
+#Parameters are calculated to convert the revenue miles for each of the 8 recognized public transit modes into bus equivalents, and to convert revenue miles into vehicle miles. Data extracted from the 2015 National Transit Database (NTD) are used to calculate these parameters. The extracted datasets are in the *2015_Service.csv* and *2015_Agency_information.csv* files in the *inst/extdata* directory of this package. These files contain information about transit service and transit service providers located within urbanized areas. Documentation of the data are contained in the accompanying *2015_Service.txt* and *2015_Agency_information.txt* files.
+#
+#Bus equivalent factors for each of the 8 modes is calculated on the basis of the average productivity of each mode as measured by the ratio of passenger miles to revenue miles. The bus-equivalency factor of each mode is the ratio of the average productivity of the mode to the average productivity of the bus (MB) mode.
+#
+#Factors to compute vehicle miles by mode from revenue miles by mode are calculated from the NTD data on revenue miles and deadhead (i.e. out of service) miles. The vehicle mile factor is the sum of revenue and deadhead miles divided by the revenue miles. These factors vary by mode.
+#
+### How the Module Work
+#
+#The user supplies data on the annual revenue miles of service by each of the 8 transit modes for the Marea. These revenue miles are converted to bus equivalents using the estimated bus-equivalency factors and summed to calculate total bus-equivalent revenue miles. This value is divided by the urbanized area population of the Marea to compute bus-equivalent revenue miles per capita. This public transit service measure is used in models of household vehicle ownership and household vehicle travel.
+#
+#The user supplied revenue miles by mode are translated into vehicle miles by mode using the estimated conversion factors. The results are then simplified into 3 vehicle types (Van, Bus, Rail) where the DR and VP modes are assumed to be served by vans, the MB and RB modes are assumed to be served by buses, and the MG, SR, HR, and CR modes are assumed to be served by rail.
+#
+#The user also supplies information on the aggregate frequency of peak period transit service within 0.25 miles of the Bzone boundary per hour during evening peak period. This is the *D4c* measure included in the Environmental Protection Agency's (EPA) [Smart Location Database] (https://www.epa.gov/smartgrowth/smart-location-database-technical-documentation-and-user-guide). Following is the description of the measure from the user guide:
+#>EPA analyzed GTFS data to calculate the frequency of service for each transit route between 4:00 and 7:00 PM on a weekday. Then, for each block group, EPA identified transit routes with service that stops within 0.4 km (0.25 miles). Finally EPA summed total aggregate service frequency by block group. Values for this metric are expressed as service frequency per hour of service.
+#
+#</doc>
 
 
 #=============================================
@@ -97,6 +117,7 @@ ServiceInp_ls <- items(
 #' UZABusEqRevMile_df: data on bus equivalent revenue miles by urbanized area,
 #' VehMiFactors_df: factors to convert revenue miles by mode into vehicle miles
 #' by mode.
+#' @name estimateTransitModel
 #' @import stats
 #' @export
 estimateTransitModel <- function() {
@@ -266,7 +287,7 @@ rm(ServiceInp_ls)
 #' }
 #' @source AssignTransitService.R script.
 "BusEquivalents_df"
-devtools::use_data(BusEquivalents_df, overwrite = TRUE)
+usethis::use_data(BusEquivalents_df, overwrite = TRUE)
 
 #Save the vehicle mile factors
 #-----------------------------
@@ -297,7 +318,7 @@ devtools::use_data(BusEquivalents_df, overwrite = TRUE)
 #' }
 #' @source AssignTransitService.R script.
 "VehMiFactors_df"
-devtools::use_data(VehMiFactors_df, overwrite = TRUE)
+usethis::use_data(VehMiFactors_df, overwrite = TRUE)
 
 #Save the urbanized area bus equivalency data
 #--------------------------------------------
@@ -318,7 +339,7 @@ devtools::use_data(VehMiFactors_df, overwrite = TRUE)
 #' }
 #' @source AssignTransitService.R script.
 "UZABusEqRevMile_df"
-devtools::use_data(UZABusEqRevMile_df, overwrite = TRUE)
+usethis::use_data(UZABusEqRevMile_df, overwrite = TRUE)
 
 #Clean up
 rm(TransitParam_ls)
@@ -489,7 +510,7 @@ AssignTransitServiceSpecifications <- list(
 #' }
 #' @source AssignTransitService.R script.
 "AssignTransitServiceSpecifications"
-devtools::use_data(AssignTransitServiceSpecifications, overwrite = TRUE)
+usethis::use_data(AssignTransitServiceSpecifications, overwrite = TRUE)
 
 
 #=======================================================
@@ -512,6 +533,7 @@ devtools::use_data(AssignTransitServiceSpecifications, overwrite = TRUE)
 #' for the module.
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
+#' @name AssignTransitService
 #' @import visioneval
 #' @export
 AssignTransitService <- function(L) {
@@ -587,13 +609,32 @@ AssignTransitService <- function(L) {
 }
 
 
-#================================
-#Code to aid development and test
-#================================
+#===============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
+#===============================================================
+#Run module automatic documentation
+#----------------------------------
+documentModule("AssignTransitService")
+
 #Test code to check specifications, loading inputs, and whether datastore
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
+# library(filesstrings)
+# library(visioneval)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-RSPM",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "verspm",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "AssignTransitService",
 #   LoadDatastore = TRUE,
@@ -601,13 +642,4 @@ AssignTransitService <- function(L) {
 #   DoRun = FALSE
 # )
 # L <- TestDat_$L
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
-# TestDat_ <- testModule(
-#   ModuleName = "AssignTransitService",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
-#   DoRun = TRUE
-# )
+# R <- AssignTransitService(L)

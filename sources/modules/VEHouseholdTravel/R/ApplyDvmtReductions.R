@@ -1,27 +1,23 @@
-#=======================
+#=====================
 #ApplyDvmtReductions.R
-#=======================
-#This module applies the computed proportional reductions in household DVMT due
-#to the application of travel demand management programs and the diversion of
-#single-occupant vehicle travel to bicycles, electric bicycles, or other
-#light-weight vehicles. The AssignDemandManagement module assigns travel demand
-#management programs to workers and households (based on user inputs regarding
-#assumed participation rates) and calculates the proportional reduction in
-#household DVMT from the programs. The DivertSovTravel module models the amount
-#of SOV travel of households and diverts some of that travel to light-weight
-#vehicle travel (bikes, electric bikes, etc.) based on user input goals for
-#diversion, the amount of household SOV travel and the propensity of the
-#household to use other modes. It calculates proportion of each household travel
-#that is diverted. The ApplyTravelReductions module gets the DVMT diversions
-#that these modules calculated and placed in the datastore and adjusts the
-#household DVMT accordingly, saving the adjusted household DVMT.
-
-
-#=================================
-#Packages used in code development
-#=================================
-#Uncomment following lines during code development. Recomment when done.
-# library(visioneval)
+#=====================
+#
+#<doc>
+#
+## ApplyDvmtReductions Module
+#### November 21, 2018
+#
+#This module applies the computed proportional reductions in household DVMT due to the application of travel demand management programs and the diversion of single-occupant vehicle travel to bicycles, electric bicycles, or other light-weight vehicles. It also computes added bike trips due to the diversion.
+#
+### Model Parameter Estimation
+#
+#This module has no estimated model parameters.
+#
+### How the Module Works
+#
+#The module loads from the datastore the proportional reductions in household DVMT calculated by the AssignDemandManagement module and DivertSovTravel module. It converts the proportional reductions to proportions of DVMT (i.e. 1 - proportional reduction), multiplies them, and multiplies by household DVMT to arrive at a revised household DVMT which is saved to the datastore. It computes the added 'bike' trips that would occur due to the diversion by calculating the diverted SOV travel and dividing by the average SOV trip length.
+#
+#</doc>
 
 
 #=============================================
@@ -38,7 +34,7 @@
 #------------------------------
 ApplyDvmtReductionsSpecifications <- list(
   #Level of geography module is applied at
-  RunBy = "Azone",
+  RunBy = "Region",
   #Specify new tables to be created by Inp if any
   #Specify new tables to be created by Set if any
   #Specify input data
@@ -60,6 +56,15 @@ ApplyDvmtReductionsSpecifications <- list(
       TYPE = "double",
       UNITS = "proportion",
       PROHIBIT = c("NA", "< 0", "> 1"),
+      ISELEMENTOF = ""
+    ),
+    item(
+      NAME = "AveTrpLenDiverted",
+      TABLE = "Household",
+      GROUP = "Year",
+      TYPE = "distance",
+      UNITS = "MI",
+      PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = ""
     ),
     item(
@@ -85,6 +90,18 @@ ApplyDvmtReductionsSpecifications <- list(
       ISELEMENTOF = "",
       SIZE = 0,
       DESCRIPTION = "Average daily vehicle miles traveled by the household in autos or light trucks"
+    ),
+    item(
+      NAME = "SovToBikeTrip",
+      TABLE = "Household",
+      GROUP = "Year",
+      TYPE = "compound",
+      UNITS = "TRIP/YR",
+      NAVALUE = -1,
+      PROHIBIT = c("NA", "< 0"),
+      ISELEMENTOF = "",
+      SIZE = 0,
+      DESCRIPTION = "Annual extra trips allocated to bicycle model as a result of SOV diversion"
     )
   ),
   #Specify call status of module
@@ -105,7 +122,7 @@ ApplyDvmtReductionsSpecifications <- list(
 #' }
 #' @source ApplyDvmtReductions.R script.
 "ApplyDvmtReductionsSpecifications"
-devtools::use_data(ApplyDvmtReductionsSpecifications, overwrite = TRUE)
+usethis::use_data(ApplyDvmtReductionsSpecifications, overwrite = TRUE)
 
 
 #=======================================================
@@ -129,6 +146,7 @@ devtools::use_data(ApplyDvmtReductionsSpecifications, overwrite = TRUE)
 #' for the module.
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
+#' @name ApplyDvmtReductions
 #' @import visioneval
 #' @export
 ApplyDvmtReductions <- function(L) {
@@ -142,23 +160,54 @@ ApplyDvmtReductions <- function(L) {
   #Adjusted household DVMT
   AdjDvmt_Hh <- L$Year$Household$Dvmt * TdmAdj_Hh * SovDivertAdj_Hh
 
+  #Calculate extra bike trip adjustment
+  #------------------------------------
+  #Daily miles diverted
+  SovMilesDivert_Hh <- L$Year$Household$PropDvmtDiverted * L$Year$Household$Dvmt
+  #Yearly trips diverted
+  SovToBikeTrip_Hh <- 365 * SovMilesDivert_Hh / L$Year$Household$AveTrpLenDiverted
+  SovToBikeTrip_Hh[is.nan(SovToBikeTrip_Hh)] <- 0
+
   #Return the results
   #------------------
   Out_ls <- initDataList()
   Out_ls$Year$Household <-
-    list(Dvmt = AdjDvmt_Hh)
+    list(Dvmt = AdjDvmt_Hh,
+         SovToBikeTrip = SovToBikeTrip_Hh)
   #Return the outputs list
   Out_ls
 }
 
 
-#================================
-#Code to aid development and test
-#================================
+#===============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
+#===============================================================
+#Run module automatic documentation
+#----------------------------------
+documentModule("ApplyDvmtReductions")
+
 #Test code to check specifications, loading inputs, and whether datastore
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
+# #Load libraries and test functions
+# library(filesstrings)
+# library(visioneval)
+# library(data.table)
+# library(pscl)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-State",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "vestate",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "ApplyDvmtReductions",
 #   LoadDatastore = TRUE,
@@ -167,14 +216,3 @@ ApplyDvmtReductions <- function(L) {
 # )
 # L <- TestDat_$L
 # R <- ApplyDvmtReductions(L)
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
-# TestDat_ <- testModule(
-#   ModuleName = "ApplyDvmtReductions",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
-#   DoRun = TRUE
-# )
-

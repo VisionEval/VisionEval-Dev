@@ -1,17 +1,37 @@
 #==================
 #AssignVehicleAge.R
 #==================
-#This module assigns vehicle ages to each household vehicle. The type and age
-#of each vehicle owned or leased by households is assigned to the Vehicle table.
-#It is assumed that for vehicles whose access type is car service rather than
-#own, the vehicle type is Auto.
-
-
-#=================================
-#Packages used in code development
-#=================================
-#Uncomment following lines during code development. Recomment when done.
-# library(visioneval)
+#
+#<doc>
+#
+## AssignVehicleAge Module
+#### September 7, 2018
+#
+#This module assigns vehicle ages to each household vehicle. Vehicle age is assigned as a function of the vehicle type (auto or light truck), household income, and assumed mean vehicle age by vehicle type and Azone. Car service vehicles are assigned an age based on input assumptions with no distinction between vehicle type.
+#
+### Model Parameter Estimation
+#
+#The models are estimated using the *Hh_df* (household) and *Veh_df* (vehicle) datasets in the VE2001NHTS package. Information about these datasets and how they were developed from the 2001 National Household Travel Survey public use dataset is included in that package. For each vehicle type (auto, light truck), tabulations are made of cumulative proportions of vehicles by age (i.e. proportion of vehicles less than or equal to the age) and the joint proportion of vehicles by age and income group. For these tabulations, the maximum vehicle age was set at 30 years. This ignores about 1.5% of the vehicle records.
+#
+#The following figure shows the cumulative proportions of vehicles by vehicle age.
+#
+#<fig:cum_age_props_by_veh-type.png>
+#
+#The following figure compares the age proportions of automobiles by income group. It can be seen that as income decreases, the age distribution shifts towards older vehicles. The 6 income groups are $0 to $20,000, $20,000 to $40,000, $40,000 to $60,000, $60,000 to $80,000, $80,000 to $100,000, $100,000 plus.
+#
+#<fig:auto_age_props_by_inc.png>
+#
+#The following figure compares the age proportions of light trucks by income group. As with automobiles, as increases, the age distributions shifts to older vehicles.
+#
+#<fig:lttrk_age_props_by_inc.png>
+#
+### How the Module Works
+#
+#The module auto and light truck vehicle age distributions which match user inputs for mean auto age and mean light truck age. The module adjusts the cumulative age distribution to match a target mean age. This is done by either expanding the age interval (i.e. a year is 10% longer) if the mean age increases, or compressing the age interval if the mean age decreases. A binary search function is used to determine the amount of expansion or compression of the estimated age distribution is necessary in order to match the input mean age. The age distribution for the vehicles is derived from the adjusted cumulative age distribution.
+#
+#Once the age distribution for a vehicle type has been determined, the module calculates vehicle age distributions by household income group. It takes marginal distributions of vehicles by age and vehicles by household income group along with a seed matrix of the joint probability distribution of vehicles by age and income group, and then uses iterative proportional fitting to adjust the joint probabilities to match the margins. The age probability by income group is calculated from the joint probability matrix. These probabilities are then used as sampling distributions to determine the age of each household vehicle as a function of the vehicle type and the household income.
+#
+#</doc>
 
 
 #=============================================
@@ -19,13 +39,12 @@
 #=============================================
 #This model predicts vehicle age as a function of the vehicle type, household
 #income, and census region the household is located in. It uses a tabulation
-#of vehicles from the 2001 NHTS to create probability three probability tables.
-#The first is a table of the cumulative probability of vehicles by age for each
-#vehicle type. This table is used in the model to create vehicle age
-#distributions by type based on input assumptions regarding the mean vehicle
-#age by type. The second and thirds tables are joint probabilities of vehicles
-#by vehicle age and income group. One of these tables applies to automobiles and
-#the other applies to light trucks.
+#of vehicles from the 2001 NHTS to create two probability tables for each
+#vehicle type. The first is a table of the cumulative probability of vehicles by
+#age. This table is used in the model to create vehicle age distributions by
+#type based on input assumptions regarding the mean vehicle age by type. The
+#second tables is the joint probabilities of vehicles by vehicle age and income
+#group.
 
 #Prepare 2001 NHTS data
 #----------------------
@@ -47,10 +66,9 @@ Data_df <- Data_df[complete.cases(Data_df),]
 Data_df$Weight <- Data_df$Expfllhh / 100
 rm(Hh_df, Veh_df, HhVars_, VehVars_)
 
-#Create joint distributions of vehicles by age and income by type and region
-#---------------------------------------------------------------------------
-#Tabulate vehicle weights by vehicle age, household income, vehicle type, and
-#Census region
+#Create joint distributions of vehicles by age and income by type
+#----------------------------------------------------------------
+#Tabulate vehicle weights by vehicle age, household income, vehicle type
 TotWt_AgIgTy <-
   tapply(Data_df$Weight, as.list(Data_df[c("VehAge", "IncGrp", "Type")]), sum)
 #Calculate joint distribution of proportion of vehicles by age and income for
@@ -68,13 +86,43 @@ rownames(AutoAgeIncDF_AgIg) <- 0:30
 AutoAgeCDF_Ag <- cumsum(rowSums(AutoAgeIncDF_AgIg))
 
 #Light Truck Calculations
-#-----------------
+#------------------------
 LtTrkAgeIncDF_AgIg <- AgeIncJointProp_AgIgTy[,,"LtTrk"]
 LtTrkAgeIncDF_AgIg <-
   apply(LtTrkAgeIncDF_AgIg, 2, function(x) {
     smooth.spline(0:MaxAge, x, df=8)$y})
 rownames(LtTrkAgeIncDF_AgIg) <- 0:30
 LtTrkAgeCDF_Ag <- cumsum(rowSums(LtTrkAgeIncDF_AgIg))
+
+#Document vehicle age proportions
+#--------------------------------
+#Cumulate age proportions
+png("data/cum_age_props_by_veh-type.png", height = 480, width = 480)
+plot(0:30, AutoAgeCDF_Ag, type = "l", xlab = "Vehicle Age (years)",
+     ylab = "Proportion of Vehicles",
+     main = "Cumulative Proportion of Vehicles by Age")
+lines(0:30, LtTrkAgeCDF_Ag, lty = 2)
+legend("bottomright", lty = c(1,2), legend = c("Auto", "Light Truck"),
+       bty = "n")
+dev.off()
+#Document auto age proportions by household income group
+png("data/auto_age_props_by_inc.png", height = 480, width = 480)
+Temp_AgIg <- sweep(AutoAgeIncDF_AgIg, 2, colSums(AutoAgeIncDF_AgIg), "/")
+matplot(Temp_AgIg, type = "l", xlab = "Vehicle Age (years)",
+        ylab = "Proportion of Vehicles",
+        main = "Proportions of Automobiles by Age by Household Income")
+legend("topright", lty = 1:6, col = 1:6, legend = colnames(AutoAgeIncDF_AgIg))
+rm(Temp_AgIg)
+dev.off()
+#Document light truck age proportions by household income group
+png("data/lttrk_age_props_by_inc.png", height = 480, width = 480)
+Temp_AgIg <- sweep(LtTrkAgeIncDF_AgIg, 2, colSums(LtTrkAgeIncDF_AgIg), "/")
+matplot(Temp_AgIg, type = "l", xlab = "Vehicle Age (years)",
+        ylab = "Proportion of Vehicles",
+        main = "Proportions of Light Trucks by Age by Household Income")
+legend("topright", lty = 1:6, col = 1:6, legend = colnames(LtTrkAgeIncDF_AgIg))
+rm(Temp_AgIg)
+dev.off()
 
 #Save model parameters in a list
 #-------------------------------
@@ -108,7 +156,7 @@ rm(MaxAge, TotWt_AgIgTy, AgeIncJointProp_AgIgTy, AutoAgeIncDF_AgIg,
 #' }
 #' @source AssignVehicleAge.R script.
 "VehicleAgeModel_ls"
-devtools::use_data(VehicleAgeModel_ls, overwrite = TRUE)
+usethis::use_data(VehicleAgeModel_ls, overwrite = TRUE)
 
 
 #================================================
@@ -119,7 +167,7 @@ devtools::use_data(VehicleAgeModel_ls, overwrite = TRUE)
 #------------------------------
 AssignVehicleAgeSpecifications <- list(
   #Level of geography module is applied at
-  RunBy = "Azone",
+  RunBy = "Region",
   #Specify new tables to be created by Inp if any
   #Specify new tables to be created by Set if any
   #Specify input data
@@ -149,6 +197,15 @@ AssignVehicleAgeSpecifications <- list(
   #Specify data to be loaded from data store
   Get = items(
     item(
+      NAME = "Azone",
+      TABLE = "Azone",
+      GROUP = "Year",
+      TYPE = "character",
+      UNITS = "ID",
+      PROHIBIT = "",
+      ISELEMENTOF = ""
+    ),
+    item(
       NAME = "AutoMeanAge",
       TABLE = "Azone",
       GROUP = "Year",
@@ -164,6 +221,15 @@ AssignVehicleAgeSpecifications <- list(
       TYPE = "time",
       UNITS = "YR",
       PROHIBIT = c("NA", "<= 0"),
+      ISELEMENTOF = ""
+    ),
+    item(
+      NAME = "Azone",
+      TABLE = "Household",
+      GROUP = "Year",
+      TYPE = "character",
+      UNITS = "ID",
+      PROHIBIT = "",
       ISELEMENTOF = ""
     ),
     item(
@@ -185,23 +251,12 @@ AssignVehicleAgeSpecifications <- list(
       ISELEMENTOF = ""
     ),
     item(
-      NAME = "Vehicles",
-      TABLE = "Household",
+      NAME = "Azone",
+      TABLE = "Vehicle",
       GROUP = "Year",
-      TYPE = "vehicles",
-      UNITS = "VEH",
-      PROHIBIT = c("NA", "< 0"),
-      ISELEMENTOF = ""
-    ),
-    item(
-      NAME = items(
-        "NumLtTrk",
-        "NumAuto"),
-      TABLE = "Household",
-      GROUP = "Year",
-      TYPE = "vehicles",
-      UNITS = "VEH",
-      PROHIBIT = c("NA", "< 0"),
+      TYPE = "character",
+      UNITS = "ID",
+      PROHIBIT = "",
       ISELEMENTOF = ""
     ),
     item(
@@ -232,6 +287,15 @@ AssignVehicleAgeSpecifications <- list(
       ISELEMENTOF = c("Own", "LowCarSvc", "HighCarSvc")
     ),
     item(
+      NAME = "Type",
+      TABLE = "Vehicle",
+      GROUP = "Year",
+      TYPE = "character",
+      UNITS = "category",
+      PROHIBIT = "NA",
+      ISELEMENTOF = c("Auto", "LtTrk")
+    ),
+    item(
       NAME = "AveCarSvcVehicleAge",
       TABLE = "Azone",
       GROUP = "Year",
@@ -243,18 +307,6 @@ AssignVehicleAgeSpecifications <- list(
   ),
   #Specify data to saved in the data store
   Set = items(
-    item(
-      NAME = "Type",
-      TABLE = "Vehicle",
-      GROUP = "Year",
-      TYPE = "character",
-      UNITS = "category",
-      NAVALUE = -1,
-      PROHIBIT = "NA",
-      ISELEMENTOF = c("Auto", "LtTrk"),
-      SIZE = 5,
-      DESCRIPTION = "Vehicle body type: Auto = automobile, LtTrk = light trucks (i.e. pickup, SUV, Van)"
-    ),
     item(
       NAME = "Age",
       TABLE = "Vehicle",
@@ -288,7 +340,7 @@ AssignVehicleAgeSpecifications <- list(
 #' }
 #' @source AssignVehicleAge.R script.
 "AssignVehicleAgeSpecifications"
-devtools::use_data(AssignVehicleAgeSpecifications, overwrite = TRUE)
+usethis::use_data(AssignVehicleAgeSpecifications, overwrite = TRUE)
 
 
 #=======================================================
@@ -309,6 +361,7 @@ devtools::use_data(AssignVehicleAgeSpecifications, overwrite = TRUE)
 #' the values are the proportion of vehicles that age or younger. The names must
 #' be an ordered sequence from 0 to 30.
 #' @return A numeric value that is the mean vehicle age.
+#' @name findMeanAge
 #' @export
 #'
 findMeanAge <- function(AgeCDF_Ag) {
@@ -335,6 +388,7 @@ findMeanAge <- function(AgeCDF_Ag) {
 #' be an ordered sequence from 0 to 30.
 #' @param TargetMean A number that is the target mean value.
 #' @return A numeric value that is the mean vehicle age.
+#' @name adjustAgeDistribution
 #' @export
 #'
 adjustAgeDistribution <- function(AgeCDF_Ag, TargetMean = NULL) {
@@ -386,16 +440,16 @@ adjustAgeDistribution <- function(AgeCDF_Ag, TargetMean = NULL) {
 #' household income group.
 #'
 #' This function calculates vehicle age distributions by household income group.
-#' It takes marginal distributions of vehicles by age and households by income
-#' group along with a seed matrix of the joint probability distribution of
-#' vehicles by age and income group, and then uses iterative proportional
+#' It takes marginal distributions of vehicles by age and vehicles by household
+#' income group along with a seed matrix of the joint probability distribution
+#' of vehicles by age and income group, and then uses iterative proportional
 #' fitting to adjust the joint probabilities to match the margins. The
 #' probabilities by income group are calculated from the fitted joint
 #' probability matrix. The seed matrix is the joint age and income distribution
 #' for autos or light trucks in the VehicleAgeModel_ls (AgeIncJointProp_AgIg).
 #' The age margin is the proportional distribution of vehicles by age calculated
-#' by adjusting the cumulative age distribution for autos or light trucks in
-#' the VehicleAgeModel_ls (AgeCDF_AgTy) to match a target mean age. The income
+#' by adjusting the cumulative age distribution for autos or light trucks in the
+#' VehicleAgeModel_ls (AgeCDF_AgTy) to match a target mean age. The income
 #' margin is the proportional distribution of vehicles by household income group
 #' ($0-20K, $20K-40K, $40K-60K, $60K-80K, $80K-100K, $100K or more) calculated
 #' from the modeled household values.
@@ -410,6 +464,7 @@ adjustAgeDistribution <- function(AgeCDF_Ag, TargetMean = NULL) {
 #' between any margin value and corresponding sum of values of the joint
 #' probability matrix.
 #' @return A numeric value that is the mean vehicle age.
+#' @name calcAgeDistributionByInc
 #' @export
 #'
 calcAgeDistributionByInc <-
@@ -458,6 +513,7 @@ calcAgeDistributionByInc <-
 #' for the module.
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
+#' @name AssignVehicleAge
 #' @import visioneval
 #' @export
 #'
@@ -466,132 +522,138 @@ AssignVehicleAge <- function(L) {
   #------
   #Fix seed as synthesis involves sampling
   set.seed(L$G$Seed)
-  #Calculate the total number of vehicle entries
-  VehId_Ve <- L$Year$Vehicle$VehId
-  VehAccess_Ve <- L$Year$Vehicle$VehicleAccess
-  NumVeh <- length(VehId_Ve)
-  #Make vector to match order of household owned vehicles to vehicle table
-  HasVeh <- L$Year$Household$Vehicles > 0
-  DataID_ <-
-    with(L$Year$Household,
-         paste(
-           rep(HhId[HasVeh], Vehicles[HasVeh]),
-           unlist(sapply(Vehicles[HasVeh], function(x) 1:x)),
-           sep = "-"
-         ))
-  DatOrd <- match(DataID_, L$Year$Vehicle$VehId)
+  #Create index to match household records with vehicle records
+  HhToVehIdx_Ve <- match(L$Year$Vehicle$HhId, L$Year$Household$HhId)
 
-  #Create vehicle type dataset
-  #---------------------------
-  #Initialize values with Autos
-  Type_Ve <- rep("Auto", NumVeh)
-  #Insert values for household-owned vehicles
-  assignVehType <- function(NumLtTrk, NumAuto) {
-    c(rep("LtTrk", NumLtTrk), rep("Auto", NumAuto))
-  }
-  Type_ <-
-    with(L$Year$Household, unlist(mapply(assignVehType, NumLtTrk, NumAuto)))
-  Type_Ve[DatOrd] <- Type_
-
-  #Calculate vehicle age distributions
-  #-----------------------------------
-  #Create an income group dataset
+  #Create an income group datase
+  #-----------------------------
   Ig <- c("0to20K", "20Kto40K", "40Kto60K", "60Kto80K", "80Kto100K", "100KPlus")
-  IncGrp_Hh <-
+  L$Year$Vehicle$IncGrp <-
     as.character(
       with(L$Year$Household,
            cut(Income,
                breaks = c(c(0, 20, 40, 60, 80, 100) * 1000, max(Income)),
                labels = Ig,
-               include.lowest = TRUE))
-    )
-  IncGrp_ <- rep(IncGrp_Hh[HasVeh], L$Year$Household$Vehicles[HasVeh])
-  #Calculate income group proportions by vehicle type
-  NumVeh_IgTy <- table(IncGrp_, Type_Ve[DatOrd])
-  IncProp_IgTy <- sweep(NumVeh_IgTy, 2, colSums(NumVeh_IgTy), "/")
-  #Calculate cumulative age distributions by type
-  AutoAgeProp_Ag <-
-    adjustAgeDistribution(
-      VehicleAgeModel_ls$Auto$AgeCDF_Ag,
-      L$Year$Azone$AutoMeanAge)$Dist
-  LtTrkAgeProp_Ag <-
-    adjustAgeDistribution(
-      VehicleAgeModel_ls$LtTrk$AgeCDF_Ag,
-      L$Year$Azone$LtTrkMeanAge)$Dist
-  #Calculate age distributions by income group
-  AutoAgePropByInc_AgIg <-
-    calcAgeDistributionByInc(
-      VehicleAgeModel_ls$Auto$AgeIncJointProp_AgIg,
-      AutoAgeProp_Ag,
-      IncProp_IgTy[,"Auto"]
-    )
-  LtTrkAgePropByInc_AgIg <-
-    calcAgeDistributionByInc(
-      VehicleAgeModel_ls$LtTrk$AgeIncJointProp_AgIg,
-      LtTrkAgeProp_Ag,
-      IncProp_IgTy[,"LtTrk"]
+               include.lowest = TRUE))[HhToVehIdx_Ve]
     )
 
-  #Sample vehicle ages and assign to vehicles
-  #------------------------------------------
-  #Create vector to hold ages of owned vehicles
-  Age_ <- integer(length(DataID_))
-  #Assign ages for automobiles
-  for (ig in Ig) {
-    Ages_ <-
-      sample(
-        0:30,
-        NumVeh_IgTy[ig, "Auto"],
-        replace = TRUE,
-        prob = AutoAgePropByInc_AgIg[,ig])
-    Age_[IncGrp_ == ig & Type_ == "Auto"] <- Ages_
+  #Iterate by Azone and assign vehicle age
+  #---------------------------------------
+  NumVeh <- length(L$Year$Vehicle$VehId)
+  Age_Ve <- rep(NA, NumVeh)
+  names(Age_Ve) <- L$Year$Vehicle$VehId
+  Az <- L$Year$Azone$Azone
+  for (az in Az) {
+    #Create owned vehicle data frame
+    UseOwn <- with(L$Year$Vehicle, Azone == az & VehicleAccess == "Own")
+    AutoMeanAge <- with(L$Year$Azone, AutoMeanAge[Azone == az])
+    LtTrkMeanAge <- with(L$Year$Azone, LtTrkMeanAge[Azone == az])
+    #Create data frame of data to use
+    Fields_ <- c("VehId", "Type", "IncGrp")
+    Own_df <-
+      data.frame(lapply(L$Year$Vehicle[Fields_], function(x) x[UseOwn]), stringsAsFactors = FALSE)
+    Own_df$Age <- NA
+    #Calculate income group proportions by vehicle type
+    NumVeh_IgTy <- with(Own_df, table(IncGrp, Type))
+    IncProp_IgTy <- sweep(NumVeh_IgTy, 2, colSums(NumVeh_IgTy), "/")
+    #Calculate cumulative age distributions by type
+    AutoAgeProp_Ag <-
+      adjustAgeDistribution(
+        VehicleAgeModel_ls$Auto$AgeCDF_Ag,
+        AutoMeanAge)$Dist
+    LtTrkAgeProp_Ag <-
+      adjustAgeDistribution(
+        VehicleAgeModel_ls$LtTrk$AgeCDF_Ag,
+        LtTrkMeanAge)$Dist
+    #Calculate age distributions by income group
+    AutoAgePropByInc_AgIg <-
+      calcAgeDistributionByInc(
+        VehicleAgeModel_ls$Auto$AgeIncJointProp_AgIg,
+        AutoAgeProp_Ag,
+        IncProp_IgTy[,"Auto"]
+      )
+    LtTrkAgePropByInc_AgIg <-
+      calcAgeDistributionByInc(
+        VehicleAgeModel_ls$LtTrk$AgeIncJointProp_AgIg,
+        LtTrkAgeProp_Ag,
+        IncProp_IgTy[,"LtTrk"]
+      )
+    #Assign ages for automobiles
+    for (ig in Ig) {
+      Ages_ <-
+        sample(
+          0:30,
+          NumVeh_IgTy[ig, "Auto"],
+          replace = TRUE,
+          prob = AutoAgePropByInc_AgIg[,ig])
+      Own_df$Age[Own_df$IncGrp == ig & Own_df$Type == "Auto"] <- Ages_
+    }
+    #Assign ages for light trucks
+    for (ig in Ig) {
+      Ages_ <-
+        sample(
+          0:30,
+          NumVeh_IgTy[ig, "LtTrk"],
+          replace = TRUE,
+          prob = LtTrkAgePropByInc_AgIg[,ig])
+      Own_df$Age[Own_df$IncGrp == ig & Own_df$Type == "LtTrk"] <- Ages_
+    }
+    #Add vehicle age for owned vehicles in Azone
+    Age_Ve[Own_df$VehId] <- Own_df$Age
+    #Add car service average vehicle age
+    CarSvcAge <- with(L$Year$Azone, AveCarSvcVehicleAge[Azone == az])
+    CarSvcVehId_ <-
+      with(L$Year$Vehicle, VehId[Azone == az & VehicleAccess != "Own"])
+    Age_Ve[CarSvcVehId_] <- CarSvcAge
   }
-  #Assign ages for light trucks
-  for (ig in Ig) {
-    Ages_ <-
-      sample(
-        0:30,
-        NumVeh_IgTy[ig, "LtTrk"],
-        replace = TRUE,
-        prob = LtTrkAgePropByInc_AgIg[,ig])
-    Age_[IncGrp_ == ig & Type_ == "LtTrk"] <- Ages_
-  }
-  #Initialize values for vehicle ages with the average car service age
-  Age_Ve <- rep(as.integer(L$Year$Azone$AveCarSvcVehicleAge), NumVeh)
-  Age_Ve[DatOrd] <- Age_
 
   #Return the results
   #------------------
   #Initialize output list
   Out_ls <- initDataList()
-  Out_ls$Year$Vehicle <- list(
-    Type = Type_Ve,
-    Age = Age_Ve
-  )
+  Out_ls$Year$Vehicle$Age <- unname(Age_Ve)
   #Return the outputs list
   Out_ls
 }
 
 
-#================================
-#Code to aid development and test
-#================================
+#===============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
+#===============================================================
+#Run module automatic documentation
+#----------------------------------
+documentModule("AssignVehicleAge")
+
 #Test code to check specifications, loading inputs, and whether datastore
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
+# #Load packages and test functions
+# library(filesstrings)
+# library(visioneval)
+# library(ordinal)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-RSPM",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "verspm",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "AssignVehicleAge",
 #   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
+#   SaveDatastore = FALSE,
 #   DoRun = FALSE
 # )
 # L <- TestDat_$L
 # R <- AssignVehicleAge(L)
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
+#
 # TestDat_ <- testModule(
 #   ModuleName = "AssignVehicleAge",
 #   LoadDatastore = TRUE,

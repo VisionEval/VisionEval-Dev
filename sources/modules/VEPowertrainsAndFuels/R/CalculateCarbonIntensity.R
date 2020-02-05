@@ -1,18 +1,33 @@
 #==========================
 #CalculateCarbonIntensity.R
 #==========================
-#This module calculates the average carbon intensity of fuels (grams CO2e per
-#megajoule) by transportation mode. It also calculates the carbon intensity of
-#electricity. It checks for optional input data from users. If those data are
-#available, it uses them to calculate carbon intensities. Where not available,
-#it calculates carbon intensities from package data.
-
-
-#=================================
-#Packages used in code development
-#=================================
-#Uncomment following lines during code development. Recomment when done.
-# library(visioneval)
+#
+#<doc>
+#
+## CalculateCarbonIntensity Module
+#### November 24, 2018
+#
+#This module calculates the average carbon intensity of fuels (grams CO2e per megajoule) by transportation mode and vehicle type. The transportation modes and vehicle types are:
+#
+#|Mode               |Vehicle Types           |
+#|-------------------|------------------------|
+#|Household          |automobile, light truck |
+#|Car Service        |automobile, light truck |
+#|Commercial Service |automobile, light truck |
+#|Heavy Truck        |heavy truck             |
+#|Public Transit     |van, bus, rail          |
+#
+#Average fuel carbon intensities for public transit vehicles are calculated by Marea. The average fuel carbon intensities for the other mode vehicles are calculated for the entire model region. The module also calculates the average carbon intensity of electricity at the Azone level.
+#
+### Model Parameter Estimation
+#
+#This module has no estimated parameters.
+#
+### How the Module Works
+#
+#If carbon intensities are provided as user inputs, those carbon intensities are used. If carbon intensity values are not provided, the module calculates the values using fuels information including the fuel type proportions, the biofuel mix proportions, and the fuel carbon intensity values. The fuel mix proportions are multiplied by the biofuel mix proportions to arrive a the proportions of fuel by all categories. These proportions are used as weights to calculate that average carbon intensity from the fuel carbon intensity values.
+#
+#</doc>
 
 
 #=============================================
@@ -218,7 +233,7 @@ CalculateCarbonIntensitySpecifications <- list(
 #' }
 #' @source CalculateCarbonIntensity.R script.
 "CalculateCarbonIntensitySpecifications"
-devtools::use_data(CalculateCarbonIntensitySpecifications, overwrite = TRUE)
+usethis::use_data(CalculateCarbonIntensitySpecifications, overwrite = TRUE)
 
 
 #=======================================================
@@ -244,6 +259,7 @@ devtools::use_data(CalculateCarbonIntensitySpecifications, overwrite = TRUE)
 #' @return A logical value that is FALSE if the named component is not present
 #' in the list or if the value of the component is NA. Otherwise the value is
 #' TRUE.
+#' @name DataPresent
 #' @export
 DataPresent <- function(List, ComponentName) {
   if (!is.list(List)) stop("First argument must be a list")
@@ -275,6 +291,7 @@ DataPresent <- function(List, ComponentName) {
 #' of values
 #' @param Year a numeric or string value for the year to calculate for.
 #' @return A numeric value interpolated for the specified year.
+#' @name interpolate
 #' @export
 #' @importFrom stats smooth.spline
 interpolate <- function(Values_, Years_, Year) {
@@ -307,6 +324,7 @@ interpolate <- function(Values_, Years_, Year) {
 #' numeric values, and also includes a field named 'Year'.
 #' @param Year a numeric or string value for the year to calculate for.
 #' @return A vector of numeric values interpolated for the specified year.
+#' @name interpolateDfVals
 #' @export
 interpolateDfVals <- function(Vals_df, Year) {
   sapply(names(Vals_df)[names(Vals_df) != "Year"], function(x) {
@@ -332,6 +350,7 @@ interpolateDfVals <- function(Vals_df, Year) {
 #' filtering has been completed.
 #' @return An object of same class as the input with the only the elements or
 #' columns that contain all the key 'words'
+#' @name filterOnNames
 #' @export
 filterOnNames <- function(Data_misc, Filter_, Remove_ = NULL) {
   if (is.vector(Data_misc) & !is.list(Data_misc)) {
@@ -465,6 +484,7 @@ calcAverageFuelCI <- function(FuelCI_, FuelProp_, BiofuelProp_) {
 #' components: Errors and Data.
 #' @return A list that is the same as the input list with an additional
 #' Warnings component.
+#' @name CalculateCarbonIntensity
 #' @import visioneval
 #' @export
 CalculateCarbonIntensity <- function(L) {
@@ -479,7 +499,7 @@ CalculateCarbonIntensity <- function(L) {
   #Get carbon intensity of fuels and electricity for the year
   #----------------------------------------------------------
   if(!exists("PowertrainFuelDefaults_ls")){
-    PowertrainFuelDefaults_ls <- VEPowertrainsAndFuels::PowertrainFuelDefaults_ls
+    PowertrainFuelDefaults_ls <- loadPackageDataset("PowertrainFuelDefaults_ls")
   }
   CI_ <- interpolateDfVals(PowertrainFuelDefaults_ls$CarbonIntensity_df, Year)
   ElectricityCI <- CI_["Electricity"]
@@ -678,35 +698,38 @@ CalculateCarbonIntensity <- function(L) {
 }
 
 
-#================================
-#Code to aid development and test
-#================================
+#===============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
+#===============================================================
+#Run module automatic documentation
+#----------------------------------
+documentModule("CalculateCarbonIntensity")
+
 #Test code to check specifications, loading inputs, and whether datastore
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
-# load("data/PowertrainFuelDefaults_ls.rda")
-# attach(PowertrainFuelDefaults_ls)
+# #Load libraries and test functions
+# library(visioneval)
+# library(filesstrings)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-RSPM",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "verspm",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "CalculateCarbonIntensity",
 #   LoadDatastore = TRUE,
 #   SaveDatastore = TRUE,
 #   DoRun = FALSE
 # )
-# L <- TestDat_$L
-# TestOut_ls <- CalculateCarbonIntensity(L)
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
-# load("data/PowertrainFuelDefaults_ls.rda")
-# TestDat_ <- testModule(
-#   ModuleName = "CalculateCarbonIntensity",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
-#   DoRun = TRUE
-# )
-# setwd("tests")
-# untar("Datastore.tar")
-# setwd("..")
-
+# L <- TestDat_
+# R <- CalculateCarbonIntensity(TestDat_)

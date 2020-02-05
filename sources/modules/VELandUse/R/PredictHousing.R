@@ -1,20 +1,43 @@
 #================
 #PredictHousing.R
 #================
-#This module assigns a housing type, either single family (SF) or multifamily
-#(MF) to regular households and group quarters (GQ) to non-institutional
-#group quarters persons. In addition, it assigns each household to a Bzone
-#based on the household's housing type and income quartile as well as the
-#supply of housing by type and Bzone (an input) and the distribution of
-#households by income quartile for each Bzone (an input).
 
+#<doc>
+#
+## PredictHousing Module
+#### November 6, 2018
+#
+#This module assigns a housing type, either single-family (SF) or multifamily (MF) to *regular* households based on the respective supplies of SF and MF dwelling units in the housing market to which the household is assigned (i.e. the Azone the household is assigned to) and on household characteristics. It then assigns each household to a Bzone based on the household's housing type and income quartile as well as the supply of housing by type and Bzone (an input) and the distribution of households by income quartile for each Bzone (an input). The module assigns non-institutional group quarters *households* to Bzones based on the supply of group quarters units by Bzone.
+#
+### Model Parameter Estimation
+#
+#A binomial logit model is used to assign housing types to households. The model is estimated using a Census Public Use Microsample (PUMS) dataset (Hh_df) that is prepared by the *CreateEstimationDatasets.R* script in the *VESimHouseholds* package. For more information on the preparation of the *Hh_df* dataset and how to substitute regional data for the default package data, refer to the documentation in the *CreateEstimationDatasets.R* script. The binomial logit model predicts the likelihood that a household will reside in a single-family dwelling as a function of the age group of the head of the household, the ratio of the natural log of the household income to the natural log of the mean household income (log income ratio), the household size, and the interaction of the log income ratio and household size. The age group of the head of household is the oldest age group in the household. The summary statistics for this model are as follows:
+#
+#<txt:HouseTypeModel_ls$Summary>
+#
+#The results of applying the binomial logit model are constrained to match the housing *choice* proportions with the dwelling unit proportions by successively adjusting the intercept of the model using a binary search algorithm.
+#
+### How the Module Works
+#
+#The module carries out the following series of calculations to assign a housing type (SF or MF) to each *regular* household and to assign each household to a Bzone location.
+#
+#1) The proportions of SF and MF dwelling units in the Azone are calculated.
+#
+#2) The binomial logit is applied to each household in the Azone to determine the household's housing type. The model is applied multiple times using a binary search algorithm to successively adjust the model intercept until the housing type *choice* proportions equal the housing unit proportions in the Azone.
+#
+#3) The income quartile of each household in the Azone is calculated and a tabulation of households by income quartile and housing type is made.
+#
+#4) A matrix of the number of housing units by Bzone and housing type is created from the user inputs (e.g. resulting from a land use model or other allocation process). Because the number of housing units may not equal the number of households, the number of units by type and Bzone are adjusted so that the total number by type equals the number of households by housing type.
+#
+#5) A matrix of the proportions of households by income quartile and Bzone is created from the user inputs (e.g. resulting from Census tabulation with adjustments as deemed appropriate) and the tabulation of housing units by Bzone.
+#
+#6) An iterative proportional fitting (IPF) process is used to balance the number of housing units over 3 dimensions: Bzone, unit type, and income quartile. Two matrixes are used as margin control totals for the balancing process. The first is the matrix of demand by housing type and income quartile (step #3). The second is a matrix of units by Bzone and housing type (step #4). The seed matrix for the IPF uses the matrix of household proportions by Bzone and income quartile. The IPF is constrained to produce whole numbers.
+#
+#7) After the number of housing units is allocated to each Bzone, housing type, and income quartile, households are allocated to Bzones to fill those units. This is done by iterating through each housing type and income quartile combination and doing the following: Extracting a vector of units by Bzone for the type and quartile combination;  Using the vector as replication weights to replicate the Bzone names; Randomizing the Bzone name vector; Assigning the randomized Bzone name vector to households matching the type and quartile combination.
 
-
-#=================================
-#Packages used in code development
-#=================================
-#Uncomment following lines during code development. Recomment when done.
-# library(visioneval)
+#Non-institutionalized group-quarters *households* are assigned randomly to Bzones based on the number of group-quarters *housing units* in each Bzone.
+#
+#</doc>
 
 
 #=============================================
@@ -23,6 +46,7 @@
 #This model predicts housing (single family or multifamily) for households
 #based on the supply of housing of each type and the demographic and
 #income characteristics of the household.
+
 
 #Define a function to estimate housing choice model
 #--------------------------------------------------
@@ -45,6 +69,7 @@
 #' OutFun: a function that transforms the result of applying the binomial model.
 #' Summary: the summary of the binomial model estimation results.
 #' @import visioneval stats
+#' @importFrom utils capture.output
 #Define function to estimate the income model
 estimateHousingModel <- function(Data_df, StartTerms_) {
   #Define function to prepare inputs for estimating model
@@ -103,7 +128,7 @@ estimateHousingModel <- function(Data_df, StartTerms_) {
     Formula = makeModelFormulaString(HouseTypeModel),
     Choices = c("SF", "MF"),
     PrepFun = prepIndepVar,
-    Summary = summary(HouseTypeModel)
+    Summary = capture.output(summary(HouseTypeModel))
   )
 }
 
@@ -181,7 +206,7 @@ rm(Hh_df)
 #' }
 #' @source PredictHousing.R script.
 "HouseTypeModel_ls"
-devtools::use_data(HouseTypeModel_ls, overwrite = TRUE)
+usethis::use_data(HouseTypeModel_ls, overwrite = TRUE)
 
 
 #================================================
@@ -480,7 +505,7 @@ PredictHousingSpecifications <- list(
 #' }
 #' @source PredictHousing.R script.
 "PredictHousingSpecifications"
-devtools::use_data(PredictHousingSpecifications, overwrite = TRUE)
+usethis::use_data(PredictHousingSpecifications, overwrite = TRUE)
 
 
 #=======================================================
@@ -530,6 +555,7 @@ devtools::use_data(PredictHousingSpecifications, overwrite = TRUE)
 #' @param MaxIter A scalar numeric value specifying the maximum number of
 #' iterations for balancing the array over the specified dimensions.
 #' @return An array containing values that meet the margin controls.
+#' @name ipf
 #' @import visioneval
 #' @export
 ipf <-
@@ -597,6 +623,7 @@ ipf <-
 #' for the module.
 #' @return A list containing the components specified in the Set
 #' specifications for the module.
+#' @name PredictHousing
 #' @import visioneval stats
 #' @export
 PredictHousing <- function(L) {
@@ -610,7 +637,7 @@ PredictHousing <- function(L) {
   #Identify which households are group quarters
   IsGQ_Hh <- L$Year$Household$HhType == "Grp"
   HouseType_Hh[IsGQ_Hh] <- "GQ"
-
+  
   #Predict housing type for each household
   #---------------------------------------
   #Make data frame of household variables and split by Azone
@@ -636,7 +663,7 @@ PredictHousing <- function(L) {
     HouseType_Hh[names(HouseType_)] <- HouseType_
     rm(SFDU, MFDU, PropSFDU, HouseType_)
   }
-
+  
   #Tabulate households by house type, income quartile, and Azone
   #-------------------------------------------------------------
   #Calculate regional income quartiles for households
@@ -664,14 +691,14 @@ PredictHousing <- function(L) {
   Ht <- c("SF", "MF")
   HhTab_HtIq_Az <-
     lapply(Hh_df_Az, function(x) table(x$HouseType, x$IncQ)[Ht,Iq])
-
+  
   #Tabulate housing unit inputs by Bzone and housing type
   #------------------------------------------------------
   InitUnits_BzHt <-
     as.matrix(data.frame(L$Year$Bzone[c("SFDU", "MFDU")]))
   rownames(InitUnits_BzHt) <- L$Year$Bzone$Bzone
   colnames(InitUnits_BzHt) <- Ht
-
+  
   #Tabulate input assumptions of household income distribution for each Bzone
   #--------------------------------------------------------------------------
   #Extract matrix of input assumptions of Bzone unit proportions by income
@@ -684,7 +711,7 @@ PredictHousing <- function(L) {
   rownames(HhIqProp_BzIq) <- Bz
   #Make sure that rows add to 1
   HhIqProp_BzIq <- t(apply(HhIqProp_BzIq, 1, function(x) x / sum(x)))
-
+  
   #Balance housing units with housing demand and assign households to locations
   #----------------------------------------------------------------------------
   #Each Azone is a housing market. The number of housing units by type and
@@ -715,95 +742,107 @@ PredictHousing <- function(L) {
   names(Bzone_Hh) <- L$Year$Household$HhId
   #Assign households to Bzones by Azone
   for (az in Az) {
-    #Create matrices of margin totals
-    #--------------------------------
+    #Opt out of IPF if only one Bzone in the Azone
+    #---------------------------------------------
     #Identify Bzones located in the Azone
     Bx <- L$Year$Bzone$Bzone[L$Year$Bzone$Azone == az]
-    #Extract the unit demand by type and income quartile for households in Azone
-    UnitDemand_HtIq <- HhTab_HtIq_Az[[az]]
-    UnitDemand_Ht <- rowSums(UnitDemand_HtIq)
-    #Extract the initial number of housing units by type for Bzones in Azone
-    InitUnits_BxHt <- InitUnits_BzHt[Bx,]
-    #Calculate the initial Bzone proportions of units for each type
-    BxPropUnits_BxHt <- sweep(InitUnits_BxHt, 2, colSums(InitUnits_BxHt), "/")
-    #Calculate matrix of unit demand by Bzone and type
-    UnitDemand_BxHt <- sweep(BxPropUnits_BxHt, 2, UnitDemand_Ht, "*")
-    #Convert to whole numbers
-    UnitDemand_BxHt <- round(UnitDemand_BxHt)
-    UnitDiff_Ht <- UnitDemand_Ht - colSums(UnitDemand_BxHt)
-    for (i in 1:2) {
-      UnitDiff_By <- table(
-        sample(Bx, abs(UnitDiff_Ht[i]), replace = TRUE, prob = BxPropUnits_BxHt[,i]))
-      UnitDemand_BxHt[names(UnitDiff_By), i] <-
-        UnitDemand_BxHt[names(UnitDiff_By), i] + sign(UnitDiff_Ht[i]) * UnitDiff_By
-      rm(UnitDiff_By)
-    }
-    rm(i, BxPropUnits_BxHt)
-
-    #Create seed array for IPF balancing of units by Bzone, type, and income
-    #-----------------------------------------------------------------------
-    HhIqProp_BxIq <- HhIqProp_BzIq[Bx,]
-    Seed_BxHtIq <-
-      array(1, dim = c(length(Bx), length(Ht), length(Iq)), dimnames = list(Bx,Ht,Iq))
-    for (bx in Bx) {
-      Seed_BxHtIq[bx,,] <- outer(UnitDemand_BxHt[bx,], HhIqProp_BxIq[bx,])
-    }
-    Seed_BxHtIq[Seed_BxHtIq == 0] <- 1e-6
-
-    #Balance unit demand for each Bzone by unit type and income quartile
-    #-------------------------------------------------------------------
-    #Use IPF to allocate unit demand to Bzones, unit types, and income quartile
-    Ipf_ls <-
-      ipf(Seed_BxHtIq,
-          MrgnVals_ls = list(UnitDemand_BxHt, UnitDemand_HtIq),
-          MrgnDims_ls = list(c(1,2), c(2,3)))
-    Units_BxHtIq <- Ipf_ls$Units_ar
-    if (Ipf_ls$NumIter == Ipf_ls$MaxIter) {
-      Msg <-
-        paste0("Warning for PredictHousing module. ",
-               "Balancing of housing units by Bzone, housing type,",
-               "and income quartile in Azone ", az,
-               " went to maximum number of iterations (", Ipf_ls$MaxIter,
-               ") without achieving RMSE criterion for margin control totals. ",
-               " RMSE error achieved was ", Ipf_ls$RmseErr, ".")
-      writeLog(Msg)
-      rm(Msg)
-    }
-    rm(Seed_BxHtIq, UnitDemand_BxHt, Ipf_ls)
-    #Convert allocation to whole numbers
-    Units_BxHtIq <- round(Units_BxHtIq)
-    Units_HtIq <- apply(Units_BxHtIq, c(2,3), sum)
-    UnitDiff_HtIq <-  UnitDemand_HtIq - Units_HtIq
-    BxPropUnits_BxHtIq <- sweep(Units_BxHtIq, c(2,3), Units_HtIq, "/")
-    for (ht in Ht) {
-      for (iq in Iq) {
+    #If only one Bzone then all Azone households are in the Bzone
+    if (length(Bx) == 1) {
+      Hh_df_Az[[az]]$Bzone <- rep(Bx, nrow(Hh_df_Az[[az]]))
+      #Put results in Bzone_Hh
+      Bzone_Hx <- Hh_df_Az[[az]]$Bzone
+      names(Bzone_Hx) <- Hh_df_Az[[az]]$HhId
+      Bzone_Hh[names(Bzone_Hx)] <- Bzone_Hx
+      rm(Bzone_Hx)
+    } else {
+      #Create matrices of margin totals
+      #--------------------------------
+      #Extract the unit demand by type and income quartile for households in Azone
+      UnitDemand_HtIq <- HhTab_HtIq_Az[[az]]
+      UnitDemand_Ht <- rowSums(UnitDemand_HtIq)
+      #Extract the initial number of housing units by type for Bzones in Azone
+      InitUnits_BxHt <- InitUnits_BzHt[Bx,]
+      #Calculate the initial Bzone proportions of units for each type
+      BxPropUnits_BxHt <- sweep(InitUnits_BxHt, 2, colSums(InitUnits_BxHt), "/")
+      #Calculate matrix of unit demand by Bzone and type
+      UnitDemand_BxHt <- sweep(BxPropUnits_BxHt, 2, UnitDemand_Ht, "*")
+      #Convert to whole numbers
+      UnitDemand_BxHt <- round(UnitDemand_BxHt)
+      UnitDiff_Ht <- UnitDemand_Ht - colSums(UnitDemand_BxHt)
+      for (i in 1:2) {
         UnitDiff_By <- table(
-          sample(Bx, abs(UnitDiff_HtIq[ht,iq]), replace = TRUE, prob = BxPropUnits_BxHtIq[,ht,iq]))
-        Units_BxHtIq[names(UnitDiff_By),ht,iq] <-
-          Units_BxHtIq[names(UnitDiff_By),ht,iq] + sign(UnitDiff_HtIq[ht,iq]) * UnitDiff_By
+          sample(Bx, abs(UnitDiff_Ht[i]), replace = TRUE, prob = BxPropUnits_BxHt[,i]))
+        UnitDemand_BxHt[names(UnitDiff_By), i] <-
+          UnitDemand_BxHt[names(UnitDiff_By), i] + sign(UnitDiff_Ht[i]) * UnitDiff_By
         rm(UnitDiff_By)
       }
-    }
-    rm(UnitDiff_HtIq, BxPropUnits_BxHtIq, ht, iq)
-    #Assign Bzones to households based on housing type and income quartile
-    #---------------------------------------------------------------------
-    Hh_df_Az$Bzone <- ""
-    for (ht in Ht) {
-      for (iq in Iq) {
-        Bzone_ <- sample(rep(Bx, Units_BxHtIq[,ht,iq]))
-        IsHh_ <-
-          with(Hh_df_Az[[az]], HouseType == ht & IncQ == iq)
-        Hh_df_Az[[az]]$Bzone[IsHh_] <- Bzone_
-        rm(Bzone_, IsHh_)
+      rm(i, BxPropUnits_BxHt)
+      
+      #Create seed array for IPF balancing of units by Bzone, type, and income
+      #-----------------------------------------------------------------------
+      HhIqProp_BxIq <- HhIqProp_BzIq[Bx,]
+      Seed_BxHtIq <-
+        array(1, dim = c(length(Bx), length(Ht), length(Iq)), dimnames = list(Bx,Ht,Iq))
+      for (bx in Bx) {
+        Seed_BxHtIq[bx,,] <- outer(UnitDemand_BxHt[bx,], HhIqProp_BxIq[bx,])
       }
+      Seed_BxHtIq[Seed_BxHtIq == 0] <- 1e-6
+      
+      #Balance unit demand for each Bzone by unit type and income quartile
+      #-------------------------------------------------------------------
+      #Use IPF to allocate unit demand to Bzones, unit types, and income quartile
+      Ipf_ls <-
+        ipf(Seed_BxHtIq,
+            MrgnVals_ls = list(UnitDemand_BxHt, UnitDemand_HtIq),
+            MrgnDims_ls = list(c(1,2), c(2,3)))
+      Units_BxHtIq <- Ipf_ls$Units_ar
+      if (Ipf_ls$NumIter == Ipf_ls$MaxIter) {
+        Msg <-
+          paste0("Warning for PredictHousing module. ",
+                 "Balancing of housing units by Bzone, housing type,",
+                 "and income quartile in Azone ", az,
+                 " went to maximum number of iterations (", Ipf_ls$MaxIter,
+                 ") without achieving RMSE criterion for margin control totals. ",
+                 " RMSE error achieved was ", Ipf_ls$RmseErr, ".")
+        writeLog(Msg)
+        rm(Msg)
+      }
+      rm(Seed_BxHtIq, UnitDemand_BxHt, Ipf_ls)
+      #Convert allocation to whole numbers
+      Units_BxHtIq <- round(Units_BxHtIq)
+      Units_HtIq <- apply(Units_BxHtIq, c(2,3), sum)
+      UnitDiff_HtIq <-  UnitDemand_HtIq - Units_HtIq
+      BxPropUnits_BxHtIq <- sweep(Units_BxHtIq, c(2,3), Units_HtIq, "/")
+      for (ht in Ht) {
+        for (iq in Iq) {
+          UnitDiff_By <- table(
+            sample(Bx, abs(UnitDiff_HtIq[ht,iq]), replace = TRUE, prob = BxPropUnits_BxHtIq[,ht,iq]))
+          Units_BxHtIq[names(UnitDiff_By),ht,iq] <-
+            Units_BxHtIq[names(UnitDiff_By),ht,iq] + sign(UnitDiff_HtIq[ht,iq]) * UnitDiff_By
+          rm(UnitDiff_By)
+        }
+      }
+      rm(UnitDiff_HtIq, BxPropUnits_BxHtIq, ht, iq)
+      #Assign Bzones to households based on housing type and income quartile
+      #---------------------------------------------------------------------
+      Hh_df_Az$Bzone <- ""
+      for (ht in Ht) {
+        for (iq in Iq) {
+          Bzone_ <- sample(rep(Bx, Units_BxHtIq[,ht,iq]))
+          IsHh_ <-
+            with(Hh_df_Az[[az]], HouseType == ht & IncQ == iq)
+          Hh_df_Az[[az]]$Bzone[IsHh_] <- Bzone_
+          rm(Bzone_, IsHh_)
+        }
+      }
+      #Put results in Bzone_Hh
+      Bzone_Hx <- Hh_df_Az[[az]]$Bzone
+      names(Bzone_Hx) <- Hh_df_Az[[az]]$HhId
+      Bzone_Hh[names(Bzone_Hx)] <- Bzone_Hx
+      rm(Bzone_Hx)
     }
-    #Put results in Bzone_Hh
-    Bzone_Hx <- Hh_df_Az[[az]]$Bzone
-    names(Bzone_Hx) <- Hh_df_Az[[az]]$HhId
-    Bzone_Hh[names(Bzone_Hx)] <- Bzone_Hx
-    rm(Bzone_Hx)
   }
-
+  
   #Assign group quarters households to Bzones
   #------------------------------------------
   #Iterate through Azones to assign Bzones
@@ -814,45 +853,70 @@ PredictHousing <- function(L) {
     names(GQUnits_Bx) <- Bx
     #Calculate demand
     GQUnitDemand <- sum(IsGQ_Hh[L$Year$Household$Azone == az])
-    #Scale Bzone demand to match overall demand
-    GQUnitDemand_Bx <- round(GQUnitDemand * GQUnits_Bx / sum(GQUnits_Bx))
-    UnitDiff <- GQUnitDemand - sum(GQUnitDemand_Bx)
-    UnitDiff_By <-
-      table(sample(Bx, abs(UnitDiff), replace = TRUE,
-                   prob = GQUnitDemand_Bx / sum(GQUnitDemand_Bx)))
-    GQUnitDemand_Bx[names(UnitDiff_By)] <-
-      GQUnitDemand_Bx[names(UnitDiff_By)] + UnitDiff_By * sign(UnitDiff)
-    #Assign group quarters units in Bzones to group quarters households
-    Bzone_Hx <- sample(rep(Bx, GQUnitDemand_Bx))
-    names(Bzone_Hx) <-
-      L$Year$Household$HhId[IsGQ_Hh & L$Year$Household$Azone == az]
-    Bzone_Hh[names(Bzone_Hx)] <- Bzone_Hx
+    #Continue calculating if any GQ demand
+    if (GQUnitDemand >= 1) {
+      #If only one Bzone then all GQ households are in that Bzone
+      if (length(Bx) == 1) {
+        Bzone_Hx <- rep(Bx, GQUnitDemand)
+        names(Bzone_Hx) <-
+          L$Year$Household$HhId[IsGQ_Hh & L$Year$Household$Azone == az]
+        Bzone_Hh[names(Bzone_Hx)] <- Bzone_Hx
+      } else {
+        #Scale Bzone demand to match overall demand
+        GQUnitDemand_Bx <- round(GQUnitDemand * GQUnits_Bx / sum(GQUnits_Bx))
+        UnitDiff <- GQUnitDemand - sum(GQUnitDemand_Bx)
+        UnitDiff_By <-
+          table(sample(Bx, abs(UnitDiff), replace = TRUE,
+                       prob = GQUnitDemand_Bx / sum(GQUnitDemand_Bx)))
+        GQUnitDemand_Bx[names(UnitDiff_By)] <-
+          GQUnitDemand_Bx[names(UnitDiff_By)] + UnitDiff_By * sign(UnitDiff)
+        #Assign group quarters units in Bzones to group quarters households
+        Bzone_Hx <- sample(rep(Bx, GQUnitDemand_Bx))
+        names(Bzone_Hx) <-
+          L$Year$Household$HhId[IsGQ_Hh & L$Year$Household$Azone == az]
+        Bzone_Hh[names(Bzone_Hx)] <- Bzone_Hx
+      }
+    }
   }
-
+  
   #Tabulate households, population, workers, and units by Bzone
   #------------------------------------------------------------
   Bz <- L$Year$Bzone$Bzone
-  NumHh_Bz <- tapply(Bzone_Hh, Bzone_Hh, length)[Bz]
-  Pop_Bz <- tapply(L$Year$Household$HhSize, Bzone_Hh, sum)[Bz]
-  NumWkr_Bz <- tapply(L$Year$Household$Workers, Bzone_Hh, sum)[Bz]
-  SF_Bz <- tapply(HouseType_Hh == "SF", Bzone_Hh, sum)[Bz]
-  MF_Bz <- tapply(HouseType_Hh == "MF", Bzone_Hh, sum)[Bz]
-  GQ_Bz <- tapply(HouseType_Hh == "GQ", Bzone_Hh, sum)[Bz]
-
+  Bz_list <- setNames(rep(0,length(Bz)),Bz)
+  NumHh_Bz <- tapply(Bzone_Hh, Bzone_Hh, length)
+  t <- match(names(NumHh_Bz),names(Bz_list))
+  Bz_list[t] <- NumHh_Bz 
+  NumHh_Bz <- Bz_list
+  Bz_list <- setNames(rep(0,length(Bz)),Bz)
+  Pop_Bz <- tapply(L$Year$Household$HhSize, Bzone_Hh, sum)
+  t <- match(names(Pop_Bz),names(Bz_list))
+  Bz_list[t] <- Pop_Bz
+  Pop_Bz <- Bz_list  
+  Bz_list <- setNames(rep(0,length(Bz)),Bz)  
+  NumWkr_Bz <- tapply(L$Year$Household$Workers, Bzone_Hh, sum)
+  t <- match(names(NumWkr_Bz),names(Bz_list))
+  Bz_list[t] <- NumWkr_Bz
+  NumWkr_Bz <- Bz_list
+  Bz_list <- setNames(rep(0,length(Bz)),Bz)  
+  SF_Bz <- tapply(HouseType_Hh == "SF", Bzone_Hh, sum)
+  t <- match(names(SF_Bz),names(Bz_list))
+  Bz_list[t] <- SF_Bz 
+  SF_Bz  <- Bz_list
+  Bz_list <- setNames(rep(0,length(Bz)),Bz)  
+  MF_Bz <- tapply(HouseType_Hh == "MF", Bzone_Hh, sum)
+  t <- match(names(MF_Bz),names(Bz_list))
+  Bz_list[t] <- MF_Bz 
+  MF_Bz  <- Bz_list
+  Bz_list <- setNames(rep(0,length(Bz)),Bz)  
+  GQ_Bz <- tapply(HouseType_Hh == "GQ", Bzone_Hh, sum)
+  t <- match(names(GQ_Bz),names(Bz_list))
+  Bz_list[t] <- GQ_Bz 
+  GQ_Bz  <- Bz_list
+  
   #Return list of results
   #----------------------
   #Initialize output list
   Out_ls <- initDataList()
-  Out_ls$Year$Household <-
-    list(Bzone = character(0),
-         HouseType = character(0))
-  Out_ls$Year$Bzone <-
-    list(SF = integer(0),
-         MF = integer(0),
-         GQ = integer(0),
-         Pop = integer(0),
-         NumHh = integer(0),
-         NumWkr = integer(0))
   #Add the household Bzone assignments to the list
   Out_ls$Year$Household$Bzone <- unname(Bzone_Hh)
   #Add SIZE attribute for the household Bzone assignments
@@ -869,34 +933,50 @@ PredictHousing <- function(L) {
   Out_ls$Year$Bzone$NumWkr <- as.integer(unname(NumWkr_Bz))
   #Return the outputs list
   Out_ls
-
-  #Return the Out_ls
-  #-----------------
-  Out_ls
 }
 
 
-#================================
-#Code to aid development and test
-#================================
+#===============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
+#===============================================================
+#Run module automatic documentation
+#----------------------------------
+documentModule("PredictHousing")
+
 #Test code to check specifications, loading inputs, and whether datastore
 #contains data needed to run module. Return input list (L) to use for developing
 #module functions
 #-------------------------------------------------------------------------------
+# #Load packages and test functions
+# library(filesstrings)
+# library(visioneval)
+# library(fields)
+# source("tests/scripts/test_functions.R")
+# #Set up test environment
+# TestSetup_ls <- list(
+#   TestDataRepo = "../Test_Data/VE-CLMPO",
+#   DatastoreName = "Datastore.tar",
+#   LoadDatastore = TRUE,
+#   TestDocsDir = "veclmpo",
+#   ClearLogs = TRUE,
+#   # SaveDatastore = TRUE
+#   SaveDatastore = FALSE
+# )
+# setUpTests(TestSetup_ls)
+# #Run test module
 # TestDat_ <- testModule(
 #   ModuleName = "PredictHousing",
 #   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
+#   SaveDatastore = FALSE,
 #   DoRun = FALSE
 # )
 # L <- TestDat_$L
-
-#Test code to check everything including running the module and checking whether
-#the outputs are consistent with the 'Set' specifications
-#-------------------------------------------------------------------------------
+# R <- PredictHousing(L)
+#
 # TestDat_ <- testModule(
 #   ModuleName = "PredictHousing",
 #   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
+#   SaveDatastore = FALSE,
 #   DoRun = TRUE
 # )
+

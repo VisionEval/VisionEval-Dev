@@ -46,16 +46,32 @@ initModelStateFile <-
     Message <- paste("Missing", ParamFilePath, "file.")
     stop(Message)
   } else {
-    ModelState_ls <- fromJSON(ParamFilePath)
-    ModelState_ls$LastChanged <- Sys.time()
-    ModelState_ls$Deflators <- read.csv(DeflatorFilePath, as.is = TRUE)
-    ModelState_ls$Units <- read.csv(UnitsFilePath, as.is = TRUE)
-    save(ModelState_ls, file = "ModelState.Rda")
-    ModelState_ls <<- ModelState_ls
+    RunParam_ls <- jsonlite::fromJSON(ParamFilePath)
+    RequiredParam_ <- c(
+      "Model", "Scenario", "Description", "Region", "BaseYear", "Years",
+      "DatastoreName", "Seed", "RequiredVEPackages"
+    )
+    ParamExists_ <- RequiredParam_ %in% names(RunParam_ls)
+    if (any(!ParamExists_)) {
+      MissingParam_ <- RequiredParam_[!ParamExists_]
+      Message <- paste0(
+        "One or more parameters in the 'run_parameters.json' file are missing. ",
+        "Following are the missing parameters: ",
+        paste(MissingParam_, collapse = ", ")
+      )
+      stop(Message)
+    } else {
+      ModelState_ls <- jsonlite::fromJSON(ParamFilePath)
+      ModelState_ls$LastChanged <- Sys.time()
+      ModelState_ls$Deflators <- read.csv(DeflatorFilePath, as.is = TRUE)
+      ModelState_ls$Units <- read.csv(UnitsFilePath, as.is = TRUE)
+      save(ModelState_ls, file = "ModelState.Rda")
+      ModelState_ls <<- ModelState_ls
+    }
   }
   TRUE
 }
-#initModelStateFile(Dir = "defs")
+#initModelStateFile(Dir = "tests/defs")
 
 #GET MODEL STATE VALUES
 #======================
@@ -70,7 +86,6 @@ initModelStateFile <-
 #'
 #' @param Names_ A string vector of the components to extract from the
 #' ModelState_ls list.
-#' default value is ModelState.Rda.
 #' @return A list containing the specified components from the model state file.
 #' @export
 getModelState <- function(Names_ = "All") {
@@ -108,7 +123,20 @@ setModelState <-
       ModelState_ls[[names(ChangeState_ls[i])]] <- ChangeState_ls[[i]]
     }
     ModelState_ls$LastChanged <- Sys.time()
-    save(ModelState_ls, file = FileName)
+
+    i <- 1
+    while ( i <= 5 ){
+      result <- try(save(ModelState_ls, file=FileName))
+      if ( class(result) == 'try-class' ){
+        cat(paste0('setModelState: ', FileName, ' is not currently writeable'))
+        i <- i + 1
+      } else {
+        break()
+      }
+    }
+
+    if ( i > 5 ) stop('Could not write to ', FileName)
+
     ModelState_ls <<- ModelState_ls
     TRUE
   }
@@ -143,9 +171,24 @@ setModelState <-
 #' @export
 readModelState <- function(Names_ = "All", FileName = "ModelState.Rda") {
   if (file.exists(FileName)) {
-    load(FileName)
+    #writeLog(paste0('readModelState: loading ', FileName, ' \n'))
+    i <- 1
+    while( i <= 5 ){
+      result <- try(load(FileName), silent=TRUE)
+
+      if (class(result) != 'try-error'){
+        break()
+      } else {
+        #writeLog(paste0('readModelState: error loading ', FileName, '\n'))
+        i <- i + 1
+      }
+    }
+    if ( i > 5 ) stop('Could not load ', FileName)
   }
-  if ("ModelState_ls" %in% ls()) State_ls <- get("ModelState_ls")
+
+  # Commented out the following because it looks only in the local environment
+  #if ("ModelState_ls" %in% ls()) State_ls <- get("ModelState_ls")
+  State_ls <- ModelState_ls
   if (Names_[1] == "All") {
     return(State_ls)
   } else {
@@ -742,7 +785,7 @@ loadModelParameters <- function(ModelParamFile = "model_parameters.json") {
 #' identify the 'ModuleName', the 'PackageName', and the 'RunFor' value.
 #' @export
 parseModelScript <-
-  function(FilePath = "run_model.R",
+  function(FilePath = "Run_Model.R",
            TestMode = FALSE) {
     if (!TestMode) {
       writeLog("Parsing model script")
