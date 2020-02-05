@@ -1,0 +1,237 @@
+---
+title: "Explore JSON Specification"
+output: html_document
+---
+
+# Overhead
+```{r overhead, include = FALSE}
+packages_vector <- c("tidyverse",
+                     "jsonlite",
+                     "visioneval")
+
+need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
+
+if (length(need_to_install)) install.packages(need_to_install)
+
+for (package in packages_vector) {
+  library(package, character.only = TRUE)
+}
+
+# TODO
+# DONE: json to form method
+# which tidyverse libraries are being used? any new ones?
+# DONE: where to check-in? client_fhwa repo or wsp-sag fork of VE-Devel
+# refactor to mimic ve.export 
+# DONE: next step: another function to make scenario dir structure
+# some type of check on form consistency or reporting
+
+#  brainstorm
+# dan's idea: for each level, spec an input file(s), column name, and manipulation
+# level X of some scenario schemes may have the same input file, so you then
+# duplicate the file
+# it would be better to have a column-based set of inputs, rather than a complete
+# csv, which includes a lot of duplication
+
+```
+
+# Remote I/O
+```{r remote-io}
+setwd("~/Documents/GitHub/VisionEval/sources/models/VERPAT_Scenarios")
+
+subset_category_config_file_name <- "scenario_inputs/subset_category_config.json"
+category_config_file_name <- "scenario_inputs/category_config.json"
+scenario_config_file_name <- "scenario_inputs/scenario_config.json"
+
+output_scenario_file_name <- "test_scenario_config.json"
+output_category_file_name <- "test_category_config.json"
+
+output_form_prototype_file_name <- "form_prototype.csv"
+
+```
+
+# Test JSON Read/Write
+```{r test-json}
+input_scenario_df <- read_json(scenario_config_file_name, simplifyVector = TRUE)
+input_category_df <- read_json(category_config_file_name, simplifyVector = TRUE)
+
+tall_scenario_df <- input_scenario_df %>%
+  rename(upper_NAME = NAME, upper_LABEL = LABEL, upper_DESCRIPTION = DESCRIPTION) %>%
+  unnest(.)
+
+tall_category_df <- input_category_df %>%
+  unnest(.) %>%
+  unnest(.)
+
+scenario_nest_df <- tall_scenario_df %>%
+  group_by(upper_NAME, upper_LABEL, upper_DESCRIPTION, INSTRUCTIONS) %>%
+  nest(.key = "LEVELS") %>%
+  ungroup() %>%
+  rename(NAME = upper_NAME, LABEL = upper_LABEL, DESCRIPTION = upper_DESCRIPTION)
+
+write_json(scenario_nest_df, path = output_scenario_file_name)
+
+test_scenario_df <- fromJSON(output_scenario_file_name, simplifyVector = TRUE)
+
+test_tall_scenario_df <- test_scenario_df %>%
+  rename(upper_NAME = NAME, upper_LABEL = LABEL, upper_DESCRIPTION = DESCRIPTION) %>%
+  unnest(.)
+
+identical(input_scenario_df, test_scenario_df)
+identical(tall_scenario_df, test_tall_scenario_df)
+```
+
+# Make Form Prototype
+```{r form-prototype}
+form_df <- input_scenario_df %>%
+  rename(category_name = NAME,
+         category_label = LABEL,
+         category_description = DESCRIPTION,
+         category_instructions = INSTRUCTIONS) %>%
+  unnest(.) %>%
+  rename(level_name = NAME,
+         level_label = LABEL,
+         level_description = DESCRIPTION) %>%
+  mutate(execute = TRUE)
+
+write_csv(form_df, path = output_form_prototype_file_name)
+```
+
+# Methods
+```{r build-json-methods}
+read_scenario_form_from_csv <- function(input_file_name) {
+
+  return_df <- read_csv(input_file_name,
+                        col_types = cols(.default = col_character(), execute = col_logical()))
+
+  return(return_df)
+
+}
+
+make_scenario_json_from_form <- function(input_form_df, input_json_file_name) {
+
+  output_df <- input_form_df %>%
+    select(-execute) %>%
+    rename(NAME = level_name,
+           LABEL = level_label,
+           DESCRIPTION = level_description) %>%
+    group_by(category_name, category_label, category_description, category_instructions) %>%
+    nest(.key = "LEVELS") %>%
+    ungroup() %>%
+    rename(NAME = category_name,
+           LABEL = category_label,
+           DESCRIPTION = category_description,
+           INSTRUCTIONS = category_instructions)
+
+  write_json(output_df, path = input_json_file_name)
+
+}
+
+make_category_json_from_form <- function(input_form_df, input_json_file_name) {
+
+  output_df <- input_form_df %>%
+    filter(execute) %>%
+    select(top_NAME = category_label,
+           DESCRIPTION = category_description,
+           middle_NAME = level_name,
+           NAME = category_name) %>%
+    mutate(LEVEL = middle_NAME) %>%
+    group_by(top_NAME, DESCRIPTION, middle_NAME) %>%
+    nest(NAME, LEVEL, .key = "INPUTS", -top_NAME, -DESCRIPTION) %>%
+    rename(NAME = middle_NAME) %>%
+    nest(NAME, INPUTS, .key = "LEVELS", -top_NAME, -DESCRIPTION) %>%
+    ungroup() %>%
+    rename(NAME = top_NAME)
+
+  write_json(output_df, path = input_json_file_name)
+
+}
+
+make_form_csv_from_json <- function(input_scenario_json, input_category_json, output_file_name) {
+
+  input_scenario_df <- read_json(input_scenario_json, simplifyVector = TRUE)
+  input_category_df <- read_json(input_category_json, simplifyVector = TRUE)
+
+  working_df <- input_scenario_df %>%
+    rename(category_name = NAME,
+           category_label = LABEL,
+           category_description = DESCRIPTION,
+           category_instructions = INSTRUCTIONS) %>%
+    unnest(.) %>%
+    rename(level_name = NAME,
+           level_label = LABEL,
+           level_description = DESCRIPTION)
+
+  execute_df <- input_category_df %>%
+    rename(category_label = NAME,
+           category_description = DESCRIPTION) %>%
+    unnest(.) %>%
+    rename(level_name = NAME) %>%
+    unnest(.) %>%
+    rename(category_name = NAME) %>%
+    select(-LEVEL) %>%
+    mutate(execute = TRUE)
+
+  write_df <- left_join(working_df, execute_df, by = c("category_name",
+                                                        "category_label",
+                                                        "category_description",
+                                                        "level_name")) %>%
+    mutate(execute = replace_na(execute, FALSE))
+
+  write_csv(write_df, path = output_file_name)
+
+}
+
+make_directory_structure <- function(root_dir, input_form_csv){
+
+  form_df <- read_scenario_form_from_csv(input_form_csv)
+
+  for (row_index in 1:nrow(form_df)) {
+
+    relevant_row_df <- slice(form_df, row_index:row_index)
+    level_one_dir <- file.path(root_dir, relevant_row_df$category_name)
+    level_two_dir <- file.path(level_one_dir, relevant_row_df$level_name)
+
+    if(!dir.exists(level_one_dir)) dir.create(level_one_dir)
+    if(!dir.exists(level_two_dir)) dir.create(level_two_dir)
+
+  }
+
+}
+
+```
+
+# Test 01
+```{r test}
+make_form_csv_from_json(scenario_config_file_name,
+                        category_config_file_name,
+                        output_form_prototype_file_name)
+
+root_dir <- "~/Documents/GitHub/VisionEval/sources/models/VERPAT_Scenarios/dummy/"
+make_directory_structure(root_dir, output_form_prototype_file_name)
+
+input_form_df <- read_scenario_form_from_csv(output_form_prototype_file_name)
+
+make_scenario_json_from_form(input_form_df, output_scenario_file_name)
+make_category_json_from_form(input_form_df, output_category_file_name)
+
+identical(read_json(scenario_config_file_name), read_json(output_scenario_file_name))
+identical(read_json(category_config_file_name), read_json(output_category_file_name))
+
+```
+
+# Test 02
+```{r test-02}
+make_form_csv_from_json(scenario_config_file_name,
+                        subset_category_config_file_name,
+                        output_form_prototype_file_name)
+
+input_form_df <- read_csv(output_form_prototype_file_name, col_types = cols(.default = col_character(),
+                                                                        execute = col_logical()))
+
+make_scenario_json_from_form(input_form_df, output_scenario_file_name)
+make_category_json_from_form(input_form_df, output_category_file_name)
+
+identical(read_json(scenario_config_file_name), read_json(output_scenario_file_name))
+identical(read_json(subset_category_config_file_name), read_json(output_category_file_name))
+
+```
