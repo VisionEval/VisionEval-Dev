@@ -3,16 +3,10 @@ requireNamespace("tidyr")
 requireNamespace("readr")
 requireNamespace("jsonlite")
 
-packages_vector <- c("dplyr",
-                     "tidyr",
-                     "readr",
-                     "jsonlite")
-
-need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
-if (length(need_to_install)) install.packages(need_to_install)
-for (package in packages_vector) {
-  library(package, character.only = TRUE)
-}
+library("dplyr")
+library("tidyr")
+library("readr")
+library("jsonlite")
 
 # To use this in a visioneval runtime, just do this:
 #   source("tools/scenario_management.R")
