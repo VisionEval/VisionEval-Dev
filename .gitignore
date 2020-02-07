@@ -7,3 +7,5 @@
 .DS_Store
 ve-lib
 Log_*.txt
+sources/tools/tools.Rproj
+sources/tools/example_dir/*
