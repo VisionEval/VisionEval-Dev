@@ -1,8 +1,8 @@
 ---
 title: "Scenario Management Vignette"
 output:
-  html_document: default
-  pdf_document: default
+  html_document: 
+    theme: cosmo
 ---
 
 *scenario_management.R (defines ve.scenario_management tools)*
