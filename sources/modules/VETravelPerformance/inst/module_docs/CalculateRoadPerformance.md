@@ -336,10 +336,10 @@ UNLIKELY - Values that are unlikely. Values that meet any of the listed conditio
 DESCRIPTION - A description of the data.
 
 ### driverless_effect_adj_param.csv
-|NAME    |TYPE      |UNITS   |PROHIBIT |ISELEMENTOF                                                                    |UNLIKELY |DESCRIPTION                                                                                                             |
-|:-------|:---------|:-------|:--------|:------------------------------------------------------------------------------|:--------|:-----------------------------------------------------------------------------------------------------------------------|
-|Measure |character |ID      |         |FwyRcrDelay, ArtRcrDelay, FwyNonRcrDelay, ArtNonRcrDelay, FwySmooth, ArtSmooth |         |The labels for operations effectiveness measures on arterial and freeway lanes.                                         |
-|Beta    |integer   |integer |         |1, 2, 3, 4, 5, 6, 7, 8, 9, 10                                                  |         |The power value to be used in the exponential function to adjusts the operations effectiveness for driverless vehicles. |
+|NAME    |TYPE      |UNITS   |PROHIBIT  |ISELEMENTOF                                                                    |UNLIKELY |DESCRIPTION                                                                                                             |
+|:-------|:---------|:-------|:---------|:------------------------------------------------------------------------------|:--------|:-----------------------------------------------------------------------------------------------------------------------|
+|Measure |character |ID      |          |FwyRcrDelay, ArtRcrDelay, FwyNonRcrDelay, ArtNonRcrDelay, FwySmooth, ArtSmooth |         |The labels for operations effectiveness measures on arterial and freeway lanes.                                         |
+|Beta    |integer   |integer |< 1, > 10 |                                                                               |         |The power value to be used in the exponential function to adjusts the operations effectiveness for driverless vehicles. |
 
 ## Datasets Used by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:
@@ -361,7 +361,7 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 |NAME                    |TABLE                    |GROUP  |TYPE      |UNITS      |PROHIBIT     |ISELEMENTOF                                                                    |
 |:-----------------------|:------------------------|:------|:---------|:----------|:------------|:------------------------------------------------------------------------------|
 |Measure                 |DriverlessEffectAdjParam |Global |character |ID         |             |FwyRcrDelay, ArtRcrDelay, FwyNonRcrDelay, ArtNonRcrDelay, FwySmooth, ArtSmooth |
-|Beta                    |DriverlessEffectAdjParam |Global |integer   |integer    |             |1, 2, 3, 4, 5, 6, 7, 8, 9, 10                                                  |
+|Beta                    |DriverlessEffectAdjParam |Global |integer   |integer    |< 1, > 10    |                                                                               |
 |StateAbbrLookup         |Region                   |Global |character |ID         |             |                                                                               |
 |Marea                   |Marea                    |Year   |character |ID         |             |                                                                               |
 |UrbanPop                |Marea                    |Year   |people    |PRSN       |NA, < 0      |                                                                               |

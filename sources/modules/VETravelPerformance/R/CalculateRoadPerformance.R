@@ -931,7 +931,7 @@ calculateSpeeds <- function(OpsDeployment_, OtherOpsEffects_mx = NULL,
   #Calculate joint effect
   DelayFactor_mx <-
     RampFactor_mx * IncidentFactor_mx * SignalFactor_mx * AccessFactor_mx
-  
+
   DriverlessFactor_ls <- unlist(DriverlessFactor_ls, recursive = TRUE,
                                 use.names = TRUE)
   names(DriverlessFactor_ls) <- gsub("\\.Delay\\.","_",names(DriverlessFactor_ls))
@@ -948,19 +948,19 @@ calculateSpeeds <- function(OpsDeployment_, OtherOpsEffects_mx = NULL,
       OtherOpsFactor_mx <-
         1 - sweep(OtherOpsEffects_mx, 2, OtherOpsDeploy_Ty, "*") / 100
       #Select the maximum reduction. This is the minimum factor.
-      DelayFactor_mx <- pmin(DelayFactor_mx, OtherOpsFactor_mx) 
+      DelayFactor_mx <- pmin(DelayFactor_mx, OtherOpsFactor_mx)
     } else {
       OtherOpsDeploy_Ty <- setNames(numeric(length(Ty)), Ty)
-      OtherOpsDeploy_Ty[c("Fwy_Rcr", "Fwy_NonRcr")] <- 
+      OtherOpsDeploy_Ty[c("Fwy_Rcr", "Fwy_NonRcr")] <-
         OpsDeployment_["OtherFwyOpsDeployProp"]
-      OtherOpsDeploy_Ty[c("Art_Rcr", "Art_NonRcr")] <- 
+      OtherOpsDeploy_Ty[c("Art_Rcr", "Art_NonRcr")] <-
         OpsDeployment_["OtherArtOpsDeployProp"]
       OtherOpsFactor_mx <-
         1 - sweep(OtherOpsEffects_mx, 2, OtherOpsDeploy_Ty, "*") / 100
       DelayFactor_mx <- DelayFactor_mx * OtherOpsFactor_mx
     }
   }
-  
+
   #Calculate adjusted delay
   AdjDelay_mx <- BaseDelay_mx * DelayFactor_mx
   Delay_mx <- cbind(
@@ -1243,8 +1243,8 @@ CalculateRoadPerformanceSpecifications <- list(
       UNITS = "integer",
       NAVALUE = "NA",
       SIZE = 0,
-      PROHIBIT = "",
-      ISELEMENTOF = c(1:10),
+      PROHIBIT = c("< 1", "> 10"),
+      ISELEMENTOF = "",
       UNLIKELY = "",
       TOTAL = "",
       DESCRIPTION =
@@ -1280,8 +1280,8 @@ CalculateRoadPerformanceSpecifications <- list(
       UNITS = "integer",
       NAVALUE = "NA",
       SIZE = 0,
-      PROHIBIT = "",
-      ISELEMENTOF = c(1:10)
+      PROHIBIT = c("< 1", "> 10"),
+      ISELEMENTOF = ""
     ),
     item(
       NAME = "StateAbbrLookup",
@@ -1738,8 +1738,8 @@ CalculateRoadPerformance <- function(L) {
     Bus = L$Year$Marea$BusDriverlessProp
   )
   rownames(DriverlessDvmtProp_MaTy) <- L$Year$Marea$Marea
-  
-  
+
+
   #Calculate speed and delay by Marea and congestion level
   DriverlessAdjParam_ <- unattr(L$Global$DriverlessEffectAdjParam$Beta)
   names(DriverlessAdjParam_) <- L$Global$DriverlessEffectAdjParam$Measure
@@ -1762,7 +1762,7 @@ CalculateRoadPerformance <- function(L) {
       Smooth = effectAdj(AdjBeta = DriverlessAdjParam_["FwySmooth"])
     )
   )
-  
+
   #Calculate average driverless DVMT proportion by Marea and lane type
   #-------------------------------------------------------------------
   #Define function to calculate average driverless DVMT proportion
@@ -1774,7 +1774,7 @@ CalculateRoadPerformance <- function(L) {
     DriverlessProp_Ty <- c(LdvDriverlessProp, HvyTrkDriverlessProp, BusDriverlessProp)
     colSums(sweep(DvmtPropByTy_TyRc, 1, DriverlessProp_Ty, "*"))
   }
-  
+
   # DriverlessDvmtProp_Rc <- setNames(numeric(length(Rc)), Rc)
   # DriverlessDvmtProp_Rc["Art"] <- calcAveDriverlessDvmtProp(L$Year$Marea$LdvFwyArtDvmt,
   #                                                    L$Year$Marea$LdvDriverlessProp,
@@ -1794,7 +1794,7 @@ CalculateRoadPerformance <- function(L) {
   #                                                           L$Year$Marea$HvyTrkDriverlessProp,
   #                                                           L$Year$Marea$BusOthDvmt,
   #                                                           L$Year$Marea$BusDriverlessProp)
-  # 
+  #
   # for (ma in Ma) {
   #   SpeedAndDelay_ls[[ma]] <-
   #     calculateSpeeds(OpsDeployment_MaOp[ma,], OtherOpsEffects_mx, DriverlessDvmtProp_Rc,
@@ -1891,7 +1891,7 @@ CalculateRoadPerformance <- function(L) {
         calculateCongestion("Art", LaneMi_MaRc[ma,"Art"], Dvmt_Rc["Art"])
       #Calculate average driverless DVMT proportion by road class
       DriverlessDvmtProp_Rc <- calcAveDriverlessDvmtProp(
-        LdvDvmt_Rc = LdvDvmt_Rc[c("Fwy", "Art")], 
+        LdvDvmt_Rc = LdvDvmt_Rc[c("Fwy", "Art")],
         LdvDriverlessProp = DriverlessDvmtProp_MaTy[ma, "Ldv"],
         HvyTrkDvmt_Rc = HvyTrkDvmt_MaRc[ma, c("Fwy", "Art")],
         HvyTrkDriverlessProp = DriverlessDvmtProp_MaTy[ma, "HvyTrk"],
