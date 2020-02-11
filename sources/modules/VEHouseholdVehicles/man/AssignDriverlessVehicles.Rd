@@ -19,11 +19,11 @@ specifications for the module.
 }
 \details{
 This function randomly assigns household vehicles as driverless based on the driverless
-probability given by age and vehicle type. The household vehicels owned are assigned 
-a value of 1 if driverless and 0 otherwise based on age and vehicle type. The household vehicles 
-with vehicle access of service type are assigned a driverless probability based on vehicle age 
-and type. The function also calcualates a preliminary estimate of proportion of household DVMT 
-that is in driverless vehicles. This estimate is obtained by dividing the sum of vehicles that are 
+probability given by age and vehicle type. The household vehicels owned are assigned
+a value of 1 if driverless and 0 otherwise based on age and vehicle type. The household vehicles
+with vehicle access of service type are assigned a driverless probability based on vehicle age
+and type. The function also calcualates a preliminary estimate of proportion of household DVMT
+that is in driverless vehicles. This estimate is obtained by dividing the sum of vehicles that are
 driverless by sum of vehicles that are other than low level car service vehicle access type by
 each household.
 }

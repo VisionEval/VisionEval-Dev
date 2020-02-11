@@ -27,17 +27,17 @@ UNLIKELY - Values that are unlikely. Values that meet any of the listed conditio
 DESCRIPTION - A description of the data.
 
 ### region_driverless_vehicle_prop.csv
-|NAME                     |TYPE   |UNITS      |PROHIBIT |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                                                                                                                |
-|:------------------------|:------|:----------|:--------|:-----------|:--------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|VehYear                  |time   |YR         |NA, < 0  |            |         |The year represents the vehicle model year for household vehicles (automobile and light truck) and operation year for car service vehicles, commercial service vehicles, and heavy trucks. |
-|AutoSalesDriverlessProp  |double |proportion |NA, < 0  |            |> 1.5    |The proportion of automobiles sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                            |
-|LtTrkSalesDriverlessProp |double |proportion |NA, < 0  |            |> 1.5    |The proportion of light trucks sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                           |
-|LowCarSvcDriverlessProp  |double |proportion |NA, < 0  |            |> 1.5    |The proportion of the car service fleet DVMT in low car service areas in the corresponding year that are driverless. Values for intervening years are interpolated                         |
-|HighCarSvcDriverlessProp |double |proportion |NA, < 0  |            |> 1.5    |The proportion of the car service fleet DVMT in high car service areas in the corresponding year that are driverless. Values for intervening years are interpolated                        |
-|ComSvcDriverlessProp     |double |proportion |NA, < 0  |            |> 1.5    |The proportion of the commercial service vehicle fleet DVMT in the corresponding year that are driverless. Values for intervening years are interpolated.                                  |
-|HvyTrkDriverlessProp     |double |proportion |NA, < 0  |            |> 1.5    |The proportion of the heavy truck fleet DVMT in the corresponding year that are driverless. Values for intervening years are interpolated                                                  |
-|PtVanDriverlessProp      |double |proportion |NA, < 0  |            |> 1.5    |The proportion of public transit van DVMT in the corresponding year that are driverless. Values for intervening years are interpolated                                                     |
-|BusDriverlessProp        |double |proportion |NA, < 0  |            |> 1.5    |The proportion of bus fleet DVMT in the corresponding year that are driverless. Values for intevening years are interpolated                                                               |
+|NAME                     |TYPE   |UNITS      |PROHIBIT     |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                                                                                                                |
+|:------------------------|:------|:----------|:------------|:-----------|:--------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|VehYear                  |time   |YR         |NA, < 0, > 1 |            |         |The year represents the vehicle model year for household vehicles (automobile and light truck) and operation year for car service vehicles, commercial service vehicles, and heavy trucks. |
+|AutoSalesDriverlessProp  |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of automobiles sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                            |
+|LtTrkSalesDriverlessProp |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of light trucks sold in the corresponding year that are driverless. Values for intervening years are interpolated                                                           |
+|LowCarSvcDriverlessProp  |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of the car service fleet DVMT in low car service areas in the corresponding year that are driverless. Values for intervening years are interpolated                         |
+|HighCarSvcDriverlessProp |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of the car service fleet DVMT in high car service areas in the corresponding year that are driverless. Values for intervening years are interpolated                        |
+|ComSvcDriverlessProp     |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of the commercial service vehicle fleet DVMT in the corresponding year that are driverless. Values for intervening years are interpolated.                                  |
+|HvyTrkDriverlessProp     |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of the heavy truck fleet DVMT in the corresponding year that are driverless. Values for intervening years are interpolated                                                  |
+|PtVanDriverlessProp      |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of public transit van DVMT in the corresponding year that are driverless. Values for intervening years are interpolated                                                     |
+|BusDriverlessProp        |double |proportion |NA, < 0, > 1 |            |> 1.5    |The proportion of bus fleet DVMT in the corresponding year that are driverless. Values for intevening years are interpolated                                                               |
 
 ## Datasets Used by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:
@@ -56,26 +56,26 @@ PROHIBIT - Values that are prohibited. Values in the datastore do not meet any o
 
 ISELEMENTOF - Categorical values that are permitted. Values in the datastore are one or more of the listed values.
 
-|NAME                     |TABLE                 |GROUP  |TYPE      |UNITS      |PROHIBIT |ISELEMENTOF                |
-|:------------------------|:---------------------|:------|:---------|:----------|:--------|:--------------------------|
-|VehYear                  |RegionDriverlessProps |Global |time      |YR         |NA, < 0  |                           |
-|AutoSalesDriverlessProp  |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|LtTrkSalesDriverlessProp |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|LowCarSvcDriverlessProp  |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|HighCarSvcDriverlessProp |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|ComSvcDriverlessProp     |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|HvyTrkDriverlessProp     |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|PtVanDriverlessProp      |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|BusDriverlessProp        |RegionDriverlessProps |Global |double    |proportion |NA, < 0  |                           |
-|HhId                     |Vehicle               |Year   |character |ID         |NA       |                           |
-|VehId                    |Vehicle               |Year   |character |ID         |NA       |                           |
-|Age                      |Vehicle               |Year   |time      |YR         |NA, < 0  |                           |
-|VehicleAccess            |Vehicle               |Year   |character |category   |         |Own, LowCarSvc, HighCarSvc |
-|Type                     |Vehicle               |Year   |character |category   |NA       |Auto, LtTrk                |
-|HhId                     |Household             |Year   |character |ID         |NA       |                           |
-|NumLtTrk                 |Household             |Year   |vehicles  |VEH        |NA, < 0  |                           |
-|NumAuto                  |Household             |Year   |vehicles  |VEH        |NA, < 0  |                           |
-|NumHighCarSvc            |Household             |Year   |vehicles  |VEH        |NA, < 0  |                           |
+|NAME                     |TABLE                 |GROUP  |TYPE      |UNITS      |PROHIBIT     |ISELEMENTOF                |
+|:------------------------|:---------------------|:------|:---------|:----------|:------------|:--------------------------|
+|VehYear                  |RegionDriverlessProps |Global |time      |YR         |NA, < 0      |                           |
+|AutoSalesDriverlessProp  |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|LtTrkSalesDriverlessProp |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|LowCarSvcDriverlessProp  |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|HighCarSvcDriverlessProp |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|ComSvcDriverlessProp     |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|HvyTrkDriverlessProp     |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|PtVanDriverlessProp      |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|BusDriverlessProp        |RegionDriverlessProps |Global |double    |proportion |NA, < 0, > 1 |                           |
+|HhId                     |Vehicle               |Year   |character |ID         |NA           |                           |
+|VehId                    |Vehicle               |Year   |character |ID         |NA           |                           |
+|Age                      |Vehicle               |Year   |time      |YR         |NA, < 0      |                           |
+|VehicleAccess            |Vehicle               |Year   |character |category   |             |Own, LowCarSvc, HighCarSvc |
+|Type                     |Vehicle               |Year   |character |category   |NA           |Auto, LtTrk                |
+|HhId                     |Household             |Year   |character |ID         |NA           |                           |
+|NumLtTrk                 |Household             |Year   |vehicles  |VEH        |NA, < 0      |                           |
+|NumAuto                  |Household             |Year   |vehicles  |VEH        |NA, < 0      |                           |
+|NumHighCarSvc            |Household             |Year   |vehicles  |VEH        |NA, < 0      |                           |
 
 ## Datasets Produced by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:

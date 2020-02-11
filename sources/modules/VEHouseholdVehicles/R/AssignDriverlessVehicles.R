@@ -50,7 +50,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       UNITS = "YR",
       NAVALUE = -1,
       SIZE = 0,
-      PROHIBIT = c("NA", "< 0"),
+      PROHIBIT = c("NA", "< 0", "> 1"),
       ISELEMENTOF = "",
       UNLIKELY = "",
       TOTAL = "",
@@ -71,7 +71,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       UNITS = "proportion",
       NAVALUE = -1,
       SIZE = 0,
-      PROHIBIT = c("NA", "< 0"),
+      PROHIBIT = c("NA", "< 0", "> 1"),
       ISELEMENTOF = "",
       UNLIKELY = c("> 1.5"),
       TOTAL = "",
@@ -93,7 +93,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       UNITS = "proportion",
       NAVALUE = -1,
       SIZE = 0,
-      PROHIBIT = c("NA", "< 0"),
+      PROHIBIT = c("NA", "< 0", "> 1"),
       ISELEMENTOF = "",
       UNLIKELY = c("> 1.5"),
       TOTAL = "",
@@ -117,7 +117,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       UNITS = "proportion",
       NAVALUE = -1,
       SIZE = 0,
-      PROHIBIT = c("NA", "< 0"),
+      PROHIBIT = c("NA", "< 0", "> 1"),
       ISELEMENTOF = "",
       UNLIKELY = c("> 1.5"),
       TOTAL = "",
@@ -152,7 +152,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       GROUP = "Global",
       TYPE = "double",
       UNITS = "proportion",
-      PROHIBIT = c("NA", "< 0"),
+      PROHIBIT = c("NA", "< 0", "> 1"),
       ISELEMENTOF = ""
     ),
     item(
@@ -164,7 +164,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       GROUP = "Global",
       TYPE = "double",
       UNITS = "proportion",
-      PROHIBIT = c("NA", "< 0"),
+      PROHIBIT = c("NA", "< 0", "> 1"),
       ISELEMENTOF = ""
     ),
     item(
@@ -178,7 +178,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       GROUP = "Global",
       TYPE = "double",
       UNITS = "proportion",
-      PROHIBIT = c("NA", "< 0"),
+      PROHIBIT = c("NA", "< 0", "> 1"),
       ISELEMENTOF = ""
     ),
     item(
@@ -302,7 +302,7 @@ usethis::use_data(AssignDriverlessVehiclesSpecifications, overwrite = TRUE)
 #=======================================================
 #SECTION 3: DEFINE FUNCTIONS THAT IMPLEMENT THE SUBMODEL
 #=======================================================
-# The module randomly assigns household vehicles as driverless based on the driverless 
+# The module randomly assigns household vehicles as driverless based on the driverless
 # probability given by age and vehicle type. The module will also calculate preliminary
 # estimates of proportion of household DVMT that is in driverless vehicles.
 
@@ -313,11 +313,11 @@ usethis::use_data(AssignDriverlessVehiclesSpecifications, overwrite = TRUE)
 #' \code{AssignDriverlessVehicles} assigns driverless vehicle to each household.
 #'
 #' This function randomly assigns household vehicles as driverless based on the driverless
-#' probability given by age and vehicle type. The household vehicels owned are assigned 
-#' a value of 1 if driverless and 0 otherwise based on age and vehicle type. The household vehicles 
-#' with vehicle access of service type are assigned a driverless probability based on vehicle age 
-#' and type. The function also calcualates a preliminary estimate of proportion of household DVMT 
-#' that is in driverless vehicles. This estimate is obtained by dividing the sum of vehicles that are 
+#' probability given by age and vehicle type. The household vehicels owned are assigned
+#' a value of 1 if driverless and 0 otherwise based on age and vehicle type. The household vehicles
+#' with vehicle access of service type are assigned a driverless probability based on vehicle age
+#' and type. The function also calcualates a preliminary estimate of proportion of household DVMT
+#' that is in driverless vehicles. This estimate is obtained by dividing the sum of vehicles that are
 #' driverless by sum of vehicles that are other than low level car service vehicle access type by
 #' each household.
 #'
@@ -346,7 +346,7 @@ AssignDriverlessVehicles <- function(L) {
   RegionDriverlessPropByYear_df <- data.frame(L$Global$RegionDriverlessProps)
   RegionDriverlessPropByYear_df$VehYear <- as.integer(gsub("\\.\\d*", "",
                                                            RegionDriverlessPropByYear_df$VehYear))
-  
+
 
   # Assign the driverless vehicles by proportion by age
   # Combine into vector and assign driverless to household vehicles
@@ -361,7 +361,7 @@ AssignDriverlessVehicles <- function(L) {
                                              RegionDriverlessPropByYear_df$AutoSalesDriverlessProp),
                                            VehYear_[OwnedAuto_],
                                            yleft = 0)$y
-  
+
   OwnedLtTrk_ <- VehType_ == "LtTrk" & CarSvcLvl_ == "Own"
   VehDriverlessProp_[OwnedLtTrk_] <- approx(as.numeric(RegionDriverlessPropByYear_df$VehYear),
                                            as.numeric(
