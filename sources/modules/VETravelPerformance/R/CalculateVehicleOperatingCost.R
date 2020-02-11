@@ -78,7 +78,7 @@
 #
 #![](driverless_run_time_utility.png)
 #
-#**Equation 4. Adjustment of travel time utility for dirverless vehicles**
+#**Equation 4. Adjustment of travel time utility for driverless vehicles**
 #
 #Where:
 #*  *AveSpeed* is the average vehicle travel speed (miles per hour) calculated for the household
@@ -88,13 +88,13 @@
 #
 #![](driverless_access_time_utility.png)
 #
-#**Equation 5. Adjustment of access time utility for dirverless vehicles**
+#**Equation 5. Adjustment of access time utility for driverless vehicles**
 #
 #Where:
 #*  *AccessTime* is the average amount of time spent on each end of the vehicle trip to get from the origin to the vehicle and from the vehicle to the destination (user input for household vehicles and car service vehicles by service level)
 #*  *Trips* is the average number of daily vehicle trips of the household
 #*  *DVMT* is the average daily vehicle miles traveled of the household
-#*  *PropRemoteAccess* is the proportion of trips in driverless vehicles that are remotely controlled provided by user as input in *region_driverless_vehicle_parameters.csv* 
+#*  *PropRemoteAccess* is the proportion of trips in driverless vehicles that are remotely controlled provided by user as input in *region_driverless_vehicle_parameters.csv*
 #*  *AccessTimeUtilityAdj* is the access time utility adjustment for dirverless vehicles provided by user as input in *region_driverless_vehicle_parameters.csv*
 #
 #The values of *X* and *Y*, the miles traveled by each vehicle, are calculated by determining the values that maximize utility subject to the budget constraint. The calculation is simplified by assuming that the values of *a* and *b* are 1. In other words, it is assumed that all household vehicles provide that same travel utility to the household independent of price. Factors like comfort, convenience, performance, dependability, and style that may affect percieved utility are not considered for the following reasons:
@@ -1308,7 +1308,7 @@ usethis::use_data(CalculateVehicleOperatingCostSpecifications, overwrite = TRUE)
 #' @export
 #'
 CalculateVehicleOperatingCost <- function(L) {
-  
+
   #Adjust household total DVMT if the module has been called earlier
   if(!is.null(L$Year$Household[["DriverlessDvmtAdjProp"]]) &
      !is.null(L$Year$Household[["DeadheadDvmtAdjProp"]])){
@@ -1515,7 +1515,7 @@ CalculateVehicleOperatingCost <- function(L) {
   }
   TTCostRate_Ve <- calcTTCostRateVe(AdjustDriverlessUtility = TRUE)
   AltTTCostRate_Ve <- calcTTCostRateVe(AdjustDriverlessUtility = FALSE)
-  
+
   #Function to calculate composite cost
   calcCompositeCost <- function(CostRate_Ve){
     MRTCostRate_Ve + EnergyCostRate_Ve + RoadUseCostRate_Ve +
@@ -1541,12 +1541,12 @@ CalculateVehicleOperatingCost <- function(L) {
     names(Price_Hh_Ve) <- NULL
     unlist(Price_Hh_Ve, use.names = TRUE)[L$Year$Vehicle$VehId]
    })
-  
+
   #Calculate driverless vehicle DVMT adjustments
   #---------------------------------------------
   Dvmt_Hh <- L$Year$Household$Dvmt
   Dvmt_Ve <- DvmtProp_Ve * Dvmt_Hh[HhToVehIdx_Ve]
-  
+
   #Calculate the proportional increase in passenger DVMT due to lower disutility of
   #travel in a driverless vehicle
   PassengerDvmtAdj_Ve <- local({
@@ -1561,7 +1561,7 @@ CalculateVehicleOperatingCost <- function(L) {
     RemoteAccessDvmtAdj <- L$Year$Region$RemoteAccessDvmtAdj
     Dvmt_Ve * PropRemoteAccess * RemoteAccessDvmtAdj
   })
-  
+
   #Calculate car service deadhead DVMT
   #-----------------------------------
   DeadheadDvmt_Ve <- local({
@@ -1569,13 +1569,13 @@ CalculateVehicleOperatingCost <- function(L) {
     LowCarSvcDeadheadProp <- L$Year$Azone$LowCarSvcDeadheadProp
     HighCarSvcDeadheadProp <- L$Year$Azone$HighCarSvcDeadheadProp
     DeadheadDvmt_Ve <- Dvmt_Ve * 0
-    DeadheadDvmt_Ve[VehAccType_Ve == "LowCarSvc"] <- 
+    DeadheadDvmt_Ve[VehAccType_Ve == "LowCarSvc"] <-
       Dvmt_Ve[VehAccType_Ve == "LowCarSvc"] * LowCarSvcDeadheadProp
-    DeadheadDvmt_Ve[VehAccType_Ve == "HighCarSvc"] <- 
+    DeadheadDvmt_Ve[VehAccType_Ve == "HighCarSvc"] <-
       Dvmt_Ve[VehAccType_Ve == "HighCarSvc"] * HighCarSvcDeadheadProp
     DeadheadDvmt_Ve
   })
-  
+
   #Recalculate DVMT allocation amongst household vehicles and total household DVMT
   #-------------------------------------------------------------------------------
   Dvmt_Ve <- Dvmt_Ve + AddPassengerDvmt_Ve + AddRemoteAccessDvmt_Ve + DeadheadDvmt_Ve
@@ -1616,13 +1616,13 @@ CalculateVehicleOperatingCost <- function(L) {
   #Calculate average greenhouse gas emissions per mile
   AveCO2ePM_Hh <-
     tapply(CO2ePM_Ve * DvmtProp_Ve, L$Year$Vehicle$HhId, sum)[L$Year$Household$HhId]
-  
+
   #Recalculate total household DVMT
   Dvmt_Hh <- local({
     tapply(Dvmt_Ve, L$Year$Vehicle$HhId, sum)[L$Year$Household$HhId]
   })
   #Calculate proportion of household DVMT that is driverless DVMT adjustment
-  DriverlessDvmtAdj_Hh <- 
+  DriverlessDvmtAdj_Hh <-
     tapply(AddPassengerDvmt_Ve + AddRemoteAccessDvmt_Ve, L$Year$Vehicle$HhId, sum)[L$Year$Household$HhId]
   DriverlessDvmtAdjProp_Hh <- DriverlessDvmtAdj_Hh / Dvmt_Hh
   #Calculate proportion of household Dvmt that is car service deadhead Dvmt
@@ -1630,7 +1630,7 @@ CalculateVehicleOperatingCost <- function(L) {
   DeadheadDvmtAdjProp_Hh <- DeadheadDvmtAdj_Hh / Dvmt_Hh
   #Calculate proportion of household Dvmt in driverless vehicles
   DriverlessDvmt_Hh <- local({
-    IsDriverless_ <- L$Year$Vehicle$VehicleAccess == "Own" & L$Year$Vehicle$Driverless == 1
+    IsDriverless_ <- L$Year$Vehicle$Driverless > 0
     tapply(Dvmt_Ve * IsDriverless_, L$Year$Vehicle$HhId, sum)[L$Year$Household$HhId]
   })
   DriverlessDvmtProp_Hh <- DriverlessDvmt_Hh / Dvmt_Hh

@@ -85,7 +85,7 @@ Coefficients:
 (Intercept)  4.09804    0.46071   8.895 2.35e-06 ***
 LogInc      -0.56182    0.04363 -12.876 5.62e-08 ***
 ---
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Residual standard error: 0.1878 on 11 degrees of freedom
 Multiple R-squared:  0.9378,	Adjusted R-squared:  0.9321 
@@ -152,7 +152,7 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 |:-------------------|:---------|:-----|:---------|:----------|:------------|:------------------|
 |Marea               |Marea     |Year  |character |ID         |             |                   |
 |Marea               |Household |Year  |character |ID         |             |                   |
-|HhId                |Household |Year  |character |ID         |NA           |                   |
+|HhId                |Household |Year  |character |ID         |             |                   |
 |HhSize              |Household |Year  |people    |PRSN       |NA, <= 0     |                   |
 |Income              |Household |Year  |currency  |USD.2001   |NA, < 0      |                   |
 |LocType             |Household |Year  |character |category   |NA           |Urban, Town, Rural |

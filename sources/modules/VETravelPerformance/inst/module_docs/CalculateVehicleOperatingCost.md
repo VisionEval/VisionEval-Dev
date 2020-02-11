@@ -73,7 +73,7 @@ Where:
 
 ![](driverless_run_time_utility.png)
 
-**Equation 4. Adjustment of travel time utility for dirverless vehicles**
+**Equation 4. Adjustment of travel time utility for driverless vehicles**
 
 Where:
 *  *AveSpeed* is the average vehicle travel speed (miles per hour) calculated for the household
@@ -83,13 +83,13 @@ Where:
 
 ![](driverless_access_time_utility.png)
 
-**Equation 5. Adjustment of access time utility for dirverless vehicles**
+**Equation 5. Adjustment of access time utility for driverless vehicles**
 
 Where:
 *  *AccessTime* is the average amount of time spent on each end of the vehicle trip to get from the origin to the vehicle and from the vehicle to the destination (user input for household vehicles and car service vehicles by service level)
 *  *Trips* is the average number of daily vehicle trips of the household
 *  *DVMT* is the average daily vehicle miles traveled of the household
-*  *PropRemoteAccess* is the proportion of trips in driverless vehicles that are remotely controlled provided by user as input in *region_driverless_vehicle_parameters.csv* 
+*  *PropRemoteAccess* is the proportion of trips in driverless vehicles that are remotely controlled provided by user as input in *region_driverless_vehicle_parameters.csv*
 *  *AccessTimeUtilityAdj* is the access time utility adjustment for dirverless vehicles provided by user as input in *region_driverless_vehicle_parameters.csv*
 
 The values of *X* and *Y*, the miles traveled by each vehicle, are calculated by determining the values that maximize utility subject to the budget constraint. The calculation is simplified by assuming that the values of *a* and *b* are 1. In other words, it is assumed that all household vehicles provide that same travel utility to the household independent of price. Factors like comfort, convenience, performance, dependability, and style that may affect percieved utility are not considered for the following reasons:
