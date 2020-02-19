@@ -8,6 +8,13 @@ library("tidyr")
 library("readr")
 library("jsonlite")
 
+tool.contents <- c(
+  "ve.scenario_management.make_form_csv_from_json",
+  "ve.scenario_management.make_json_from_form_csv",
+  "ve.scenario_management.make_directory_structure"
+)
+  
+
 # To use this in a visioneval runtime, just do this:
 #   source("tools/scenario_management.R")
 
