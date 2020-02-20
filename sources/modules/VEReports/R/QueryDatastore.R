@@ -314,7 +314,6 @@ prepareForDatastoreQuery <- function(DstoreLocs_, DstoreType) {
 #   DstoreType = "RD"
 # )
 
-
 #LIST GROUPS
 #===========
 #' Lists the names of groups in model datastores.
@@ -346,7 +345,6 @@ listGroups <- function(QueryPrep_ls) {
 #   DstoreType = "RD"
 # )
 # listGroups(QPrep_ls)
-
 
 #LIST TABLES IN GROUP
 #====================
@@ -384,7 +382,6 @@ listTables <- function(Group, QueryPrep_ls) {
 # for (grp in Grp) {
 #   print(listTables(grp, QPrep_ls))
 # }
-
 
 #LIST DATASETS IN GROUP
 #======================
@@ -440,7 +437,6 @@ listDatasets <- function(Table, Group, QueryPrep_ls) {
 # )
 # listDatasets("Household", "2010", QPrep_ls)
 
-
 #CREATE DOCUMENTATION OF DATASETS IN A DATASTORE
 #===============================================
 #' Save an zip archive which documents all tables/datasets in a datastore.
@@ -494,7 +490,6 @@ documentDatastoreTables <- function(SaveArchiveName, QueryPrep_ls) {
 # )
 # documentDatastoreTables("Datastore_Documentation", QPrep_ls)
 # rm(QPrep_ls)
-
 
 #READ MULTIPLE DATASETS FROM DATASTORES
 #======================================
