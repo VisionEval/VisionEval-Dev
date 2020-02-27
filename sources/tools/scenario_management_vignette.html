@@ -425,6 +425,7 @@ ve.scenario_management.make_form_csv_from_json(example_file_dir, example_csv_dat
 ## )</code></pre>
 <p>This CSV file can now be edited in Excel, a text editor, R, or any other software. The <code>scenario_management</code> tools allow you to build the <code>JSON</code> files that VisionEval needs from these CSV files. For example, let’s first specify a new directory location for the <code>JSON</code> files we’ll make and then use the tools to build them:</p>
 <pre class="r"><code>new_json_file_dir &lt;- &quot;tools/example_dir/&quot;
+dir.create(new_json_file_dir)
 ve.scenario_management.make_json_from_form_csv(example_csv_database_file, new_json_file_dir)</code></pre>
 <p>The new <code>JSON</code> files can be viewed in a text editor or in R Studio, among other places. We can use R to test that the <code>JSON</code> files we’ve made are the same – when read by a computer – as the <code>JSON</code> files we started with using R’s <code>identical</code> method, like this:</p>
 <pre class="r"><code>identical(read_json(file.path(example_file_dir, &quot;scenario_config.json&quot;)), 
