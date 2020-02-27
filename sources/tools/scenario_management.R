@@ -43,7 +43,7 @@ make_scenario_json_from_form <- function(input_form_df, input_json_file_name) {
            DESCRIPTION = category_description,
            INSTRUCTIONS = category_instructions)
   
-  write_json(output_df, path = input_json_file_name)
+  write_json(output_df, path = input_json_file_name, force = T)
   
 }
 
@@ -63,7 +63,7 @@ make_category_json_from_form <- function(input_form_df, input_json_file_name) {
     ungroup() %>%
     rename(NAME = top_NAME)
   
-  write_json(output_df, path = input_json_file_name)
+  write_json(output_df, path = input_json_file_name, force = T)
   
 }
 
