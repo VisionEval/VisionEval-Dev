@@ -47,6 +47,7 @@ example_form_df <- read_csv(example_csv_database_file)
 This CSV file can now be edited in Excel, a text editor, R, or any other software. The `scenario_management` tools allow you to build the `JSON` files that VisionEval needs from these CSV files. For example, let's first specify a new directory location for the `JSON` files we'll make and then use the tools to build them:
 ```{r build-json}
 new_json_file_dir <- "tools/example_dir/"
+dir.create(new_json_file_dir)
 ve.scenario_management.make_json_from_form_csv(example_csv_database_file, new_json_file_dir)
 ```
 
