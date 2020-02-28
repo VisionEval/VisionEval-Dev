@@ -1,12 +1,8 @@
 requireNamespace("dplyr")
-requireNamespace("tidyr")
+# requireNamespace("tidyr")
+requireNamespace("magrittr")
 requireNamespace("readr")
 requireNamespace("jsonlite")
-
-library("dplyr")
-library("tidyr")
-library("readr")
-library("jsonlite")
 
 tool.contents <- c(
   "ve.scenario_management.make_form_csv_from_json",
@@ -14,6 +10,23 @@ tool.contents <- c(
   "ve.scenario_management.make_directory_structure"
 )
   
+assign("%>%",getFromNamespace("%>%","magrittr"))
+assign("filter",dplyr::filter)
+assign("group_by",dplyr::group_by)
+assign("left_join",dplyr::left_join)
+assign("mutate",dplyr::mutate)
+assign("rename",dplyr::rename)
+assign("select",dplyr::select)
+assign("slice",dplyr::slice)
+assign("ungroup",dplyr::ungroup)
+assign("cols",readr::cols)
+assign("col_character",readr::col_character)
+assign("col_logical",readr::col_logical)
+assign("read_csv",readr::read_csv)
+assign("write_csv",readr::write_csv)
+assign("replace_na",tidyr::replace_na)
+assign("unnest",tidyr::unnest)
+assign("nest",tidyr::nest)
 
 # To use this in a visioneval runtime, just do this:
 #   source("tools/scenario_management.R")
@@ -42,8 +55,8 @@ make_scenario_json_from_form <- function(input_form_df, input_json_file_name) {
            LABEL = category_label, 
            DESCRIPTION = category_description,
            INSTRUCTIONS = category_instructions)
-  
-  write_json(output_df, path = input_json_file_name)
+    
+  jsonlite::write_json(output_df, path = input_json_file_name,force=TRUE)
   
 }
 
@@ -63,7 +76,7 @@ make_category_json_from_form <- function(input_form_df, input_json_file_name) {
     ungroup() %>%
     rename(NAME = top_NAME)
   
-  write_json(output_df, path = input_json_file_name)
+  jsonlite::write_json(output_df, path = input_json_file_name,force=TRUE)
   
 }
 
@@ -87,8 +100,8 @@ ve.scenario_management.make_form_csv_from_json <- function(input_dir,
   input_scenario_json <- file.path(input_dir, "scenario_config.json")
   input_category_json <- file.path(input_dir, "category_config.json")
   
-  input_scenario_df <- read_json(input_scenario_json, simplifyVector = TRUE)
-  input_category_df <- read_json(input_category_json, simplifyVector = TRUE)
+  input_scenario_df <- jsonlite::read_json(input_scenario_json, simplifyVector = TRUE)
+  input_category_df <- jsonlite::read_json(input_category_json, simplifyVector = TRUE)
   
   working_df <- input_scenario_df %>%
     rename(category_name = NAME, 
