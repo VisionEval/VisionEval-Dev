@@ -2,7 +2,7 @@
 ## LoadDefaultRoadDvmtValues
 ### January 23, 2019
 
-This script calculates default values for base year roadway DVMT by vehicle type (light-duty, heavy truck, bus), the distribution of roadway DVMT by vehicle type to roadway classes (freeway, arterial, other), and the ratio of commercial service light-duty vehicle travel to household vehicle travel. These values are calculated at the state level and at the urbanized area level. This simplifies how the modules in the VETravelPerformance package are used because the user may elect to use default data for their metropolitan or state model or they may supply their own data as user inputs. The following datasets are saved as a components of the RoadDvmtModel_ls list:
+This script calculates default values for base year roadway DVMT by vehicle type (light-duty, heavy truck, bus), the distribution of roadway DVMT by vehicle type to roadway classes (freeway, arterial, other), and the ratio of commercial service light-duty vehicle travel to household vehicle travel. These values are calculated at the state level and at the urbanized area level. This simplifies how the modules in the VETravelPerformanceDL package are used because the user may elect to use default data for their metropolitan or state model or they may supply their own data as user inputs. The following datasets are saved as a components of the RoadDvmtModel_ls list:
 
 * HvyTrkDvmtPC_St: the ratio of heavy truck DVMT to population by state;
 
