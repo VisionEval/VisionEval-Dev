@@ -164,12 +164,12 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 |AveGPM              |Household |Year  |compound  |GGE/MI     |NA, < 0      |                   |
 |AveKWHPM            |Household |Year  |compound  |KWH/MI     |NA, < 0      |                   |
 |AveCO2ePM           |Household |Year  |compound  |GM/MI      |NA, < 0      |                   |
-|HhId                |Worker    |Year  |character |ID         |NA           |                   |
-|IsCashOut           |Worker    |Year  |integer   |binary     |             |0, 1               |
-|ParkingCost         |Worker    |Year  |currency  |USD.2001   |NA, < 0      |                   |
-|PaysForParking      |Worker    |Year  |integer   |binary     |             |0, 1               |
-|HhId                |Vehicle   |Year  |character |ID         |NA           |                   |
-|InsCost             |Vehicle   |Year  |currency  |USD.2001   |NA, < 0      |                   |
+|HhId           |Worker    |Year  |character |ID       |         |                   |
+|IsCashOut      |Worker    |Year  |integer   |binary   |         |0, 1               |
+|ParkingCost    |Worker    |Year  |currency  |USD.2001 |NA, < 0  |                   |
+|PaysForParking |Worker    |Year  |integer   |binary   |         |0, 1               |
+|HhId           |Vehicle   |Year  |character |ID       |NA       |                   |
+|InsCost        |Vehicle   |Year  |currency  |USD.2001 |NA, < 0  |                   |
 
 ## Datasets Produced by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:

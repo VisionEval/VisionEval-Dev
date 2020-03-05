@@ -5,7 +5,7 @@
 #<doc>
 #
 ## CalculateComEnergyAndEmissions Module
-#### August 5, 2019
+#### January 12, 2019
 #
 #This module calculates the energy consumption and carbon emissions of heavy trucks and light-duty commercial service vehicles. It does not calculate the values for car service vehicles which are calculated as part of the household emissions. It also does not calculate public transit emissions which are calculated in the CalculatePtranEnergyAndEmissions module.
 #
@@ -249,8 +249,8 @@ CalculateComEnergyAndEmissionsSpecifications <- list(
         "HvyTrkUrbanGGE"),
       TABLE = "Marea",
       GROUP = "Year",
-      TYPE = "energy",
-      UNITS = "GGE",
+      TYPE = "compound",
+      UNITS = "GGE/DAY",
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
@@ -267,8 +267,8 @@ CalculateComEnergyAndEmissionsSpecifications <- list(
         "HvyTrkUrbanKWH"),
       TABLE = "Marea",
       GROUP = "Year",
-      TYPE = "energy",
-      UNITS = "KWH",
+      TYPE = "compound",
+      UNITS = "KWH/DAY",
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
@@ -285,8 +285,8 @@ CalculateComEnergyAndEmissionsSpecifications <- list(
         "HvyTrkUrbanCO2e"),
       TABLE = "Marea",
       GROUP = "Year",
-      TYPE = "mass",
-      UNITS = "GM",
+      TYPE = "compound",
+      UNITS = "GM/DAY",
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
@@ -320,8 +320,8 @@ CalculateComEnergyAndEmissionsSpecifications <- list(
         "HvyTrkUrbanGGE"),
       TABLE = "Region",
       GROUP = "Year",
-      TYPE = "energy",
-      UNITS = "GGE",
+      TYPE = "compound",
+      UNITS = "GGE/DAY",
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
@@ -336,8 +336,8 @@ CalculateComEnergyAndEmissionsSpecifications <- list(
         "HvyTrkUrbanKWH"),
       TABLE = "Region",
       GROUP = "Year",
-      TYPE = "energy",
-      UNITS = "KWH",
+      TYPE = "compound",
+      UNITS = "KWH/DAY",
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
@@ -352,8 +352,8 @@ CalculateComEnergyAndEmissionsSpecifications <- list(
         "HvyTrkUrbanCO2e"),
       TABLE = "Region",
       GROUP = "Year",
-      TYPE = "mass",
-      UNITS = "GM",
+      TYPE = "compound",
+      UNITS = "GM/DAY",
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
@@ -498,6 +498,14 @@ CalculateComEnergyAndEmissions <- function(L) {
       with(LdvPtChar_df, which(as.character(ModelYear) == as.character(Year)))
     StartIdx <-
       as.integer(round(EndIdx - (2 * L$Year$Region$AveComSvcVehicleAge)))
+    if (StartIdx < 1) {
+      NumRowsToDup <- 1 - StartIdx
+      StartIdx <- 1
+      EndIdx <- 1 + NumRowsToDup
+      for (i in 1:NumRowsToDup) {
+        LdvPtChar_df <- rbind(LdvPtChar_df[1,], LdvPtChar_df)
+      }
+    }
     LdvPtChar_ <- colMeans(LdvPtChar_df[StartIdx:EndIdx,], na.rm = TRUE)[-1]
     AutoMpgMpkwh_Pt <- c(
       ICEV = unname(LdvPtChar_["AutoIcevMpg"]),
