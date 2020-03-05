@@ -50,7 +50,7 @@ AssignDriverlessVehiclesSpecifications <- list(
       UNITS = "YR",
       NAVALUE = -1,
       SIZE = 0,
-      PROHIBIT = c("NA", "< 0", "> 1"),
+      PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
       UNLIKELY = "",
       TOTAL = "",

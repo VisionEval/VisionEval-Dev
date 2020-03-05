@@ -1775,45 +1775,6 @@ CalculateRoadPerformance <- function(L) {
     colSums(sweep(DvmtPropByTy_TyRc, 1, DriverlessProp_Ty, "*"))
   }
 
-  # DriverlessDvmtProp_Rc <- setNames(numeric(length(Rc)), Rc)
-  # DriverlessDvmtProp_Rc["Art"] <- calcAveDriverlessDvmtProp(L$Year$Marea$LdvFwyArtDvmt,
-  #                                                    L$Year$Marea$LdvDriverlessProp,
-  #                                                    L$Year$Marea$HvyTrkArtDvmt,
-  #                                                    L$Year$Marea$HvyTrkDriverlessProp,
-  #                                                    L$Year$Marea$BusArtDvmt,
-  #                                                    L$Year$Marea$BusDriverlessProp)
-  # DriverlessDvmtProp_Rc["Fwy"] <- calcAveDriverlessDvmtProp(L$Year$Marea$LdvFwyArtDvmt,
-  #                                                           L$Year$Marea$LdvDriverlessProp,
-  #                                                           L$Year$Marea$HvyTrkFwyDvmt,
-  #                                                           L$Year$Marea$HvyTrkDriverlessProp,
-  #                                                           L$Year$Marea$BusFwyDvmt,
-  #                                                           L$Year$Marea$BusDriverlessProp)
-  # DriverlessDvmtProp_Rc["Oth"] <- calcAveDriverlessDvmtProp(L$Year$Marea$LdvOthDvmt,
-  #                                                           L$Year$Marea$LdvDriverlessProp,
-  #                                                           L$Year$Marea$HvyTrkOthDvmt,
-  #                                                           L$Year$Marea$HvyTrkDriverlessProp,
-  #                                                           L$Year$Marea$BusOthDvmt,
-  #                                                           L$Year$Marea$BusDriverlessProp)
-  #
-  # for (ma in Ma) {
-  #   SpeedAndDelay_ls[[ma]] <-
-  #     calculateSpeeds(OpsDeployment_MaOp[ma,], OtherOpsEffects_mx, DriverlessDvmtProp_Rc,
-  #                     DriverlessFactor_ls)
-  # }
-  # #Convert to matrices
-  # FwySpeed_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-  #   x$Speed[,"Fwy"]
-  # }))
-  # ArtSpeed_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-  #   x$Speed[,"Art"]
-  # }))
-  # FwyDelay_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-  #   x$Delay[,"Fwy"]
-  # }))
-  # ArtDelay_MaCl <- do.call(rbind, lapply(SpeedAndDelay_ls, function(x) {
-  #   x$Delay[,"Art"]
-  # }))
-
   #Make matrices of DVMT by metropolitan area, vehicle type and road class
   #-----------------------------------------------------------------------
   #Light-duty vehicle DVMT

@@ -1556,16 +1556,22 @@ CalculateVehicleOperatingCost <- function(L) {
     DvmtAdj_Ve
   })
   AddPassengerDvmt_Ve <- Dvmt_Ve * PassengerDvmtAdj_Ve
-  AddRemoteAccessDvmt_Ve <- local({
+
+  RemoteAccessDvmtAdj_Ve <- local({
+    IsDriverless_ <- L$Year$Vehicle$VehicleAccess == "Own" & L$Year$Vehicle$Driverless == 1
     PropRemoteAccess <- L$Year$Region$PropRemoteAccess
     RemoteAccessDvmtAdj <- L$Year$Region$RemoteAccessDvmtAdj
-    Dvmt_Ve * PropRemoteAccess * RemoteAccessDvmtAdj
+    DvmtAdj_Ve <- array(PropRemoteAccess * RemoteAccessDvmtAdj, length(Dvmt_Ve))
+    DvmtAdj_Ve[!IsDriverless_] <- 0
+    DvmtAdj_Ve
   })
+  AddRemoteAccessDvmt_Ve <- Dvmt_Ve * RemoteAccessDvmtAdj_Ve
 
   #Calculate car service deadhead DVMT
   #-----------------------------------
   DeadheadDvmt_Ve <- local({
     VehAccType_Ve <- L$Year$Vehicle$VehicleAccess
+    IsDriverless_ <- (VehAccType_Ve != "Own") & L$Year$Vehicle$Driverless > 0
     LowCarSvcDeadheadProp <- L$Year$Azone$LowCarSvcDeadheadProp
     HighCarSvcDeadheadProp <- L$Year$Azone$HighCarSvcDeadheadProp
     DeadheadDvmt_Ve <- Dvmt_Ve * 0
@@ -1573,6 +1579,7 @@ CalculateVehicleOperatingCost <- function(L) {
       Dvmt_Ve[VehAccType_Ve == "LowCarSvc"] * LowCarSvcDeadheadProp
     DeadheadDvmt_Ve[VehAccType_Ve == "HighCarSvc"] <-
       Dvmt_Ve[VehAccType_Ve == "HighCarSvc"] * HighCarSvcDeadheadProp
+    DeadheadDvmt_Ve[!IsDriverless_] <- 0
     DeadheadDvmt_Ve
   })
 
@@ -1630,7 +1637,7 @@ CalculateVehicleOperatingCost <- function(L) {
   DeadheadDvmtAdjProp_Hh <- DeadheadDvmtAdj_Hh / Dvmt_Hh
   #Calculate proportion of household Dvmt in driverless vehicles
   DriverlessDvmt_Hh <- local({
-    IsDriverless_ <- L$Year$Vehicle$Driverless > 0
+    IsDriverless_ <- L$Year$Vehicle$Driverless
     tapply(Dvmt_Ve * IsDriverless_, L$Year$Vehicle$HhId, sum)[L$Year$Household$HhId]
   })
   DriverlessDvmtProp_Hh <- DriverlessDvmt_Hh / Dvmt_Hh
