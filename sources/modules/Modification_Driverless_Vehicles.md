@@ -1,0 +1,426 @@
+
+
+## VEHouseholdVehicles
+
+### *CreateVehicleTable*
+
+- *Expected Results*
+  
+  - It should populate (store in Datastore) the vehicle table all the variables specified in the *azone_carsvc_characteristics.csv*.
+  
+- *Inputs*
+  
+  - ***azone_carsvc_characteristics.csv***: 
+  
+    | Geo       | Year     | HighCarSvcCost.2010 | LowCarSvcCost.2010 | AveCarSvcVehicleAge | LtTrkCarSvcSubProp | AutoCarSvcSubProp | LowCarSvcDeadheadProp | HighCarSvcDeadheadProp |
+    | --------- | -------- | ------------------- | ------------------ | ------------------- | ------------------ | ----------------- | --------------------- | ---------------------- |
+    | RVMPO     | 2010     | 1                   | 3                  | 3                   | 0.75               | 1                 | 0.1                   | 0.2                    |
+    | **RVMPO** | **2038** | **1**               | **3**              | **2**               | **0.75**           | **1**             | **0.2**               | **0.4**                |
+  
+- *Outputs*
+
+  - ***Datastore***:
+
+    | Year     | HighCarSvcCost_USD_ | LowCarSvcCost_USD_ | AveCarSvcVehicleAge_DAY_ | LtTrkCarSvcSubProp_proportion_ | AutoCarSvcSubProp_proportion_ | LowCarSvcDeadheadProp_proportion_ | HighCarSvcDeadheadProp_proportion_ |
+    | -------- | ------------------- | ------------------ | ------------------------ | ------------------------------ | ----------------------------- | --------------------------------- | ---------------------------------- |
+    | 2010     | 1                   | 3                  | 1095                     | 0.75                           | 1                             | 0.1                               | 0.2                                |
+    | **2038** | **1**               | **3**              | **730**                  | **0.75**                       | **1**                         | **0.2**                           | **0.4**                            |
+  
+- *Conclusion*
+
+  - The module works because the datastore shows the expected results.
+
+
+
+### *AssignDriverlessVehicles*
+
+- *Expected Results*
+  
+  - The module should assign a value of 0 (if not driverless) , 1(if driverless and household vehicle), and  between 0 and 1 if the for household with access to car services to all household vehicles based on the driverless vehicle proportion specified in *region_driverless_vehicle_prop.csv* (input) file.
+  - The module should calculate the proportion of DVMT that is in driverless vehicles.
+  
+- *Inputs*
+  
+  - ***region_driverless_vehicle_prop.csv***: 
+  
+    | VehYear  | AutoSalesDriverlessProp | LtTrkSalesDriverlessProp | LowCarSvcDriverlessProp | HighCarSvcDriverlessProp | ComSvcDriverlessProp | HvyTrkDriverlessProp | PtVanDriverlessProp | BusDriverlessProp |
+    | -------- | ----------------------- | ------------------------ | ----------------------- | ------------------------ | -------------------- | -------------------- | ------------------- | ----------------- |
+    | 1990     | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 1995     | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2000     | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2005     | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2010     | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2015     | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2020     | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | **2025** | **0.03**                | **0.03**                 | **0.03**                | **0.03**                 | **0.03**             | **0.03**             | **0.03**            | **0.03**          |
+    | **2030** | **0.06**                | **0.06**                 | **0.06**                | **0.06**                 | **0.06**             | **0.06**             | **0.06**            | **0.06**          |
+    | **2035** | **0.12**                | **0.12**                 | **0.12**                | **0.12**                 | **0.12**             | **0.12**             | **0.12**            | **0.12**          |
+    | **2040** | **0.24**                | **0.24**                 | **0.24**                | **0.24**                 | **0.24**             | **0.24**             | **0.24**            | **0.24**          |
+    | **2045** | **0.48**                | **0.48**                 | **0.48**                | **0.48**                 | **0.48**             | **0.48**             | **0.48**            | **0.48**          |
+    | **2050** | **0.96**                | **0.96**                 | **0.96**                | **0.96**                 | **0.96**             | **0.96**             | **0.96**            | **0.96**          |
+  
+- *Outputs*
+
+  - ***Driverless (Datastore/Year/Vehicle)***:
+  
+    | Year     | VehicleAccess  | Driverless | Count       | Percentage |
+    | -------- | -------------- | ---------- | ----------- | ---------- |
+    | 2010     | Own            | -          | 122,212     | 100%       |
+    | 2010     | LowCarSvc      | -          | 18,148      | 100%       |
+    | **2038** | **Own**        | **-**      | **166,506** | **94%**    |
+    | **2038** | **Own**        | **1.00**   | **10,030**  | **6%**     |
+    | **2038** | **LowCarSvc**  | **0.14**   | **31,456**  | **100%**   |
+    | **2038** | **HighCarSvc** | **0.14**   | **1,932**   | **100%**   |
+  
+  - ***DriverlessDvmtProp (Datastore/Year/Household)***:
+    *All Households*
+  
+    | Year     | Min.  | 1st Qu. | Median | Mean     | 3rd Qu. | Max.     |
+    | -------- | ----- | ------- | ------ | -------- | ------- | -------- |
+    | 2010     | -     | -       | -      | -        | -       | -        |
+    | **2038** | **-** | **-**   | **-**  | **0.05** | **-**   | **1.00** |
+  
+    *Households that either own driverless vehicle or have access to high level car service*
+  
+    | Year     | Min.     | 1st Qu.  | Median   | Mean     | 3rd Qu.  | Max.     |
+    | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+    | **2038** | **0.03** | **0.33** | **0.50** | **0.51** | **0.50** | **1.00** |
+  
+- *Conclusion*
+
+  - There are about 6% of household owned vehicles are driverless. The 6% value is close to 5.8% obtained as a weighted average of the proportion of vehicles sold since 2025 until 2038 weighted by vehicle age in years.
+  - All the vehicles having access to car service (either low car service or high car service) are assigned a *LowCarSvcDriverlessProp* or *HighCarSvcDriverlessProp* value based on access type.
+  - On average 5% of household DVMT (consist of all households including one that do not own any driverless vehicles) is in driverless vehicles. About 51% of household DVMT on average is in driverless vehicles for households that either own driverless vehicle or have access to high level car service.
+
+
+
+## VETravelPerformance
+
+### *CalculateRoadDvmt*
+
+- *Expected Results*
+
+  - The module should calculate proportions of DVMT in driverless vehicles for following category of vehicles
+  - Heavy Truck: A value between 12% and 24% for the year 2038
+    - Bus: A value between 12% and 24% for the year 2038
+    - Light Duty Vehicles: A value between 5% and 19.2 % for the year 2038 because it is the weighted average of proportion of household (~5%), commercial service (~19.2%), and public transit (~19.2%) DVMT in driverless vehicles.
+    - Household Vehicles: A value > 0%, <100%, and close to 5%.
+  
+- *Inputs (Additional inputs for driverless modifications)*
+
+  - ***Datastore/Global/RegionDriverlessProps***: 
+
+    | VehYear | AutoSalesDriverlessProp | LtTrkSalesDriverlessProp | LowCarSvcDriverlessProp | HighCarSvcDriverlessProp | ComSvcDriverlessProp | HvyTrkDriverlessProp | PtVanDriverlessProp | BusDriverlessProp |
+    | ------- | ----------------------- | ------------------------ | ----------------------- | ------------------------ | -------------------- | -------------------- | ------------------- | ----------------- |
+    | 1990    | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 1995    | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2000    | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2005    | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2010    | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2015    | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2020    | 0                       | 0                        | 0                       | 0                        | 0                    | 0                    | 0                   | 0                 |
+    | 2025    | 0.03                    | 0.03                     | 0.03                    | 0.03                     | 0.03                 | 0.03                 | 0.03                | 0.03              |
+    | 2030    | 0.06                    | 0.06                     | 0.06                    | 0.06                     | 0.06                 | 0.06                 | 0.06                | 0.06              |
+    | 2035    | 0.12                    | 0.12                     | 0.12                    | 0.12                     | 0.12                 | 0.12                 | 0.12                | 0.12              |
+    | 2040    | 0.24                    | 0.24                     | 0.24                    | 0.24                     | 0.24                 | 0.24                 | 0.24                | 0.24              |
+    | 2045    | 0.48                    | 0.48                     | 0.48                    | 0.48                     | 0.48                 | 0.48                 | 0.48                | 0.48              |
+    | 2050    | 0.96                    | 0.96                     | 0.96                    | 0.96                     | 0.96                 | 0.96                 | 0.96                | 0.96              |
+
+  - ***DriverlessDvmtProp (Datastore/Year/Household)***:
+
+    | Year     | Min.  | 1st Qu. | Median | Mean     | 3rd Qu. | Max.     |
+    | -------- | ----- | ------- | ------ | -------- | ------- | -------- |
+    | 2010     | -     | -       | -      | -        | -       | -        |
+    | **2038** | **-** | **-**   | **-**  | **0.05** | **-**   | **1.00** |
+
+- *Outputs*
+
+  - *Driverless Proportion by vehicle class*
+  
+    | Year     | Table     | Iter  | LdvDriverlessProp | HhDriverlessDvmtProp | HvyTrkDriverlessProp | BusDriverlessProp |
+    | -------- | --------- | ----- | ----------------- | -------------------- | -------------------- | ----------------- |
+    | 2010     | Marea     | 1     | -                 | -                    | -                    | -                 |
+    | 2010     | Marea     | 2     | -                 | -                    | -                    | -                 |
+    | **2038** | **Marea** | **1** | **0.065**         | **0.058**            | **0.192**            | **0.192**         |
+    | **2038** | **Marea** | **2** | **0.089**         | **0.084**            | **0.192**            | **0.192**         |
+  
+- *Conclusion*
+
+  - Around 6.5% light duty vehicle DVMT is in driverless vehicles which is the weighted sum of the proportion of driverless vehicles of household vehicles, commercial service vehicles, and public transit vehicles. This value truly falls between 5.8% (prop of household DVMT in driverless vehicles) and 19.2 % (prop of commercial service and public transit DVMT in driverless vehicles).
+  - On average 5.8% of household DVMT is in driverless vehicles. This is obtained as a weighted average of proportion of DVMT in driverless vehicles weighted by household DVMT and is close to the 5% observed in the previous step.
+  - The 19.2% heavy truck and bus DVMT is in driverless vehicles which is close to value of 18.2% obtained by using generating function for the year 2038.
+
+### *CalculateRoadPerformance*
+
+- *Expected Results*
+  
+  - The effect of other ops due to driverless vehicles has an impact after certain proportion of driverless vehicles based on the road class. Following image will show a glimpse of these thresholds based on the current set of inputs:
+    ![Driverless Proportion vs Delay Factor](.\other_ops_driverless_factor.png)
+    As the proportion of vehicles that are driverless is around 8% (weighted average based on DVMT) we should expect to see no difference in congestion metrics between the current scenario and the scenario where the proportion of driverless vehicles is 0.
+  
+- *Inputs (Additional or modified for driverless vehicles)*
+  
+  - ***other_ops_effectiveness.csv*** *(modified)*:
+  
+    | Level | Fwy_Rcr  | Art_Rcr  | Fwy_NonRcr | Art_NonRcr |
+    | ----- | -------- | -------- | ---------- | ---------- |
+    | None  | 0        | 0        | 0          | 0          |
+    | Mod   | 100      | -256.844 | 75         | 75         |
+    | Hvy   | 47.42322 | -32.0267 | 75         | 75         |
+    | Sev   | 51.90452 | 15.44278 | 75         | 75         |
+    | Ext   | 51.081   | 47.03741 | 75         | 75         |
+  
+  - ***driverless_effect_adj_param.csv***:
+  
+    | Measure        | Beta |
+    | -------------- | ---- |
+    | FwyRcrDelay    | 8    |
+    | ArtRcrDelay    | 10   |
+    | FwyNonRcrDelay | 3    |
+    | ArtNonRcrDelay | 3    |
+    | FwySmooth      | 5    |
+    | ArtSmooth      | 7    |
+  
+  - ***LdvDriverlessProp, HvyTrkDriverlessProp, and BusDriverlessProp (Datastore/Year/Marea)***:
+  
+    | Year     | Table     | Iter  | LdvDriverlessProp | HvyTrkDriverlessProp | BusDriverlessProp |
+    | -------- | --------- | ----- | ----------------- | -------------------- | ----------------- |
+    | 2010     | Marea     | 1     | -                 | -                    | -                 |
+    | 2010     | Marea     | 2     | -                 | -                    | -                 |
+    | **2038** | **Marea** | **1** | **0.065**         | **0.192**            | **0.192**         |
+    | **2038** | **Marea** | **2** | **0.089**         | **0.192**            | **0.192**         |
+  
+- *Outputs*
+
+  - *Proportion of congestion by road class and congestion level*:
+
+    | Year     | Table     | Iter  | RoadClass | None      | Mod       | Hvy       | Sev       | Ext       |
+    | -------- | --------- | ----- | --------- | --------- | --------- | --------- | --------- | --------- |
+    | 2010     | Marea     | 1     | Art       | 51.7%     | 19.0%     | 13.3%     | 7.4%      | 8.6%      |
+    | 2010     | Marea     | 1     | Fwy       | 79.2%     | 11.1%     | 5.5%      | 3.5%      | 0.7%      |
+    | 2010     | Marea     | 2     | Art       | 51.7%     | 19.0%     | 13.3%     | 7.4%      | 8.6%      |
+    | 2010     | Marea     | 2     | Fwy       | 79.2%     | 11.1%     | 5.5%      | 3.5%      | 0.7%      |
+    | **2038** | **Marea** | **1** | **Art**   | **28.8%** | **17.9%** | **19.6%** | **14.5%** | **19.2%** |
+    | **2038** | **Marea** | **1** | **Fwy**   | **42.1%** | **16.8%** | **14.6%** | **17.8%** | **8.8%**  |
+    | **2038** | **Marea** | **2** | **Art**   | **31.7%** | **18.8%** | **18.6%** | **13.2%** | **17.8%** |
+    | **2038** | **Marea** | **2** | **Fwy**   | **47.8%** | **16.9%** | **13.8%** | **14.9%** | **6.6%**  |
+
+  - *Congestion speed by road class and congestion level*:
+
+    | Year     | Table     | Iter  | RoadClass | None      | Mod       | Hvy       | Sev     | Ext     |
+    | -------- | --------- | ----- | --------- | --------- | --------- | --------- | ------- | ------- |
+    | 2010     | Marea     | 1     | Art       | 720       | 597       | 565       | 537     | 497     |
+    | 2010     | Marea     | 1     | Fwy       | 1,440     | 1,217     | 1,071     | 843     | 586     |
+    | 2010     | Marea     | 2     | Art       | 720       | 597       | 565       | 537     | 497     |
+    | 2010     | Marea     | 2     | Fwy       | 1,440     | 1,217     | 1,071     | 843     | 586     |
+    | **2038** | **Marea** | **1** | **Art**   | **720**   | **600**   | **568**   | **540** | **500** |
+    | **2038** | **Marea** | **1** | **Fwy**   | **1,440** | **1,225** | **1,090** | **880** | **629** |
+    | **2038** | **Marea** | **2** | **Art**   | **720**   | **600**   | **568**   | **540** | **500** |
+    | **2038** | **Marea** | **2** | **Fwy**   | **1,440** | **1,225** | **1,090** | **880** | **629** |
+
+  - *Average speed by vehicle type*:
+
+    | Year     | Table     | Iter  | Bus     | HvyTrk  | Ldv     |
+    | -------- | --------- | ----- | ------- | ------- | ------- |
+    | 2010     | Marea     | 1     | 594     | 896     | 792     |
+    | 2010     | Marea     | 2     | 594     | 896     | 792     |
+    | **2038** | **Marea** | **1** | **564** | **806** | **721** |
+    | **2038** | **Marea** | **2** | **568** | **822** | **738** |
+
+  - *Average delay by vehicle type*:
+
+    | Year     | Table     | Iter  | Bus      | HvyTrk     | Ldv        |
+    | -------- | --------- | ----- | -------- | ---------- | ---------- |
+    | 2010     | Marea     | 1     | 0.26     | 23.95      | 306.44     |
+    | 2010     | Marea     | 2     | 0.26     | 23.95      | 306.44     |
+    | **2038** | **Marea** | **1** | **2.44** | **109.13** | **949.84** |
+    | **2038** | **Marea** | **2** | **2.31** | **98.32**  | **793.02** |
+
+  - *Light duty vehicle DVMT by road class*:
+
+    | Year     | Table     | Iter  | VehicleType | Art           | Fwy           |
+    | -------- | --------- | ----- | ----------- | ------------- | ------------- |
+    | 2010     | Marea     | 1     | Ldv         | 1,380,525     | 761,202       |
+    | 2010     | Marea     | 2     | Ldv         | 1,380,525     | 761,202       |
+    | **2038** | **Marea** | **1** | **Ldv**     | **2,256,086** | **1,226,348** |
+    | **2038** | **Marea** | **2** | **Ldv**     | **2,027,748** | **1,152,394** |
+
+  - *Average congestion price*:
+
+    | Year     | Table     | Iter  | AveCongPrice_USD_ |
+    | -------- | --------- | ----- | ----------------- |
+    | 2010     | Marea     | 1     | -                 |
+    | 2010     | Marea     | 2     | -                 |
+    | **2038** | **Marea** | **1** | **0.013**         |
+    | **2038** | **Marea** | **2** | **0.011**         |
+
+- *Conclusions*
+
+  - The proportion of driverless vehicles is small to make any noticeable impact on the congestion metrics. The results do not show any big difference between the values observed in the current scenario and the scenario with 0% driverless vehicles.
+
+### *CalculateMpgMpkwhAdjustments*
+
+- - *Expected Results*
+    - The effect of other ops due to driverless vehicles has an impact after certain proportion of driverless vehicles based 
+  - ore we should observe a change in speed smoothing factor. The speed smoothing factors should be closer to 1 since the proportion of driverless vehicles in the current scenario is low (~8%).
+    There's one *issue*:
+    - **The speed smoothing factor for 100% driverless vehicles and 0% driverless vehicles are the same. I am not sure if that is the intention.**
+  - The addition of driverless vehicles should have a minimal effect on the eco-drive factors and the congestion factors.
+
+- *Inputs*
+  
+  - ***LdvDriverlessProp, HvyTrkDriverlessProp, and BusDriverlessProp (Datastore/Year/Marea)***:
+  
+    | Year     | Table     | Iter  | LdvDriverlessProp | HvyTrkDriverlessProp | BusDriverlessProp |
+    | -------- | --------- | ----- | ----------------- | -------------------- | ----------------- |
+    | 2010     | Marea     | 1     | -                 | -                    | -                 |
+    | 2010     | Marea     | 2     | -                 | -                    | -                 |
+    | **2038** | **Marea** | **1** | **0.065**         | **0.192**            | **0.192**         |
+  | **2038** | **Marea** | **2** | **0.089**         | **0.192**            | **0.192**         |
+  
+- *Outputs*
+
+  - *Speed smoothing factor*:
+  
+    | Year     | Table     | Iter  | LdvSpdSmoothFactor | HvyTrkSpdSmoothFactor | BusSpdSmoothFactor |
+    | -------- | --------- | ----- | ------------------ | --------------------- | ------------------ |
+    | 2010     | Marea     | 1     | 1.019              | 1.027                 | 1.031              |
+    | 2010     | Marea     | 2     | 1.019              | 1.027                 | 1.031              |
+    | **2038** | **Marea** | **1** | **1.000**          | **1.000**             | **1.000**          |
+    | **2038** | **Marea** | **2** | **1.000**          | **1.000**             | **1.000**          |
+    
+  - *Eco-drive factor*:
+  
+    | Year     | Table      | Iter  | LdvEcoDriveFactor | HvyTrkEcoDriveFactor | BusEcoDriveFactor |
+    | -------- | ---------- | ----- | ----------------- | -------------------- | ----------------- |
+    | 2010     | Marea      | 1     | 1.075             | 1.103                | 1.128             |
+    | 2010     | Marea      | 2     | 1.075             | 1.103                | 1.128             |
+    | **2038** | **Marea**  | **1** | **1.085**         | **1.130**            | **1.132**         |
+    | **2038** | **Marea**  | **2** | **1.083**         | **1.125**            | **1.131**         |
+    | 2010     | Region     | 1     | 1.072             | 1.090                | 1.123             |
+    | 2010     | Region     | 2     | 1.072             | 1.090                | 1.123             |
+    | **2038** | **Region** | **1** | **1.072**         | **1.090**            | **1.123**         |
+    | **2038** | **Region** | **2** | **1.071**         | **1.090**            | **1.123**         |
+  
+  - *Congestion factor*:
+  
+    | Year     | Table      | Iter  | LdIceFactor | LdHevFactor | LdEvFactor | LdFcvFactor | HdIceFactor |
+    | -------- | ---------- | ----- | ----------- | ----------- | ---------- | ----------- | ----------- |
+    | 2010     | Marea      | 1     | 1.013       | 1.011       | 0.994      | 0.998       | 1.017       |
+    | 2010     | Marea      | 2     | 1.013       | 1.011       | 0.994      | 0.998       | 1.017       |
+    | **2038** | **Marea**  | **1** | **1.000**   | **1.004**   | **0.998**  | **0.997**   | **1.000**   |
+    | **2038** | **Marea**  | **2** | **1.002**   | **1.005**   | **0.997**  | **0.997**   | **1.003**   |
+    | 2010     | Region     | 1     | 1.032       | 1.021       | 0.996      | 1.008       | 1.029       |
+    | 2010     | Region     | 2     | 1.032       | 1.021       | 0.996      | 1.008       | 1.029       |
+    | **2038** | **Region** | **1** | **1.032**   | **1.021**   | **0.996**  | **1.008**   | **1.029**   |
+    | **2038** | **Region** | **2** | **1.032**   | **1.022**   | **0.996**  | **1.008**   | **1.029**   |
+  
+- *Conclusions*
+
+  - The speed smoothing factors are closer to 1 as expected.
+  - The eco-drive factors and congestion factors remain unchanged compared to 0% driverless vehicles scenario.
+  - The module works based on the outlined methodology.
+
+### *CalculateVehicleOperatingCost*
+
+- *Expected Results*
+
+  - The total DVMT and driverless DVMT should go up with increase in proportion of driverless vehicles.
+  
+- *Inputs*
+
+  - ***region_driverless_vehicle_parameter.csv***
+
+    | Year     | RunTimeUtilityAdj | AccessTimeUtilityAdj | PropRemoteAccess | RemoteAccessDvmtAdj | PropParkingFeeAvoid |
+    | -------- | ----------------- | -------------------- | ---------------- | ------------------- | ------------------- |
+    | 2010     | 1                 | 1                    | 0                | 1                   | 0                   |
+    | **2038** | **0.85**          | **0.85**             | **0.18**         | **1.36**            | **0.18**            |
+
+  - ***LowCarSvcDeadheadProp, HighCarSvcDeadheadProp (Datastore/Year/Azone)***:
+
+    | Year     | Table     | LowCarSvcDeadheadProp | HighCarSvcDeadheadProp |
+    | -------- | --------- | --------------------- | ---------------------- |
+    | 2010     | Azone     | 0.1                   | 0.2                    |
+    | **2038** | **Azone** | **0.2**               | **0.4**                |
+
+- *Outputs*
+
+  - *Proportion of household DVMT in driverless vehicles by Marea*:
+  
+    | Year     | Table     | Iter  | HhDriverlessDvmtProp |
+    | -------- | --------- | ----- | -------------------- |
+    | 2010     | Marea     | 1     | -                    |
+    | 2010     | Marea     | 2     | -                    |
+    | **2038** | **Marea** | **1** | **0.087**            |
+    | **2038** | **Marea** | **2** | **0.085**            |
+  
+  - Household Table Statistics:
+  
+    | Year     | Iter  | TotalDvmt     | DriverlessDvmt | DriverlessDvmtAdj | **DeadheadDvmtAdj** | DriverlessDvmtPerc | DriverlessDvmtAdjPerc | DeadheadDvmtAdjPerc |
+    | -------- | ----- | ------------- | -------------- | ----------------- | ------------------- | ------------------ | --------------------- | ------------------- |
+    | 2010     | 1     | 3,436,281     | -              | -                 | -                   | -                  | -                     | -                   |
+    | 2010     | 2     | 3,436,281     | -              | -                 | -                   | -                  | -                     | -                   |
+    | **2038** | **1** | **5,838,955** | **492,068**    | **115,255**       | **50,415**          | **8.43%**          | **1.97%**             | **0.86%**           |
+    | **2038** | **2** | **5,153,581** | **428,337**    | **101,494**       | **32,160**          | **8.31%**          | **1.97%**             | **0.62%**           |
+  
+    | Year     | Iter  | AveVehCostPM  | AveSocEnvCostPM | AveRoadUseTaxPM | AveGPM       | AveKWHPM  | AveCO2ePM     |
+    | -------- | ----- | ------------- | --------------- | --------------- | ------------ | --------- | ------------- |
+    | 2010     | 1     | 38,962.45     | 5,451.20        | 2,305.16        | 2,946.13     | -         | 32,298.73     |
+    | 2010     | 2     | 38,962.45     | 5,451.20        | 2,305.16        | 2,946.13     | -         | 32,298.73     |
+    | **2038** | **1** | **70,329.01** | **6,616.58**    | **2,404.81**    | **2,254.56** | **29.46** | **19,854.69** |
+    | **2038** | **2** | **73,623.01** | **6,531.44**    | **3,558.45**    | **2,206.32** | **29.53** | **19,431.84** |
+  
+  - Vehicle Table Statistic:
+  
+    | Year     |  Iter | TotalDvmt     | DriverlessDvmt | DriverlessDvmtProp |
+    | :------- | ----: | :------------ | :------------- | :----------------- |
+    | 2010     |     1 | 3,816,694     | -              | -                  |
+    | 2010     |     2 | 3,366,598     | -              | -                  |
+    | **2038** | **1** | **5,838,955** | **492,068**    | **8.43%**          |
+    | **2038** | **2** | **5,153,581** | **428,337**    | **8.31%**          |
+  
+- *Conclusions*
+
+  - The module works as outlined in methodology.
+
+### *BudgetHouseholdDvmt*
+
+- *Expected Results*
+
+  - With increase in total DVMT due to additional driverless miles there should be an increase in power consumption.
+  - There should be an increase vehicle trips due to additional driverless DVMT.
+  - There should be a decrease in alt mode trips due to more vehicle travel budget spent on additional vehicle trips.
+
+- *Outputs*
+
+  - *Marea Table Statistics*
+
+    | Year     | Table     |  Iter |   UrbanHhDvmt | RuralHhDvmt | TownHhDvmt |     TotalDvmt |
+    | :------- | :-------- | ----: | ------------: | ----------: | ---------: | ------------: |
+    | 2010     | Marea     |     1 |     2,970,469 |     465,812 |          - |     3,436,281 |
+    | 2010     | Marea     |     2 |     2,970,469 |     465,812 |          - |     3,436,281 |
+    | **2038** | **Marea** | **1** | **4,779,665** | **375,320** |      **-** | **5,154,984** |
+    | **2038** | **Marea** | **2** | **4,614,242** | **367,281** |      **-** | **4,981,523** |
+    
+  - *Household Table Statistics*
+
+    | Year     | Table         |  Iter | TotalDvmt     | TotalDailyGGE | TotalDailyKWH | TotalDailyCO2e |
+    | :------- | :------------ | ----: | :------------ | :------------ | :------------ | :------------- |
+    | 2010     | Household     |     1 | 3,436,281     | 139,421       | -             | 1,528,490      |
+    | 2010     | Household     |     2 | 3,436,281     | 139,421       | -             | 1,528,490      |
+    | **2038** | **Household** | **1** | **5,154,984** | **101,591**   | **1,416**     | **894,902**    |
+    | **2038** | **Household** | **2** | **4,981,523** | **95,920**    | **1,374**     | **845,049**    |
+
+    | Year     | Table         |  Iter | TotalVehTrips | TotalWalkTrips | TotalBikeTrips | TotalTransitTrips |
+    | :------- | :------------ | ----: | :------------ | :------------- | :------------- | :---------------- |
+    | 2010     | Household     |     1 | 382,089       | 53,123         | 4,038          | 12,904            |
+    | 2010     | Household     |     2 | 382,089       | 53,123         | 4,038          | 12,904            |
+    | **2038** | **Household** | **1** | **578,466**   | **83,744**     | **5,529**      | **19,994**        |
+    | **2038** | **Household** | **2** | **557,790**   | **84,963**     | **5,602**      | **21,418**        |
+
+- *Conclusions*
+
+  - In comparison with the scenario with 0% driverless vehicles
+    - There is an increase in the number of vehicle trips as expected, and
+    - There is a decrease in the number of alt mode trips.
+
