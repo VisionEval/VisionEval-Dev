@@ -260,13 +260,13 @@
 
 ### *CalculateMpgMpkwhAdjustments*
 
-- - *Expected Results*
-    - The effect of other ops due to driverless vehicles has an impact after certain proportion of driverless vehicles based 
-  - ore we should observe a change in speed smoothing factor. The speed smoothing factors should be closer to 1 since the proportion of driverless vehicles in the current scenario is low (~8%).
+- *Expected Results*
+  
+  - The effect of other ops due to driverless vehicles should have an impact after certain proportion of driverless vehicles. This impact should be directly seen on the speed smoothing factors. Thus, we should observe a change in speed smoothing factor. The speed smoothing factors should be closer to 1 since the proportion of driverless vehicles in the current scenario is low (~8%).
     There's one *issue*:
-    - **The speed smoothing factor for 100% driverless vehicles and 0% driverless vehicles are the same. I am not sure if that is the intention.**
+  - **The speed smoothing factor for 100% driverless vehicles and 0% driverless vehicles are the same. I am not sure if that is the intention.**
   - The addition of driverless vehicles should have a minimal effect on the eco-drive factors and the congestion factors.
-
+  
 - *Inputs*
   
   - ***LdvDriverlessProp, HvyTrkDriverlessProp, and BusDriverlessProp (Datastore/Year/Marea)***:
@@ -276,7 +276,7 @@
     | 2010     | Marea     | 1     | -                 | -                    | -                 |
     | 2010     | Marea     | 2     | -                 | -                    | -                 |
     | **2038** | **Marea** | **1** | **0.065**         | **0.192**            | **0.192**         |
-  | **2038** | **Marea** | **2** | **0.089**         | **0.192**            | **0.192**         |
+    | **2038** | **Marea** | **2** | **0.089**         | **0.192**            | **0.192**         |
   
 - *Outputs*
 
