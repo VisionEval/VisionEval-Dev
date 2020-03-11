@@ -20,49 +20,76 @@ Here's how the tools work.
 
 To access the tools you must, let R know where they are. The code below sets the working directory to `VisionEval/sources/`. Please modify the code to point to where you have saved the `VisionEval/sources` folder.
 ```{r setup}
-knitr::opts_knit$set(root.dir = "~/Documents/GitHub/VisionEval-Dev/sources/")
+root_dir <- "~/Documents/GitHub/VisionEval-VisionEval-Dev/sources/"
+knitr::opts_knit$set(root.dir = root_dir)
 ```
 
 We can now load the VisionEval scenario management tools.
 ```{r load-tools, message = FALSE}
-source("tools/scenario_management.R")
+source(file.path(root_dir, "tools/scenario_management.R"))
 ```
 
 Let's start with the example VERPAT Scenario configuration files that are distributed with VisionEval. The code below tells the software where these files are.   
 ```{r example-file-dir}
-example_file_dir <- "models/VERPAT_Scenarios/scenario_inputs/"
+example_file_dir <- file.path(root_dir, "models/VERSPM_Scenarios/scenario_inputs/")
 ```
 
 We can build a Standard VisionEval scenario management CSV database from the `JSON` files located in this directory using the example files distributed with VisionEval. You can name the CSV database anything you like and store it any place you like.
 ```{r example-csv-build}
-example_csv_database_file <- "tools/example_scenario_manage.csv"
+example_csv_database_file <- file.path(root_dir,"tools/example_verspm_scenario_manage.csv")
 ve.scenario_management.make_form_csv_from_json(example_file_dir, example_csv_database_file)
 ```
 
 Let's bring the newly-created CSV file into R to see what it looks like.
 ```{r view-form}
-example_form_df <- read_csv(example_csv_database_file)
+example_form_df <- readr::read_csv(example_csv_database_file, 
+                                   col_types = readr::cols(.default = readr::col_character()))
 ```
 
 This CSV file can now be edited in Excel, a text editor, R, or any other software. The `scenario_management` tools allow you to build the `JSON` files that VisionEval needs from these CSV files. For example, let's first specify a new directory location for the `JSON` files we'll make and then use the tools to build them:
 ```{r build-json}
-new_json_file_dir <- "tools/example_dir/"
-dir.create(new_json_file_dir)
+new_json_file_dir <- file.path(root_dir, "tools/example_dir/")
+if (!dir.exists(new_json_file_dir)) dir.create(new_json_file_dir)
 ve.scenario_management.make_json_from_form_csv(example_csv_database_file, new_json_file_dir)
 ```
 
-The new `JSON` files can be viewed in a text editor or in R Studio, among other places. We can use R to test that the `JSON` files we've made are the same -- when read by a computer -- as the `JSON` files we started with using R's `identical` method, like this:
+The new `JSON` files can be viewed in a text editor or in R Studio, among other places. We can use R to test that the `JSON` files we've made are the same -- when read by a computer -- as the `JSON` files we started with using R's `identical` method. Note that replacement with `NA` with blanks and the sorting made consistent to align the comparisons.
 ```{r check-identical}
-identical(read_json(file.path(example_file_dir, "scenario_config.json")), 
-          read_json(file.path(new_json_file_dir, "scenario_config.json")))
+prev_df <- jsonlite::read_json(file.path(example_file_dir, "scenario_config.json"), simplifyVector = TRUE) %>%
+  dplyr::arrange(NAME)
+new_df <- jsonlite::read_json(file.path(new_json_file_dir, "scenario_config.json"), simplifyVector = TRUE) %>%
+  dplyr::mutate(INSTRUCTIONS = tidyr::replace_na(INSTRUCTIONS, "")) %>%
+  dplyr::arrange(NAME)
 
-identical(read_json(file.path(example_file_dir, "category_config.json")), 
-          read_json(file.path(new_json_file_dir, "category_config.json")))
+identical(prev_df, new_df)
+
+identical(jsonlite::read_json(file.path(example_file_dir, "category_config.json")), 
+          jsonlite::read_json(file.path(new_json_file_dir, "category_config.json")))
+
 ```
+
+As a test, we can repeat these steps for the `VERPAT` scenarios that are distributed with VisionEval, as follows:
+```{r verpat-test}
+example_file_dir <- file.path(root_dir, "models/VERPAT_Scenarios/scenario_inputs/")
+example_csv_database_file <- file.path(root_dir,"tools/example_verpat_scenario_manage.csv")
+
+ve.scenario_management.make_form_csv_from_json(example_file_dir, example_csv_database_file)
+
+new_json_file_dir <- file.path(root_dir, "tools/example_dir/")
+ve.scenario_management.make_json_from_form_csv(example_csv_database_file, new_json_file_dir)
+
+identical(jsonlite::read_json(file.path(example_file_dir, "scenario_config.json")), 
+          jsonlite::read_json(file.path(new_json_file_dir, "scenario_config.json")))
+
+identical(jsonlite::read_json(file.path(example_file_dir, "category_config.json")), 
+          jsonlite::read_json(file.path(new_json_file_dir, "category_config.json")))
+
+```
+
 
 Another tedious requirement of the `VEScenario` package is that it requires input files to be stored in a specific, nested directory structure. Making this directory structure by hand is tedious and error-prone. The scenario management tools now do this for you, like this:
 ```{r make-dir}
-new_scenario_folders_dir <- "tools/example_dir/"
+new_scenario_folders_dir <- file.path(root_dir, "tools/example_dir/")
 ve.scenario_management.make_directory_structure(new_scenario_folders_dir, example_csv_database_file)
 ```
 

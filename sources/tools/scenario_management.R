@@ -1,82 +1,66 @@
 requireNamespace("dplyr")
-# requireNamespace("tidyr")
 requireNamespace("magrittr")
 requireNamespace("readr")
 requireNamespace("jsonlite")
+
+library(magrittr)
 
 tool.contents <- c(
   "ve.scenario_management.make_form_csv_from_json",
   "ve.scenario_management.make_json_from_form_csv",
   "ve.scenario_management.make_directory_structure"
 )
-  
-assign("%>%",getFromNamespace("%>%","magrittr"))
-assign("filter",dplyr::filter)
-assign("group_by",dplyr::group_by)
-assign("left_join",dplyr::left_join)
-assign("mutate",dplyr::mutate)
-assign("rename",dplyr::rename)
-assign("select",dplyr::select)
-assign("slice",dplyr::slice)
-assign("ungroup",dplyr::ungroup)
-assign("cols",readr::cols)
-assign("col_character",readr::col_character)
-assign("col_logical",readr::col_logical)
-assign("read_csv",readr::read_csv)
-assign("write_csv",readr::write_csv)
-assign("replace_na",tidyr::replace_na)
-assign("unnest",tidyr::unnest)
-assign("nest",tidyr::nest)
 
 # To use this in a visioneval runtime, just do this:
 #   source("tools/scenario_management.R")
 
 # private methods --------------------------------------------------------------
-read_scenario_form_from_csv <- function(input_file_name) {
+.ReadScenarioFormFromCSV <- function(input_file_name) {
   
-  return_df <- read_csv(input_file_name, 
-                        col_types = cols(.default = col_character(), execute = col_logical()))
+  return_df <- readr::read_csv(input_file_name, 
+                               col_types = readr::cols(.default = readr::col_character())) %>%
+    dplyr::mutate(category_description = tidyr::replace_na(category_description, ""))
   
   return(return_df)
   
 }
 
-make_scenario_json_from_form <- function(input_form_df, input_json_file_name) {
+.MakeScenarioJsonFromForm <- function(input_form_df, input_json_file_name) {
   
   output_df <- input_form_df %>%
-    select(-execute) %>%
-    rename(NAME = level_name, 
-           LABEL = level_label, 
-           DESCRIPTION = level_description) %>%
-    group_by(category_name, category_label, category_description, category_instructions) %>%
-    nest(.key = "LEVELS") %>%
-    ungroup() %>%
-    rename(NAME = category_name, 
-           LABEL = category_label, 
-           DESCRIPTION = category_description,
-           INSTRUCTIONS = category_instructions)
-    
-  jsonlite::write_json(output_df, path = input_json_file_name,force=TRUE)
+    dplyr::distinct(category_name, category_label, category_description, category_instructions,
+                    policy_name, policy_label, policy_description) %>%
+    dplyr::rename(NAME = policy_name, 
+                  LABEL = policy_label, 
+                  DESCRIPTION = policy_description) %>%
+    dplyr::group_by(category_name, category_label, category_description, category_instructions) %>%
+    tidyr::nest(LEVELS = c(NAME, LABEL, DESCRIPTION)) %>%
+    dplyr::ungroup() %>%
+    dplyr::rename(NAME = category_name, 
+                  LABEL = category_label, 
+                  DESCRIPTION = category_description,
+                  INSTRUCTIONS = category_instructions)
+  
+  jsonlite::write_json(output_df, path = input_json_file_name, force = TRUE)
   
 }
 
-make_category_json_from_form <- function(input_form_df, input_json_file_name) {
+.MakeCategoryJsonFromForm <- function(input_form_df, input_json_file_name) {
   
   output_df <- input_form_df %>%
-    filter(execute) %>%
-    select(top_NAME = category_label, 
-           DESCRIPTION = category_description,
-           middle_NAME = level_name,
-           NAME = category_name) %>%
-    mutate(LEVEL = middle_NAME) %>%
-    group_by(top_NAME, DESCRIPTION, middle_NAME) %>%
-    nest(NAME, LEVEL, .key = "INPUTS", -top_NAME, -DESCRIPTION) %>%
-    rename(NAME = middle_NAME) %>%
-    nest(NAME, INPUTS, .key = "LEVELS", -top_NAME, -DESCRIPTION) %>%
-    ungroup() %>%
-    rename(NAME = top_NAME)
+    dplyr::select(top_NAME = strategy_label, 
+                  DESCRIPTION = strategy_description,
+                  middle_NAME = strategy_level,
+                  NAME = category_name,
+                  LEVEL = policy_name) %>%
+    dplyr::group_by(top_NAME, DESCRIPTION, middle_NAME) %>%
+    tidyr::nest(INPUTS = c(NAME, LEVEL)) %>%
+    dplyr::rename(NAME = middle_NAME) %>%
+    tidyr::nest(LEVELS = c(NAME, INPUTS)) %>%
+    dplyr::ungroup() %>%
+    dplyr::rename(NAME = top_NAME)
   
-  jsonlite::write_json(output_df, path = input_json_file_name,force=TRUE)
+  jsonlite::write_json(output_df, path = input_json_file_name, force = TRUE)
   
 }
 
@@ -103,33 +87,32 @@ ve.scenario_management.make_form_csv_from_json <- function(input_dir,
   input_scenario_df <- jsonlite::read_json(input_scenario_json, simplifyVector = TRUE)
   input_category_df <- jsonlite::read_json(input_category_json, simplifyVector = TRUE)
   
-  working_df <- input_scenario_df %>%
-    rename(category_name = NAME, 
-           category_label = LABEL, 
-           category_description = DESCRIPTION,
-           category_instructions = INSTRUCTIONS) %>%
-    unnest(.) %>%
-    rename(level_name = NAME,
-           level_label = LABEL, 
-           level_description = DESCRIPTION)
+  scenario_df <- input_scenario_df %>%
+    dplyr::rename(category_name = NAME, 
+                  category_label = LABEL, 
+                  category_description = DESCRIPTION,
+                  category_instructions = INSTRUCTIONS) %>%
+    tidyr::unnest(., cols = c(LEVELS)) %>%
+    dplyr::rename(policy_name = NAME,
+                  policy_label = LABEL, 
+                  policy_description = DESCRIPTION)
   
-  execute_df <- input_category_df %>%
-    rename(category_label = NAME,
-           category_description = DESCRIPTION) %>%
-    unnest(.) %>%
-    rename(level_name = NAME) %>%
-    unnest(.) %>%
-    rename(category_name = NAME) %>%
-    select(-LEVEL) %>%
-    mutate(execute = TRUE)
+  category_df <- input_category_df %>%
+    dplyr::rename(strategy_label = NAME,
+                  strategy_description = DESCRIPTION) %>%
+    tidyr::unnest(., cols = c(LEVELS)) %>%
+    dplyr::rename(strategy_level = NAME) %>%
+    tidyr::unnest(., cols = c(INPUTS)) %>%
+    dplyr::rename(category_name = NAME) %>%
+    dplyr::rename(policy_name = LEVEL)
   
-  write_df <- left_join(working_df, execute_df, by = c("category_name",
-                                                       "category_label",
-                                                       "category_description",
-                                                       "level_name")) %>%
-    mutate(execute = replace_na(execute, FALSE))
-  
-  write_csv(write_df, path = output_file_name)
+  write_df <- dplyr::left_join(category_df, scenario_df, 
+                               by = c("category_name","policy_name")) %>%
+    dplyr::select(strategy_label, strategy_description, strategy_level,
+                  category_name, category_label, category_description, category_instructions,
+                  policy_name, policy_label, policy_description)
+
+  readr::write_csv(write_df, path = output_file_name)
   
 }
 
@@ -144,16 +127,17 @@ ve.scenario_management.make_form_csv_from_json <- function(input_dir,
 #   output_scenario_dir:
 #     Output scenario directory, into which the two standard scenario configuration
 #     JSON files, `scenario_config.json` and `category_config.json`, will be written.
-ve.scenario_management.make_json_from_form_csv <- function (input_form_file_name, 
-                                               output_scenario_dir) {
+ve.scenario_management.make_json_from_form_csv <- function(input_form_file_name, 
+                                                           output_scenario_dir) 
+{
   
-  input_form_df <- read_scenario_form_from_csv(input_form_file_name)
+  input_form_df <- .ReadScenarioFormFromCSV(input_form_file_name)
   
   output_scenario_file_name <- file.path(output_scenario_dir, "scenario_config.json")
   output_category_file_name <- file.path(output_scenario_dir, "category_config.json")
   
-  make_scenario_json_from_form(input_form_df, output_scenario_file_name)
-  make_category_json_from_form(input_form_df, output_category_file_name)
+  .MakeScenarioJsonFromForm(input_form_df, output_scenario_file_name)
+  .MakeCategoryJsonFromForm(input_form_df, output_category_file_name)
   
 }
 
@@ -170,16 +154,16 @@ ve.scenario_management.make_json_from_form_csv <- function (input_form_file_name
 #     file location that you wish. 
 ve.scenario_management.make_directory_structure <- function(target_root_dir, input_form_csv){
   
-  form_df <- read_scenario_form_from_csv(input_form_csv)
+  form_df <- .ReadScenarioFormFromCSV(input_form_csv)
   
   for (row_index in 1:nrow(form_df)) {
     
-    relevant_row_df <- slice(form_df, row_index:row_index)
+    relevant_row_df <- dplyr::slice(form_df, row_index:row_index)
     level_one_dir <- file.path(target_root_dir, relevant_row_df$category_name)
-    level_two_dir <- file.path(level_one_dir, relevant_row_df$level_name)
+    level_two_dir <- file.path(level_one_dir, relevant_row_df$policy_name)
     
-    if(!dir.exists(level_one_dir)) dir.create(level_one_dir)
-    if(!dir.exists(level_two_dir)) dir.create(level_two_dir)
+    if (!dir.exists(level_one_dir)) dir.create(level_one_dir)
+    if (!dir.exists(level_two_dir)) dir.create(level_two_dir)
     
   }
   
@@ -187,6 +171,5 @@ ve.scenario_management.make_directory_structure <- function(target_root_dir, inp
 
 
 # end: public methods ----------------------------------------------------------
-
 
 
