@@ -4,7 +4,8 @@
 \name{UZABusEqRevMile_df}
 \alias{UZABusEqRevMile_df}
 \title{Urbanized area bus equivalent revenue mile data for 2015}
-\format{A data frame with 439 rows and 5 variables containing urbanized area
+\format{
+A data frame with 439 rows and 5 variables containing urbanized area
 data on bus equivalent revenue miles
 
 \describe{
@@ -13,7 +14,8 @@ data on bus equivalent revenue miles
   \item{BusEqRevMi}{annual bus equivalent revenue miles in the urbanized area}
   \item{UzaPop}{urbanized area population}
   \item{BusEqRevMiPC}{annual bus equivalent revenue miles per capita in the urbanized area}
-}}
+}
+}
 \source{
 AssignTransitService.R script.
 }
