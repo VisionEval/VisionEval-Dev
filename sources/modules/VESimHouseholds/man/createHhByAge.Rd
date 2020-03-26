@@ -4,8 +4,7 @@
 \alias{createHhByAge}
 \title{Create simulated households for an Azone}
 \usage{
-createHhByAge(Prsn_Ap, MaxIter = 100, TargetHhSize = NA,
-  TargetProp1PerHh = NA)
+createHhByAge(Prsn_Ap, MaxIter = 100, TargetHhSize = NA, TargetProp1PerHh = NA)
 }
 \arguments{
 \item{Prsn_Ap}{A named vector containing the number of persons in each age

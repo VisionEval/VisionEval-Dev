@@ -4,8 +4,10 @@
 \name{PropHhWkr_HtAg}
 \alias{PropHhWkr_HtAg}
 \title{Worker proportions}
-\format{A a matrix of the proportion of persons in age group who are workers
-for each household type.:}
+\format{
+A a matrix of the proportion of persons in age group who are workers
+for each household type.:
+}
 \source{
 PredictWorkers.R script.
 }

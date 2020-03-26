@@ -4,7 +4,8 @@
 \name{Hh_df}
 \alias{Hh_df}
 \title{Household data from Census PUMS}
-\format{A data frame with 65988 rows and 17 variables (there may be a
+\format{
+A data frame with 65988 rows and 17 variables (there may be a
 different number of rows if PUMS datasets are used for different areas):
 \describe{
   \item{Age0to14}{number of persons in 0 to 14 age group}
@@ -24,7 +25,8 @@ different number of rows if PUMS datasets are used for different areas):
   \item{HhSize}{number of persons in household}
   \item{HhType}{household type (Reg = regular household, Grp = group quarters)}
   \item{HhWeight}{household sample weight}
-}}
+}
+}
 \source{
 CreateEstimationDatasets.R script.
 }
