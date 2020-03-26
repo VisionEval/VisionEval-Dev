@@ -4,9 +4,15 @@
 \alias{runLogit}
 \title{Run a logit model iteratively}
 \usage{
-runLogit(HhldPop = NULL, ModelData = NULL, ModelCoeffs = NULL,
-  TargetPop = NULL, TargetGroups = NULL, MaxIter = 10,
-  QuitCriteria = 4000)
+runLogit(
+  HhldPop = NULL,
+  ModelData = NULL,
+  ModelCoeffs = NULL,
+  TargetPop = NULL,
+  TargetGroups = NULL,
+  MaxIter = 10,
+  QuitCriteria = 4000
+)
 }
 \arguments{
 \item{HhldPop}{A data.frame containing population by for each household by age groups.}
