@@ -4,7 +4,8 @@
 \name{PaydWts_}
 \alias{PaydWts_}
 \title{Household attributes weights for PAYD insurance}
-\format{A named vector of weights used for determining household weight for selecting PAYD insurance
+\format{
+A named vector of weights used for determining household weight for selecting PAYD insurance
 \describe{
   \item{HasTeenDrv}{weight for households having one or more teenage drivers},
   \item{LowerMileage}{weight for households driving lower mileage (< 15,000 per vehicle)}
@@ -12,7 +13,8 @@
   \item{LowerIncome}{weight for lower income households (< 45,000 year 2005 dollars)}
   \item{AutoProp}{weight for automobile proportion of vehicles owned by household}
   \item{InMetroArea}{weight for household being located in a metropolitan (urbanized) area}
-}}
+}
+}
 \source{
 CalculateVehicleOwnCost.R script.
 }

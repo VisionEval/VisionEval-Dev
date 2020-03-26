@@ -4,13 +4,15 @@
 \name{VehOwnModels_ls}
 \alias{VehOwnModels_ls}
 \title{Vehicle ownership model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{Metro}{a list containing four models for metropolitan areas: a Zero
   component model and three separate models for non-zero component}
   \item{NonMetro}{a list containing four models for non-metropolitan areas: a
   Zero component model and three separate models for non-zero component}
-}}
+}
+}
 \source{
 AssignVehicleFeatures.R script.
 }

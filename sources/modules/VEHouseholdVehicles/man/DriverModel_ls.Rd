@@ -4,7 +4,8 @@
 \name{DriverModel_ls}
 \alias{DriverModel_ls}
 \title{Driver choice model}
-\format{A list having having Metro and NonMetro components, with each having the following components:
+\format{
+A list having having Metro and NonMetro components, with each having the following components:
 \describe{
   \item{Type}{a string identifying the type of model}
   \item{Formula}{a string representation of the model formula}
@@ -13,7 +14,8 @@
   \item{Anova}{results of analysis of variance of the model}
   \item{PropCorrectlyPredicted}{proportion of cases of validation dataset correctly predicted by model}
   \item{SearchRange}{a two-element vector specifying the range of search values}
-}}
+}
+}
 \source{
 AssignDrivers.R script.
 }

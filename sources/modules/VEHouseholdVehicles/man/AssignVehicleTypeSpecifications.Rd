@@ -4,13 +4,15 @@
 \name{AssignVehicleTypeSpecifications}
 \alias{AssignVehicleTypeSpecifications}
 \title{Specifications list for AssignVehicleType module}
-\format{A list containing 5 components:
+\format{
+A list containing 5 components:
 \describe{
  \item{RunBy}{the level of geography that the module is run at}
  \item{Inp}{model inputs to be saved to the datastore}
  \item{Get}{module inputs to be read from the datastore}
  \item{Set}{module outputs to be written to the datastore}
-}}
+}
+}
 \source{
 AssignVehicleType.R script.
 }

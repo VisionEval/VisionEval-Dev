@@ -4,10 +4,12 @@
 \name{LtTruckModels_ls}
 \alias{LtTruckModels_ls}
 \title{Light truck ownership model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{OwnModel}{The light truck ownership model}
-}}
+}
+}
 \source{
 AssignVehicleFeatures.R script.
 }

@@ -4,13 +4,15 @@
 \name{VehOwnCost_ls}
 \alias{VehOwnCost_ls}
 \title{Vehicle ownership cost model}
-\format{A list containing the following four components:
+\format{
+A list containing the following four components:
 \describe{
   \item{Depr_AgVt}{a matrix of annual depreciation cost by vehicle age and type in 2017 dollars}
   \item{DeprAdjModel_ls}{a containing model coefficients for calculating adjustments to annual depreciation based on annual miles driven and vehicle type (Auto, LtTrk)}
   \item{FinCost_AgVt}{a matrix of annual financing cost by vehicle age and type in 2017 dollars}
   \item{InsCost_Vt}{a vector of annual insurance cost by vehicle type in 2017 dollars}
-}}
+}
+}
 \source{
 AdjustVehicleOwnership.R script.
 }
