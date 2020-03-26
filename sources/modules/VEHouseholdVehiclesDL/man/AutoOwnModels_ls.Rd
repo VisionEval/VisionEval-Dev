@@ -4,7 +4,8 @@
 \name{AutoOwnModels_ls}
 \alias{AutoOwnModels_ls}
 \title{Auto ownership model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{Metro}{a list containing two models for metropolitan areas: a Zero
   component that is a binomial logit model for determining which households
@@ -14,7 +15,8 @@
   Zero component that is a binomial logit model for determining which households
   own no vehicles and a Count component that is an ordered logit model for
   determining how many vehicles a household who has vehicles owns}
-}}
+}
+}
 \source{
 AssignVehicleOwnership.R script.
 }
