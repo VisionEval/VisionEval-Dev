@@ -4,13 +4,15 @@
 \name{DvmtLmModels_ls}
 \alias{DvmtLmModels_ls}
 \title{Dvmt assignment model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{Metro}{a list containing three models for metropolitan areas: average, 95th
   percentile, and max Dvmt assignment models}
   \item{NonMetro}{a list containing three models for non-metropolitan areas: average, 95th
   percentile, and max Dvmt assignment models}
-}}
+}
+}
 \source{
 CalculateTravelDemand.R script.
 }

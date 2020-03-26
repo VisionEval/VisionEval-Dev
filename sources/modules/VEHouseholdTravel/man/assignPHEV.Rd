@@ -4,8 +4,15 @@
 \alias{assignPHEV}
 \title{Function to identify HEV/PHEV}
 \usage{
-assignPHEV(Hh_df, Veh_df, PhevRangePropYr_df, CurrYear, PhevPropModel_ls,
-  HevMpgPropYr_df, OptimProp = 0)
+assignPHEV(
+  Hh_df,
+  Veh_df,
+  PhevRangePropYr_df,
+  CurrYear,
+  PhevPropModel_ls,
+  HevMpgPropYr_df,
+  OptimProp = 0
+)
 }
 \arguments{
 \item{Hh_df}{A household data frame consisting of variables required for calculation.}

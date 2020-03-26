@@ -5,9 +5,14 @@
 \title{Function to calculate average Co2 equivalent gas emissions for fuels by
 vehicle type}
 \usage{
-calculateAveFuelCo2e(ForecastYear = NULL, FuelProp = NULL,
-  FuelComp = NULL, FuelCo2Ft = NULL, MJPerGallon = 121,
-  OutputType = "MetricTons")
+calculateAveFuelCo2e(
+  ForecastYear = NULL,
+  FuelProp = NULL,
+  FuelComp = NULL,
+  FuelCo2Ft = NULL,
+  MJPerGallon = 121,
+  OutputType = "MetricTons"
+)
 }
 \arguments{
 \item{ForecastYear}{An integer indicating the forecast year.}

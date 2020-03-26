@@ -4,7 +4,8 @@
 \name{VehTrpLenModel_ls}
 \alias{VehTrpLenModel_ls}
 \title{Household vehicle trip length models}
-\format{A list having the following 5 components:
+\format{
+A list having the following 5 components:
 Pow: estimated power for minimizing skew of trip length distribution;
 DayModel: Summary estimation statistics for linear models of household trip
 lengths on the survey day;
@@ -14,7 +15,8 @@ NonMetro: Linear model of average trip length based on simulated averaged for
 non-metropolitan households;
 TestResults_df: Data frame showing summary statistics for average DVMT, trip
 length, daily vehicle trips, and daily vehicle trips per driver;
-contains a string representing a hurdle model for computing household trips.}
+contains a string representing a hurdle model for computing household trips.
+}
 \source{
 CalculateVehicleTrips.R script.
 }

@@ -4,8 +4,13 @@
 \alias{calcLtVehDvmt}
 \title{Function to calculate DVMT for light vehicles}
 \usage{
-calcLtVehDvmt(Data_, AveSovPropModels_, Threshold, PropSuitable,
-  Sharing = FALSE)
+calcLtVehDvmt(
+  Data_,
+  AveSovPropModels_,
+  Threshold,
+  PropSuitable,
+  Sharing = FALSE
+)
 }
 \arguments{
 \item{Data_}{A household data frame consisting of household attributes used to

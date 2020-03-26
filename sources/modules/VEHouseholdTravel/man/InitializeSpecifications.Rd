@@ -4,12 +4,14 @@
 \name{InitializeSpecifications}
 \alias{InitializeSpecifications}
 \title{Specifications list for Initialize module}
-\format{A list containing 2 components:
+\format{
+A list containing 2 components:
 \describe{
  \item{RunBy}{the level of geography that the module is run at}
  \item{Inp}{scenario input data to be loaded into the datastore for this
  module}
-}}
+}
+}
 \source{
 Initialize.R script.
 }

@@ -4,14 +4,16 @@
 \name{PhevModelData_ls}
 \alias{PhevModelData_ls}
 \title{PHEV/HEV model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{PhevRangePropYr_df}{a data frame containing PHEV range proportions}
   \item{PhevMilePropModel_ls}{a list containing metropolitan and
   non-metropolitan PHEV proportions models}
   \item{HevMpgPropYr_df}{a data frame containing HEV MPG proportions}
   \item{OptimPropYr_ar}{a numeric vector containing optimization proportions}
-}}
+}
+}
 \source{
 RPAT model
 }

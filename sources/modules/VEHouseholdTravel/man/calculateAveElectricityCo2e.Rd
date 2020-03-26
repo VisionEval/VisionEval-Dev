@@ -5,8 +5,11 @@
 \title{Function to calculate average Co2 equivalent gas emissions for electricity
 consumed by vehicle type}
 \usage{
-calculateAveElectricityCo2e(ForecastYear = NULL, PowerCo2Ft = NULL,
-  OutputType = "MetricTons")
+calculateAveElectricityCo2e(
+  ForecastYear = NULL,
+  PowerCo2Ft = NULL,
+  OutputType = "MetricTons"
+)
 }
 \arguments{
 \item{ForecastYear}{An integer indicating the forecast year.}

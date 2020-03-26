@@ -4,11 +4,13 @@
 \name{LtVehOwnModels_ls}
 \alias{LtVehOwnModels_ls}
 \title{Light Vehicle ownership model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{Metro}{Light vehicle ownership model for the metropolitan region}
   \item{NonMetro}{Light vehicle ownership model for the non-metropolitan region}
-}}
+}
+}
 \source{
 AssignVehicleFeatures.R script.
 }
