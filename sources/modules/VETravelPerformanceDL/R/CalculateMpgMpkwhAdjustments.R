@@ -656,7 +656,7 @@ CalculateMpgMpkwhAdjustments <- function(L) {
   Rc <- c("Fwy", "Art", "Oth")
   Vt <- c("Ldv", "HvyTrk", "Bus")
   #Calculate DVMT by Marea, road class, and vehicle type
-  Dvmt_MaRcVt <- 
+  Dvmt_MaRcVt <-
     array(0, dim = c(length(Ma), length(Rc), length(Vt)), dimnames = list(Ma, Rc, Vt))
   for (vt in Vt) {
     Dvmt_MaRcVt[,,vt] <- unlist(L$Year$Marea[paste0(vt, DvmtNames_)])
@@ -675,7 +675,7 @@ CalculateMpgMpkwhAdjustments <- function(L) {
     })
   }
   names(DvmtProp_ls) <- Vt
-  
+
   #Calculate average driverless DVMT proportions by Marea and road class
   #----------------------------------------------------------------------
   DriverlessDvmtProp_MaVt <- array(0, dim = c(length(Ma), length(Vt)), dimnames = list(Ma, Vt))
@@ -758,16 +758,14 @@ CalculateMpgMpkwhAdjustments <- function(L) {
       Art = L$Year$Marea$ArtSmooth[L$Year$Marea$Marea == ma],
       Oth = 0
     )
-    #If there is driverless DVMT apply the ajustment functions to 
+    #Apply the driverless DVMT adjustment functions to
     #adjust speed smoothing fractions
     AveDriverlessDvmtProp_Rc <- AveDriverlessDvmtProp_MaRc[ma,]
-    if (sum(AveDriverlessDvmtProp_Rc) != 0) {
-      SmoothFractions_Rc["Fwy"] <- 
-        SmoothFractions_Rc["Fwy"] * DriverlessFactor_ls[["Fwy"]][["Smooth"]](AveDriverlessDvmtProp_Rc["Fwy"])
-      SmoothFractions_Rc["Art"] <- 
-        SmoothFractions_Rc["Art"] * DriverlessFactor_ls[["Art"]][["Smooth"]](AveDriverlessDvmtProp_Rc["Art"])
-    }
-    
+    SmoothFractions_Rc["Fwy"] <-
+      SmoothFractions_Rc["Fwy"] * DriverlessFactor_ls[["Fwy"]][["Smooth"]](AveDriverlessDvmtProp_Rc["Fwy"])
+    SmoothFractions_Rc["Art"] <-
+      SmoothFractions_Rc["Art"] * DriverlessFactor_ls[["Art"]][["Smooth"]](AveDriverlessDvmtProp_Rc["Art"])
+
     #Calculate the smoothing factors from the maximum values for the vehicle
     #type and the smoothing fractions
     #Maximum practical smoothing by congestion level and road class for the metropolitan area

@@ -4,7 +4,8 @@
 \name{Incident_df}
 \alias{Incident_df}
 \title{Delay reduction due to incident management}
-\format{A data frame with 5 rows and 4 columns. Row names are congestion
+\format{
+A data frame with 5 rows and 4 columns. Row names are congestion
 level names(None, Mod, Hvy, Sev, Ext):
 \describe{
   \item{Fwy_Rcr}{percentage reduction in freeway recurring congestion delay
@@ -15,7 +16,8 @@ level names(None, Mod, Hvy, Sev, Ext):
   by congestion level}
   \item{Art_NonRcr}{percentage reduction in arterial non-recurring congestion
   delay by congestion level}
-  }}
+  }
+}
 \source{
 CalculateSpeeds.R script.
 }

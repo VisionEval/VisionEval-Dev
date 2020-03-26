@@ -4,7 +4,8 @@
 \name{UrbanRuralAveSpeed_ls}
 \alias{UrbanRuralAveSpeed_ls}
 \title{Urban-rural average household speed ratio}
-\format{A list
+\format{
+A list
 \describe{
   \item{NhtsTripDistTime_df}{data frame containing urban and rural household
   average vehicle trip distance (miles) and trip time (minutes) by census
@@ -14,7 +15,8 @@
   average speed}
   \item{UrbanRuralHouseholdSpeedRatio}{a number that is the average speed
   ratio used in the model to calculate rural speed from urban speed}
-}}
+}
+}
 \source{
 CalculateRoadPerformance.R script.
 }

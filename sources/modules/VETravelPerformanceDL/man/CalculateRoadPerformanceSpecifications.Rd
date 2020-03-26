@@ -4,12 +4,14 @@
 \name{CalculateRoadPerformanceSpecifications}
 \alias{CalculateRoadPerformanceSpecifications}
 \title{Specifications list for CalculateRoadPerformance module}
-\format{A list containing 3 components:
+\format{
+A list containing 3 components:
 \describe{
  \item{RunBy}{the level of geography that the module is run at}
  \item{Get}{module inputs to be read from the datastore}
  \item{Set}{module outputs to be written to the datastore}
-}}
+}
+}
 \source{
 CalculateRoadPerformance.R script.
 }

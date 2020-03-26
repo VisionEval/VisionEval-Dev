@@ -426,10 +426,10 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 |FuelCO2ePM             |Vehicle   |Year   |compound  |GM/MI       |NA, < 0      |                           |
 |ElecCO2ePM             |Vehicle   |Year   |compound  |GM/MI       |NA, < 0      |                           |
 |InsCost                |Vehicle   |Year   |currency  |USD.2010    |NA, < 0      |                           |
-|HhId                 |Worker    |Year   |character |ID         |             |                           |
-|ParkingCost          |Worker    |Year   |currency  |USD.2010   |NA, < 0      |                           |
-|IsCashOut            |Worker    |Year   |integer   |binary     |             |0, 1                       |
-|PaysForParking       |Worker    |Year   |integer   |binary     |             |0, 1                       |
+|HhId                   |Worker    |Year   |character |ID          |             |                           |
+|ParkingCost            |Worker    |Year   |currency  |USD.2010    |NA, < 0      |                           |
+|IsCashOut              |Worker    |Year   |integer   |binary      |             |0, 1                       |
+|PaysForParking         |Worker    |Year   |integer   |binary      |             |0, 1                       |
 
 ## Datasets Produced by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:

@@ -4,7 +4,8 @@
 \name{BaseSpeeds_df}
 \alias{BaseSpeeds_df}
 \title{Base arterial and freeway speeds by congestion level}
-\format{A data frame with 5 rows and 4 columns. Row names are congestion
+\format{
+A data frame with 5 rows and 4 columns. Row names are congestion
 level names(None, Mod, Hvy, Sev, Ext):
 \describe{
   \item{Fwy}{average freeway speed in miles per hours by congestion level
@@ -15,7 +16,8 @@ level names(None, Mod, Hvy, Sev, Ext):
   considering only the effects of recurring congestion}
   \item{Art_Rcr}{average arterial speed in miles per hours by congestion
   level considering the effects of recurring and incident-related congestion}
-  }}
+  }
+}
 \source{
 CalculateSpeeds.R script.
 }
