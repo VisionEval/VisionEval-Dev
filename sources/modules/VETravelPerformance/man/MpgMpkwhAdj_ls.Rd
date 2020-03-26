@@ -4,14 +4,16 @@
 \name{MpgMpkwhAdj_ls}
 \alias{MpgMpkwhAdj_ls}
 \title{MPG and MPkWh adjustment parameters}
-\format{A list of dataframes and vectors
+\format{
+A list of dataframes and vectors
 \describe{
   \item{VehFSC_df}{a data frame of coefficients for calculating fuel-speed curves for different vehicle types, powertrains, roadways, and congestion efficiency levels},
   \item{FwyNormSpd}{the freeway speed corresponding to average fuel economy ratings}
   \item{ArtNormSpd}{the arterial speed corresponding to average fuel economy ratings}
   \item{SpeedSmoothEffect_df}{a data frame of coeffients of maximum speed smoothing effectiveness in reducing fuel consumption by speed for light duty and for heavy duty internal combustion engine vehicles}
   \item{EcoDriveFraction_Rc}{a vector of values identifying the maximum fraction of fuel savings that can be had with ecodriving on freeways and on arterials}
-}}
+}
+}
 \source{
 CalculateMpgMpkwhAdjustments.R script.
 }

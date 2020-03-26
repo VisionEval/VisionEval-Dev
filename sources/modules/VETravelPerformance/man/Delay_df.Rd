@@ -4,7 +4,8 @@
 \name{Delay_df}
 \alias{Delay_df}
 \title{Freeway and arterial recurring and non-recurring delay by congestion level}
-\format{A data frame with 5 rows and 4 columns. Row names are congestion
+\format{
+A data frame with 5 rows and 4 columns. Row names are congestion
 level names(None, Mod, Hvy, Sev, Ext):
 \describe{
   \item{Fwy_Rcr}{freeway recurring delay in hours per mile by congestion
@@ -15,7 +16,8 @@ level names(None, Mod, Hvy, Sev, Ext):
   level}
   \item{Art_NonRcr}{arterial non-recurring (incident) delay in hours per mile
   by congestion level}
-  }}
+  }
+}
 \source{
 CalculateSpeeds.R script.
 }

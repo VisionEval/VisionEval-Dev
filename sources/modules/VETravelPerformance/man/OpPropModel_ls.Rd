@@ -4,14 +4,16 @@
 \name{OpPropModel_ls}
 \alias{OpPropModel_ls}
 \title{Household vehicle operating cost proportion of income model}
-\format{A list:
+\format{
+A list:
 \describe{
   \item{Type}{a string identifying the model type}
   \item{Formula}{a string specifying the model formula}
   \item{PrepFun}{a function to transform function input (i.e. income)}
   \item{OutFun}{a function to transform model output (i.e. to produce proportion)}
   \item{Summary}{summary statistics of linear model}
-}}
+}
+}
 \source{
 BudgetHouseholdDvmt.R script.
 }

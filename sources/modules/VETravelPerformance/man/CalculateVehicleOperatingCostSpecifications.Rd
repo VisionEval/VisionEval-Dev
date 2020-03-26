@@ -4,7 +4,8 @@
 \name{CalculateVehicleOperatingCostSpecifications}
 \alias{CalculateVehicleOperatingCostSpecifications}
 \title{Specifications list for CalculateVehicleOperatingCost module}
-\format{A list containing 5 components:
+\format{
+A list containing 5 components:
 \describe{
  \item{RunBy}{the level of geography that the module is run at}
  \item{Inp}{scenario input data to be loaded into the datastore for this
@@ -12,7 +13,8 @@
  \item{Get}{module inputs to be read from the datastore}
  \item{Set}{module outputs to be written to the datastore}
  \item{Call}{list of modules called by the module}
-}}
+}
+}
 \source{
 CalculateVehicleOperatingCost.R script.
 }
