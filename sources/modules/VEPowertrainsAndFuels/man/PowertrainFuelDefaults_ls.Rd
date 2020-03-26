@@ -4,7 +4,8 @@
 \name{PowertrainFuelDefaults_ls}
 \alias{PowertrainFuelDefaults_ls}
 \title{Default energy and emissions data}
-\format{A list containing 17 data frames:
+\format{
+A list containing 17 data frames:
 \describe{
   \item{CongestionEfficiency_df}{the relative efficiency of vehicle types in congestion by year}
     \item{LdIce}{congestion efficiency of light-duty internal combustion engine vehicles}
@@ -149,7 +150,8 @@
     \item{RailPropIcev}{Proportion of rail transit vehicles that have internal combustion engine powertrains}
     \item{RailTrkPropHev}{Proportion of rail transit vehicles that have hybrid electric powertrains}
     \item{RailTrkPropEv}{Proportion of rail transit vehicles that have electric powertrains}
-}}
+}
+}
 \source{
 LoadDefaultValues.R script.
 }

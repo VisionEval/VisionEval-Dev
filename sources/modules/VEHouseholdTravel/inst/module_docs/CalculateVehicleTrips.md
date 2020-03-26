@@ -88,27 +88,27 @@ lm(formula = makeFormula(EndTerms_), data = EstData_df)
 
 Residuals:
        Min         1Q     Median         3Q        Max 
--0.0142881 -0.0021256 -0.0000383  0.0021285  0.0138720 
+-0.0137899 -0.0021162 -0.0000007  0.0021130  0.0132681 
 
 Coefficients:
                              Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                 9.928e-01  8.621e-04 1151.70   <2e-16 ***
-Drivers                     7.863e-02  4.520e-04  173.98   <2e-16 ***
-NonDrivers                  3.230e-02  3.145e-04  102.71   <2e-16 ***
-LogIncome                   2.820e-02  7.855e-05  359.00   <2e-16 ***
-LogDensity                 -1.198e-02  2.046e-05 -585.52   <2e-16 ***
-IsUrbanMixNbrhd            -1.424e-01  6.709e-04 -212.28   <2e-16 ***
-FwyLaneMiPC                 1.080e+01  1.365e-01   79.15   <2e-16 ***
-VehLtDvr                   -1.531e-02  8.403e-05 -182.17   <2e-16 ***
-Drivers:LogIncome          -6.382e-03  4.102e-05 -155.60   <2e-16 ***
-NonDrivers:LogIncome       -3.180e-03  2.886e-05 -110.19   <2e-16 ***
-LogDensity:IsUrbanMixNbrhd  1.520e-02  7.245e-05  209.86   <2e-16 ***
+(Intercept)                 9.936e-01  8.619e-04  1152.9   <2e-16 ***
+Drivers                     7.744e-02  4.519e-04   171.4   <2e-16 ***
+NonDrivers                  3.226e-02  3.144e-04   102.6   <2e-16 ***
+LogIncome                   2.801e-02  7.854e-05   356.6   <2e-16 ***
+LogDensity                 -1.192e-02  2.046e-05  -582.9   <2e-16 ***
+IsUrbanMixNbrhd            -1.398e-01  6.708e-04  -208.5   <2e-16 ***
+FwyLaneMiPC                 1.086e+01  1.365e-01    79.6   <2e-16 ***
+VehLtDvr                   -1.526e-02  8.401e-05  -181.7   <2e-16 ***
+Drivers:LogIncome          -6.283e-03  4.101e-05  -153.2   <2e-16 ***
+NonDrivers:LogIncome       -3.178e-03  2.885e-05  -110.2   <2e-16 ***
+LogDensity:IsUrbanMixNbrhd  1.492e-02  7.244e-05   206.0   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.003172 on 16299 degrees of freedom
-Multiple R-squared:  0.9859,	Adjusted R-squared:  0.9859 
-F-statistic: 1.139e+05 on 10 and 16299 DF,  p-value: < 2.2e-16
+Residual standard error: 0.003171 on 16299 degrees of freedom
+Multiple R-squared:  0.9858,	Adjusted R-squared:  0.9858 
+F-statistic: 1.131e+05 on 10 and 16299 DF,  p-value: < 2.2e-16
 
 ```
 
@@ -124,25 +124,25 @@ Call:
 lm(formula = makeFormula(EndTerms_), data = EstData_df)
 
 Residuals:
-     Min       1Q   Median       3Q      Max 
--0.22242 -0.03391 -0.00118  0.03213  0.29653 
+      Min        1Q    Median        3Q       Max 
+-0.211260 -0.034008 -0.001312  0.032511  0.288321 
 
 Coefficients:
                        Estimate Std. Error  t value Pr(>|t|)    
-(Intercept)           0.9159244  0.0098446    93.04   <2e-16 ***
-Drivers               0.8770513  0.0051662   169.77   <2e-16 ***
-NonDrivers            0.3688203  0.0037642    97.98   <2e-16 ***
-LogIncome             0.2799887  0.0009375   298.64   <2e-16 ***
-LogDensity           -0.1795620  0.0001579 -1136.86   <2e-16 ***
-VehLtDvr             -0.1724488  0.0010129  -170.25   <2e-16 ***
-Drivers:LogIncome    -0.0694627  0.0004820  -144.11   <2e-16 ***
-NonDrivers:LogIncome -0.0347099  0.0003523   -98.52   <2e-16 ***
+(Intercept)           0.9146064  0.0098852    92.52   <2e-16 ***
+Drivers               0.8694430  0.0051875   167.60   <2e-16 ***
+NonDrivers            0.3729230  0.0037797    98.66   <2e-16 ***
+LogIncome             0.2795862  0.0009414   296.99   <2e-16 ***
+LogDensity           -0.1791961  0.0001586 -1129.89   <2e-16 ***
+VehLtDvr             -0.1744605  0.0010171  -171.53   <2e-16 ***
+Drivers:LogIncome    -0.0687255  0.0004840  -142.00   <2e-16 ***
+NonDrivers:LogIncome -0.0350852  0.0003537   -99.18   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.04995 on 31205 degrees of freedom
-Multiple R-squared:  0.9836,	Adjusted R-squared:  0.9835 
-F-statistic: 2.666e+05 on 7 and 31205 DF,  p-value: < 2.2e-16
+Residual standard error: 0.05016 on 31205 degrees of freedom
+Multiple R-squared:  0.9834,	Adjusted R-squared:  0.9834 
+F-statistic: 2.64e+05 on 7 and 31205 DF,  p-value: < 2.2e-16
 
 ```
 
@@ -155,7 +155,7 @@ The following table compares the mean modeled values for average DVMT, average t
 
 |             | DVMT (miles)| Trip Length (miles)| Trips|
 |:------------|------------:|-------------------:|-----:|
-|Model Means  |         58.6|                 8.8|   6.7|
+|Model Means  |         58.6|                 8.7|   6.7|
 |Survey Means |         62.6|                 8.7|   7.2|
 
 ## How the Module Works

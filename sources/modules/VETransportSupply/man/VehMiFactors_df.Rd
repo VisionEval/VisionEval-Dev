@@ -4,7 +4,8 @@
 \name{VehMiFactors_df}
 \alias{VehMiFactors_df}
 \title{Revenue miles to vehicle miles conversion factors}
-\format{A data frame with 8 rows and 2 variables containing factors for
+\format{
+A data frame with 8 rows and 2 variables containing factors for
 converting revenue miles of various modes to vehicle miles.
 Mode names are 2-character codes corresponding to consolidated mode types.
 Consolidated mode types represent modes that have similar characteristics and
@@ -23,7 +24,8 @@ CR = Commuter Rail/Hybrid Rail/Cable Car/Aerial Tramway
   \item{Mode}{abbreviation for consolidated mode}
   \item{VehMiFactors}{numeric factors for converting revenue miles to
   vehicle miles}
-}}
+}
+}
 \source{
 AssignTransitService.R script.
 }

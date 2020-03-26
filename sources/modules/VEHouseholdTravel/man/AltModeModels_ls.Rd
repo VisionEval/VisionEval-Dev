@@ -4,12 +4,14 @@
 \name{AltModeModels_ls}
 \alias{AltModeModels_ls}
 \title{Alternative mode trip models}
-\format{A list having 'Metro' and 'NonMetro' components. Each component has
+\format{
+A list having 'Metro' and 'NonMetro' components. Each component has
 the following components:
 Walk: a hurdle model of walk trips having Count and Zero components;
 Bike: a hurdle model of bike trips having Count and Zero components;
 Transit: a hurdle model of public transit trips having Count and Zero
-components;}
+components;
+}
 \source{
 CalculateAltModeTrips.R.
 }

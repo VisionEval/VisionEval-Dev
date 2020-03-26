@@ -4,9 +4,17 @@
 \alias{idPayingParkers}
 \title{Function to identify households that pays for parking}
 \usage{
-idPayingParkers(Data__, PropWrkPkg, PropWrkChrgd, PropCashOut,
-  PropOthChrgd, LabForcePartRate = 0.65, PkgCost, PropWrkTrav = 0.22,
-  WrkDaysPerYear = 260)
+idPayingParkers(
+  Data__,
+  PropWrkPkg,
+  PropWrkChrgd,
+  PropCashOut,
+  PropOthChrgd,
+  LabForcePartRate = 0.65,
+  PkgCost,
+  PropWrkTrav = 0.22,
+  WrkDaysPerYear = 260
+)
 }
 \arguments{
 \item{Data__}{A household data frame consisting of household attributes used to

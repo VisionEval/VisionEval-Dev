@@ -5,14 +5,25 @@
 \name{HhAllocationModelCoeff_df}
 \alias{HhAllocationModelCoeff_df}
 \title{Household Allocation Model}
-\format{A data.frame having the following components
+\format{
+A data.frame having the following components
 \describe{
   \item{CHID}{a numeric indicating a area type}
   \item{CHDESC}{a string indicating a area type (City, Rural, Suburban, Town, and Urban)}
   \item{VAR}{a string indicating the variable names (ASC, Singleton, Children, CoupleNoKids,
   OnlyElderly, HhIncome1000)}
   \item{COEFF}{a numeric value for coefficients}
-}}
+}
+
+A data.frame having the following components
+\describe{
+  \item{CHID}{a numeric indicating a area type}
+  \item{CHDESC}{a string indicating a area type (City, Rural, Suburban, Town, and Urban)}
+  \item{VAR}{a string indicating the variable names (ASC, Singleton, Children, CoupleNoKids,
+  OnlyElderly, HhIncome1000)}
+  \item{COEFF}{a numeric value for coefficients}
+}
+}
 \source{
 CalculateBasePlaceTypes.R script.
 

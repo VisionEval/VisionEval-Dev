@@ -4,8 +4,13 @@
 \alias{assignEv}
 \title{Function to identify electric vehicles}
 \usage{
-assignEv(Hh_df, Veh_df, EvRangePropYr_df, CurrYear,
-  UseMaxDvmtCriterion = FALSE)
+assignEv(
+  Hh_df,
+  Veh_df,
+  EvRangePropYr_df,
+  CurrYear,
+  UseMaxDvmtCriterion = FALSE
+)
 }
 \arguments{
 \item{Hh_df}{A household data frame consisting of variables required for calculation.}

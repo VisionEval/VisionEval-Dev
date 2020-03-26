@@ -4,12 +4,14 @@
 \name{PhevElecProp_ls}
 \alias{PhevElecProp_ls}
 \title{PHEV electric travel proportion lookup tables and lookup function}
-\format{A list of lookup table matrices and a lookup function
+\format{
+A list of lookup table matrices and a lookup function
 \describe{
   \item{Metro_VmRg}{a matrix of electric power proportions by DVMT and battery range for metropolitan areas},
   \item{NonMetro_VmRg}{a matrix of electric power proportions by DVMT and battery range for non-metropolitan areas}
   \item{getElecProp}{a function to get a value from a lookup table}
-}}
+}
+}
 \source{
 CalculateHhEnergyAndEmissions.R script.
 }

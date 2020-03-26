@@ -6,7 +6,8 @@
 \title{Models of the proportion of household average DVMT in single-occupant vehicle
 tours having round-trip distances of 20 miles or less, and of the average
 trip length in such tours}
-\format{A list having 6 components:
+\format{
+A list having 6 components:
 ZeroSovModel: summary statistics for the model to predict the likelihood that
 a household has no qualifying tours on the survey day;
 SovDvmtModel: summary statistics for the model to predict miles of travel in
@@ -19,7 +20,8 @@ NonMetroTrpLenModel: summary statistics for the model to predict average SOV
 trip length for non-metropolitan households;
 SovTrpLenModel: a list composed of two lists (Metro and NonMetro) which each
 describe a linear model for predicting average SOV trip length for trips in
-qualifying tours.}
+qualifying tours.
+}
 \source{
 DivertSovTravel.R
 }

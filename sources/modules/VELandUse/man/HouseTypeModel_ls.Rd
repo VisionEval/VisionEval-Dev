@@ -4,14 +4,16 @@
 \name{HouseTypeModel_ls}
 \alias{HouseTypeModel_ls}
 \title{Housing choice model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{Type}{a string identifying the type of model ("binomial")}
   \item{Formula}{makeModelFormulaString(HouseTypeModel)}
   \item{PrepFun}{a function that prepares inputs to be applied in the model}
   \item{Summary}{the summary of the binomial logit model estimation results}
   \item{SearchRange}{a two-element vector specifying the range of search values}
-}}
+}
+}
 \source{
 PredictHousing.R script.
 }

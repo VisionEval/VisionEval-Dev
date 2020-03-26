@@ -4,13 +4,15 @@
 \name{TravelDemandDefaults_ls}
 \alias{TravelDemandDefaults_ls}
 \title{Default energy and emissions data}
-\format{A list containing 17 data frames:
+\format{
+A list containing 17 data frames:
 \describe{
   \item{CarbonIntensity_df}{a data frame of the carbon intensities of vehicle energy sources by year}
     \item{State}{Postal code abbreviation of state where the region is located}
     \item{County}{Name of the county where the region is located}
     \item{Year}{The year for which the carbon intensities are calculated}
-}}
+}
+}
 \source{
 LoadDefaultValues.R script.
 }

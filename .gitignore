@@ -3,6 +3,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.Renviron
 *.bak
 .DS_Store
 ve-lib

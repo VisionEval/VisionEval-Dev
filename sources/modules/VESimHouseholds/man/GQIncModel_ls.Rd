@@ -4,7 +4,8 @@
 \name{GQIncModel_ls}
 \alias{GQIncModel_ls}
 \title{Group quarters income model}
-\format{A list having the following components:
+\format{
+A list having the following components:
 \describe{
   \item{Type}{a string identifying the type of model ("linear")}
   \item{Formula}{makeModelFormulaString(IncModel_LM)}
@@ -12,7 +13,8 @@
   \item{OutFun}{a function that transforms the result of applying the linear model}
   \item{Summary}{the summary of the linear model estimation results}
   \item{SearchRange}{a two-element vector specifying the range of search values}
-}}
+}
+}
 \source{
 PredictIncome.R script.
 }

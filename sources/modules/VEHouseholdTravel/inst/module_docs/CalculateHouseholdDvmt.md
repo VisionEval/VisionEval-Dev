@@ -293,25 +293,25 @@ lm(formula = makeFormula("PowDvmt", IndepVars_), data = TestHh_df)
 
 Residuals:
       Min        1Q    Median        3Q       Max 
--0.200706 -0.012128  0.000431  0.012423  0.214738 
+-0.194166 -0.012312  0.000422  0.012696  0.206114 
 
 Coefficients:
               Estimate Std. Error t value Pr(>|t|)    
-(Intercept)  1.212e+00  1.924e-03   629.9   <2e-16 ***
-Drivers      9.828e-02  2.528e-04   388.8   <2e-16 ***
-LogIncome    6.431e-02  1.791e-04   359.1   <2e-16 ***
-Hbppopdn    -1.382e-05  3.029e-08  -456.2   <2e-16 ***
-NumVeh       3.013e-02  1.945e-04   154.9   <2e-16 ***
-ZeroVeh     -3.220e-01  8.274e-04  -389.2   <2e-16 ***
-OneVeh      -6.223e-02  3.990e-04  -156.0   <2e-16 ***
-Workers      6.965e-02  1.776e-04   392.3   <2e-16 ***
-Age0to14     6.049e-02  1.386e-04   436.6   <2e-16 ***
+(Intercept)  1.214e+00  1.944e-03   624.4   <2e-16 ***
+Drivers      9.812e-02  2.554e-04   384.2   <2e-16 ***
+LogIncome    6.413e-02  1.810e-04   354.4   <2e-16 ***
+Hbppopdn    -1.385e-05  3.060e-08  -452.6   <2e-16 ***
+NumVeh       2.996e-02  1.965e-04   152.5   <2e-16 ***
+ZeroVeh     -3.208e-01  8.359e-04  -383.7   <2e-16 ***
+OneVeh      -6.213e-02  4.032e-04  -154.1   <2e-16 ***
+Workers      6.999e-02  1.794e-04   390.1   <2e-16 ***
+Age0to14     6.061e-02  1.400e-04   433.0   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.02261 on 35494 degrees of freedom
-Multiple R-squared:  0.9924,	Adjusted R-squared:  0.9924 
-F-statistic: 5.793e+05 on 8 and 35494 DF,  p-value: < 2.2e-16
+Residual standard error: 0.02285 on 35494 degrees of freedom
+Multiple R-squared:  0.9922,	Adjusted R-squared:  0.9922 
+F-statistic: 5.668e+05 on 8 and 35494 DF,  p-value: < 2.2e-16
 
 ```
 
@@ -321,8 +321,8 @@ The mean values of the survey DVMT, simulated average DVMT, and predicted averag
 |                       |    Miles|
 |:----------------------|--------:|
 |Survey Day DVMT        | 55.44947|
-|Simulated Average DVMT | 55.52885|
-|Predicted Average DVMT | 55.59159|
+|Simulated Average DVMT | 55.50588|
+|Predicted Average DVMT | 55.56960|
 
 The metropolitan linear model of household power-transformed simulated average DVMT includes the following terms in addition to the terms included in the non-metropolitan household model:
 
@@ -341,28 +341,28 @@ lm(formula = makeFormula("PowDvmt", IndepVars_), data = TestHh_df)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--0.25965 -0.01844  0.00030  0.01798  0.38576 
+-0.24698 -0.01845  0.00015  0.01792  0.35364 
 
 Coefficients:
                Estimate Std. Error t value Pr(>|t|)    
-(Intercept)   1.097e+00  4.375e-03  250.72   <2e-16 ***
-Drivers       1.203e-01  5.525e-04  217.64   <2e-16 ***
-LogIncome     1.009e-01  3.795e-04  265.90   <2e-16 ***
-Hbppopdn     -1.152e-05  4.494e-08 -256.36   <2e-16 ***
-NumVeh        2.973e-02  4.999e-04   59.47   <2e-16 ***
-ZeroVeh      -5.894e-01  1.608e-03 -366.63   <2e-16 ***
-OneVeh       -8.722e-02  9.239e-04  -94.41   <2e-16 ***
-Workers       1.266e-01  3.938e-04  321.47   <2e-16 ***
-UrbanDev     -6.315e-02  8.133e-04  -77.65   <2e-16 ***
-Age0to14      7.725e-02  2.988e-04  258.55   <2e-16 ***
-BusEqRevMiPC -3.683e-04  1.046e-05  -35.21   <2e-16 ***
-FwyLaneMiPC   6.465e+01  1.731e+00   37.34   <2e-16 ***
+(Intercept)   1.100e+00  4.358e-03  252.46   <2e-16 ***
+Drivers       1.201e-01  5.504e-04  218.11   <2e-16 ***
+LogIncome     1.005e-01  3.780e-04  265.88   <2e-16 ***
+Hbppopdn     -1.158e-05  4.477e-08 -258.74   <2e-16 ***
+NumVeh        3.012e-02  4.980e-04   60.48   <2e-16 ***
+ZeroVeh      -5.888e-01  1.602e-03 -367.62   <2e-16 ***
+OneVeh       -8.698e-02  9.203e-04  -94.51   <2e-16 ***
+Workers       1.267e-01  3.923e-04  322.86   <2e-16 ***
+UrbanDev     -6.312e-02  8.102e-04  -77.91   <2e-16 ***
+Age0to14      7.754e-02  2.976e-04  260.54   <2e-16 ***
+BusEqRevMiPC -3.575e-04  1.042e-05  -34.31   <2e-16 ***
+FwyLaneMiPC   6.509e+01  1.725e+00   37.74   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.03689 on 19619 degrees of freedom
-Multiple R-squared:  0.994,	Adjusted R-squared:  0.994 
-F-statistic: 2.968e+05 on 11 and 19619 DF,  p-value: < 2.2e-16
+Residual standard error: 0.03675 on 19619 degrees of freedom
+Multiple R-squared:  0.9941,	Adjusted R-squared:  0.9941 
+F-statistic: 2.992e+05 on 11 and 19619 DF,  p-value: < 2.2e-16
 
 ```
 
@@ -372,8 +372,8 @@ The mean values of the survey DVMT, simulated average DVMT, and predicted averag
 |                       |    Miles|
 |:----------------------|--------:|
 |Survey Day DVMT        | 53.45152|
-|Simulated Average DVMT | 53.40351|
-|Predicted Average DVMT | 53.52668|
+|Simulated Average DVMT | 53.42251|
+|Predicted Average DVMT | 53.54548|
 
 The following charts compare the distributions of the household average DVMT for survey households predicted by the linear model with the distributions simulated for the survey households by stochastically applying the binomial and linear models of survey day DVMT. This shows that the linear model of average household DVMT can be substituted for the stochastic simulation. This enables the module to run much faster than would be the case if average DVMT had to be simulated.
 
@@ -390,20 +390,20 @@ lm(formula = PctlDvmt ~ Dvmt + DvmtSq + DvmtCu, data = TestHh_df)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
--43.620  -4.228  -0.073   4.156 117.492 
+-43.169  -4.239  -0.059   4.117 108.558 
 
 Coefficients:
               Estimate Std. Error t value Pr(>|t|)    
-(Intercept)  2.312e+01  1.191e-01  194.12   <2e-16 ***
-Dvmt         2.720e+00  3.691e-03  736.83   <2e-16 ***
-DvmtSq      -2.433e-03  2.880e-05  -84.49   <2e-16 ***
-DvmtCu       1.803e-06  2.841e-08   63.48   <2e-16 ***
+(Intercept)  2.318e+01  1.195e-01  193.95   <2e-16 ***
+Dvmt         2.716e+00  3.736e-03  727.08   <2e-16 ***
+DvmtSq      -2.424e-03  2.943e-05  -82.35   <2e-16 ***
+DvmtCu       1.834e-06  2.989e-08   61.35   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 6.839 on 35499 degrees of freedom
+Residual standard error: 6.808 on 35499 degrees of freedom
 Multiple R-squared:  0.9907,	Adjusted R-squared:  0.9907 
-F-statistic: 1.256e+06 on 3 and 35499 DF,  p-value: < 2.2e-16
+F-statistic: 1.263e+06 on 3 and 35499 DF,  p-value: < 2.2e-16
 
 ```
 
@@ -416,20 +416,20 @@ lm(formula = PctlDvmt ~ Dvmt + DvmtSq + DvmtCu, data = TestHh_df)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
--84.668  -3.856   0.093   3.882  42.638 
+-56.252  -3.994   0.076   3.877  33.318 
 
 Coefficients:
               Estimate Std. Error t value Pr(>|t|)    
-(Intercept)  1.548e+01  1.506e-01  102.80   <2e-16 ***
-Dvmt         2.997e+00  7.336e-03  408.51   <2e-16 ***
-DvmtSq      -8.124e-03  9.952e-05  -81.63   <2e-16 ***
-DvmtCu       2.006e-05  3.725e-07   53.86   <2e-16 ***
+(Intercept)  1.558e+01  1.510e-01  103.18   <2e-16 ***
+Dvmt         2.984e+00  7.265e-03  410.73   <2e-16 ***
+DvmtSq      -7.871e-03  9.728e-05  -80.90   <2e-16 ***
+DvmtCu       1.863e-05  3.585e-07   51.96   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 6.445 on 19627 degrees of freedom
-Multiple R-squared:  0.9922,	Adjusted R-squared:  0.9922 
-F-statistic: 8.375e+05 on 3 and 19627 DF,  p-value: < 2.2e-16
+Residual standard error: 6.503 on 19627 degrees of freedom
+Multiple R-squared:  0.9921,	Adjusted R-squared:  0.9921 
+F-statistic: 8.223e+05 on 3 and 19627 DF,  p-value: < 2.2e-16
 
 ```
 

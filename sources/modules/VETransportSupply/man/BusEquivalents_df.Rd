@@ -4,7 +4,8 @@
 \name{BusEquivalents_df}
 \alias{BusEquivalents_df}
 \title{Bus equivalency factors}
-\format{A data frame with 8 rows and 2 variables containing factors for
+\format{
+A data frame with 8 rows and 2 variables containing factors for
 converting revenue miles of various modes to bus equivalent revenue miles.
 Mode names are 2-character codes corresponding to consolidated mode types.
 Consolidated mode types represent modes that have similar characteristics and
@@ -22,7 +23,8 @@ CR = Commuter Rail/Hybrid Rail/Cable Car/Aerial Tramway
 \describe{
   \item{Mode}{abbreviation for consolidated mode}
   \item{BusEquivalents}{numeric factor for converting revenue miles to bus equivalents}
-}}
+}
+}
 \source{
 AssignTransitService.R script.
 }

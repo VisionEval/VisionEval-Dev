@@ -4,13 +4,15 @@
 \name{AssignCarSvcAvailabilitySpecifications}
 \alias{AssignCarSvcAvailabilitySpecifications}
 \title{Specifications list for AssignCarSvcAvailability module}
-\format{A list containing 4 components:
+\format{
+A list containing 4 components:
 \describe{
  \item{RunBy}{the level of geography that the module is run at}
  \item{Inp}{scenario input data to be loaded into the datastore for this module}
  \item{Get}{module inputs to be read from the datastore}
  \item{Set}{module outputs to be written to the datastore}
-}}
+}
+}
 \source{
 AssignCarSvcAvailability.R script.
 }
