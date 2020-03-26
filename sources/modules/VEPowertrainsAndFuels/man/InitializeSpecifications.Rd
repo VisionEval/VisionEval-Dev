@@ -4,7 +4,8 @@
 \name{InitializeSpecifications}
 \alias{InitializeSpecifications}
 \title{Specifications list for Initialize module}
-\format{A list containing 5 components:
+\format{
+A list containing 5 components:
 \describe{
  \item{RunBy}{the level of geography that the module is run at}
  \item{RunFor}{options = AllYears, BaseYear, NoBaseYear}
@@ -12,7 +13,8 @@
  module}
  \item{Get}{module inputs to be read from the datastore}
  \item{Set}{module outputs to be written to the datastore}
-}}
+}
+}
 \source{
 Initialize.R script.
 }
