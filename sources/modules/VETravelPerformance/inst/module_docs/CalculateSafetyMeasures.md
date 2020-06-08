@@ -2,23 +2,35 @@
 # CalculateSafetyMeasures Module
 ### June 02, 1992
 
- This module aims to calculate safety measures for the model area. It uses the fatality and injury rates for different modes comnig
- crashes from  soruce. All these rates are per miles traveled. Therefore this module simply uses calculated VMT from model to estimate the 
+A comprehensive analysis of transport futures might include direct impacts of travel decisions and transport system impacts, to include fuel consumption and carbon footprints. The measures have been key VisionEval performance measures from its outset. However, many analysts seek to include potential safety measures in their analyses, especially when comparing the status quo to lower auto ownership scenarios. Compiling safety impacts currently requires post-processing VisionEval results and advanced R programming skills:
+
+* *Crash rates per exposure level (e.g., million miles of travel) and associated morbidity and mortality rates and their economic (social) costs must be established
+* *The crash (incident) frequencies are summarized by vehicle type, and possibly age group, for the study area
+* *The economic impacts are calculated based upon exogenously specified rates and their associated costs. The user can create these summaries in a spreadsheet or with custom R code.
+
+ This module aims to calculate safety measures for the model area. It uses the fatality and injury rates for different modes. 
+ All these rates are per miles traveled. Therefore this module simply uses calculated VMT from model to estimate the 
  fatality and injury rates for Mrea
+ 
 ## Model Parameter Estimation
 
 This module has no estimated parameters.
 
 ## How the Module Works
 
+This module uses fatality and injury rates for crashes per miles traveled . There are various datasets which can be a source for crash rates. 
+See [National Transportation Statistics](https://www.bts.gov/product/national-transportation-statistics) , 
+[NHTSA crash data](https://crashstats.nhtsa.dot.gov/#/PublicationList/86) and
+[Fatality Analysis Reporting System](https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars) for more information.
+
 This module calculates following metrics:
 
-* * Auto daily fataility and injuries for Marea
-* * Bike daily fataility and injuries for Marea
-* * Walk daily fataility and injuries for Marea
-* * Bus daily fataility and injuries for Marea
-* * Rail daily fataility and injuries for Marea
-* * Van daily fataility and injuries for Marea
+* * Auto yearly fataility and injuries for Urban, Rural and Town areas.
+* * Bike yearly fataility and injuries for Marea
+* * Walk yearly fataility and injuries for Marea
+* * Bus yearly fataility and injuries for Marea
+* * Rail yearly fataility and injuries for Marea
+* * Van yearly fataility and injuries for Marea
 
 
 
