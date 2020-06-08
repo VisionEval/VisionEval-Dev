@@ -12,3 +12,4 @@ trips,TRIP
 households,HH
 employment,JOB
 activity,HHJOB
+crashes,CRASH

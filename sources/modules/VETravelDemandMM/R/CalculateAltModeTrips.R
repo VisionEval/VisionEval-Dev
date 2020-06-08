@@ -407,15 +407,15 @@ CalculateAltModeTripsSpecifications <- list(
       TABLE = "Household",
       GROUP = "Year",
       TYPE = "compound",
-      UNITS = "TRIP/YR",
+      UNITS = "TRIP/DAY",
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
       SIZE = 0,
       DESCRIPTION = items(
-        "Average number of walk trips per year by household members",
-        "Average number of bicycle trips per year by household members",
-        "Average number of public transit trips per year by household members"
+        "Average number of walk trips per day by household members",
+        "Average number of bicycle trips per day by household members",
+        "Average number of public transit trips per day by household members"
       )
     ),    
     item(
@@ -425,8 +425,8 @@ CalculateAltModeTripsSpecifications <- list(
               "TransitAvgTripDist"),
       TABLE = "Household",
       GROUP = "Year",
-      TYPE = "integer",
-      UNITS = "trips",
+      TYPE = "double",
+      UNITS = "MI",
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
       SIZE = 0,
@@ -667,7 +667,7 @@ CalculateAltModeTrips <- function(L) {
   #     WalkTrips = -1,
   #     WalkAvgTripDist = -1
   #   )
-  Out_ls$Year$Household$WalkTrips       <- (Preds %>% filter(Step==1) %>% pull(y))*365
+  Out_ls$Year$Household$WalkTrips       <- (Preds %>% filter(Step==1) %>% pull(y))
   Out_ls$Year$Household$WalkAvgTripDist <- Preds %>% filter(Step==2) %>% pull(y)
   
   # BikeTFL
@@ -694,7 +694,7 @@ CalculateAltModeTrips <- function(L) {
   #     BikeTrips = -1,
   #     BikeAvgTripDist = -1
   #   )
-  Out_ls$Year$Household$BikeTrips       <- (Preds %>% filter(Step==1) %>% pull(y)) *365
+  Out_ls$Year$Household$BikeTrips       <- (Preds %>% filter(Step==1) %>% pull(y)) 
   Out_ls$Year$Household$BikeAvgTripDist <- Preds %>% filter(Step==2) %>% pull(y)
   
   # TransitTFL
@@ -721,7 +721,7 @@ CalculateAltModeTrips <- function(L) {
   #     TransitTrips = -1,
   #     TransitAvgTripDist = -1
   #   )
-  Out_ls$Year$Household$TransitTrips       <- (Preds %>% filter(Step==1) %>% pull(y)) *365
+  Out_ls$Year$Household$TransitTrips       <- (Preds %>% filter(Step==1) %>% pull(y)) 
   Out_ls$Year$Household$TransitAvgTripDist <- Preds %>% filter(Step==2) %>% pull(y)
   
   #Return the list

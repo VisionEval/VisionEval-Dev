@@ -4,8 +4,7 @@
 \name{DvmtModel_ls}
 \alias{DvmtModel_ls}
 \title{Daily vehicle miles traveled (DVMT) models}
-\format{
-A list having 'Metro' and 'NonMetro' components. Each component has
+\format{A list having 'Metro' and 'NonMetro' components. Each component has
 the following components:
 Pow: factor to untransform the results of the average DVMT model;
 Ave: the formula for the average DVMT model;
@@ -15,8 +14,7 @@ Pctl99: the formula for the 99th percentile DVMT model;
 Pctl100: the formula for the 100th percentile DVMT model.
 In addition, the 'EstimationStats' component of the list documents model
 estimation statistics for the final models as well as intermediate models
-used in developing the final models.
-}
+used in developing the final models.}
 \source{
 HouseholdDvmtQuantileEstimation.R
 }

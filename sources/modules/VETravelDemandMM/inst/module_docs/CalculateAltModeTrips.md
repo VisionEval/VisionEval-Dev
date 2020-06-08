@@ -1,41 +1,28 @@
 
 # CalculateAltModeTrips Module
-### May 28, 2019
+### March 2020
 
 This module predicts:
-
- 1- Transit PMT ( Person-Miles Traveled ) for households. It uses the model object in data/TransitPMTModel_df.rda and variables and coefficients therein to predict TransitPMT.
- 
- 2- Transit trip frequency and average transit trip length for households. It uses the model object in data/TransitTFLModel_df.rda and variables and coefficients therein to predict TransitTFL.
-
- 3- Walking PMT for households. It uses the model object in data/WalkPMTModel_df.rda and variables and coefficients therein to predict WalkPMT.
- 
- 4- Walking trip frequency and average walking trip length for households. It uses the model object in data/WalkTFLModel_df.rda and variables and coefficients therein to predict WalkTFL.
- 
- 5- Biking PMT for households. It uses the model object in data/BikePMTModel_df.rda and variables and coefficients therein to predict BikePMT.
- 
- 6- Biking trip frequency and average bike trip length for households. It uses the model object in data/BikeTFLModel_df.rda and variables and coefficients therein to predict BikeTFL.
+ 1- transit PMT for households. It uses the model object in data/TransitPMTModel_df.rda and variables and coefficients therein to predict TransitPMT.
+ 2- transit trip frequency and average trip length for households. It uses the model object in data/TransitTFLModel_df.rda and variables and coefficients therein to predict TransitTFL.
+ 3- walking PMT for households. It uses the model object in data/WalkPMTModel_df.rda and variables and coefficients therein to predict WalkPMT.
+ 4- walking trip frequency and average walking trip length for households. It uses the model object in data/WalkTFLModel_df.rda and variables and coefficients therein to predict WalkTFL.
+ 5- biking PMT for households. It uses the model object in data/BikePMTModel_df.rda and variables and coefficients therein to predict BikePMT.
+ 6- trip frequency (BikeTrips) and average trip length (BikeAvgTripDist) for households. It uses the model object in data/BikeTFLModel_df.rda and variables and coefficients therein to predict BikeTFL.
 
 
 ## Model Parameter Estimation
 See:
-
- * data-raw/TransitPMTModel_df.R
- * data-raw/TransitTFLModel_df.R
- * data-raw/WalkPMTModel_df.R
- * data-raw/WalkTFLModel_df.R
- * data-raw/BikePMTModel_df.R
- * data-raw/BikeTFLModel_df.R
+ data-raw/TransitPMTModel_df.R
+ data-raw/TransitTFLModel_df.R
+ data-raw/WalkPMTModel_df.R
+ data-raw/WalkTFLModel_df.R
+ data-raw/BikePMTModel_df.R
+ data-raw/BikeTFLModel_df.R
 
 ## How the Module Works
 
-This module includes 6 sub-modules for predicting alternative modes( Bike, Walk and Transit) person miles traveled, trip frequencies and trip lengths.
-If the users want to re-estimate the sub-modules for a new region, they can use the scripts in dara-raw folder to re-estimate the model. The model object will be saved in data folder.
-
-The module first uses a hurdle model to assign the alternative modes PMT to each household.
-Then a trip frequency model is applied to estimate number of yearly alternative modes trips for each household.
-Finally a linear regression model will be applied to estimate the average trip length for alternatiev modes.
-All the models have two different parameters for metro and non-metro residents.
+The user specifies the model in the estimation scripts in data-raw folder and saves the estimation results in data folder. If no model re-estimation is desired, the estimation process can be skipped and the default model specification is then used. The module assigns the alternative mode PMT and TFL to each household using variables including household characteristics, built environment, and transportation supply.
 
 
 ## User Inputs
@@ -55,13 +42,12 @@ UNLIKELY - Values that are unlikely. Values that meet any of the listed conditio
 
 DESCRIPTION - A description of the data.
 
-### bzone_network_design.csv
-|NAME  |TYPE   |UNITS                                             |PROHIBIT |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                                                                         |
-|:-----|:------|:-------------------------------------------------|:--------|:-----------|:--------|:---------------------------------------------------------------------------------------------------------------------------------------------------|
-|Geo   |       |                                                  |         |Bzones      |         |Must contain a record for each Bzone and model run year.                                                                                            |
-|Year  |       |                                                  |         |            |         |Must contain a record for each Bzone and model run year.                                                                                            |
-|D3bpo4 |double |pedestrian-oriented intersections per square mile |NA       |            |         |Intersection density in terms of pedestrian-oriented intersections having four or more legs per square mile (Ref: EPA 2010 Smart Location Database) |
-
+### marea_census_r.csv
+|NAME     |TYPE      |UNITS    |PROHIBIT |ISELEMENTOF  |UNLIKELY |DESCRIPTION                                              |
+|:--------|:---------|:--------|:--------|:------------|:--------|:--------------------------------------------------------|
+|Geo      |          |         |         |Mareas       |         |Must contain a record for each Marea and model run year. |
+|Year     |          |         |         |             |         |Must contain a record for each Marea and model run year. |
+|CENSUS_R |character |category |         |NE, S, W, MW |         |CENSUS_R                                                 |
 
 ## Datasets Used by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:
@@ -98,9 +84,7 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 |D1B         |Bzone     |Year  |compound  |PRSN/ACRE                                         |NA, < 0  |                           |
 |D2A_WRKEMP  |Bzone     |Year  |compound  |PRSN/JOB                                          |NA, < 0  |                           |
 |D2A_EPHHM   |Bzone     |Year  |double    |employment & household entropy                    |NA, < 0  |                           |
-|D3apo       |Bzone     |Year  |double    |pedestrian-oriented intersections per square mile |NA       |                           |
 |D3bpo4      |Bzone     |Year  |double    |pedestrian-oriented intersections per square mile |NA       |                           |
-|D3bmm4      |Bzone     |Year  |double    |multimodal intersections per square mile          |NA       |                           |
 |D4c         |Bzone     |Year  |double    |aggregate peak period transit service             |NA, < 0  |                           |
 |D5          |Bzone     |Year  |double    |NA                                                |NA, < 0  |                           |
 |Marea       |Marea     |Year  |character |none                                              |         |                           |
@@ -127,14 +111,14 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 
 DESCRIPTION - A description of the data.
 
-|NAME                 |TABLE     |GROUP |TYPE     |UNITS   |PROHIBIT |ISELEMENTOF |DESCRIPTION                                                          |
-|:--------------------|:---------|:-----|:--------|:-------|:--------|:-----------|:--------------------------------------------------------------------|
-|WalkTrips            |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of walk trips per year by household members           |
-|BikeTrips            |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of bicycle trips per year by household members        |
-|TransitTrips         |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of public transit trips per year by household members |
-|TripDistance_Walk    |Household |Year  |integer  |trips   |NA, < 0  |            |Daily walking average trip length                                    |
-|BikeAvgTripDist      |Household |Year  |integer  |trips   |NA, < 0  |            |Daily biking average trip length                                     |
-|TripDistance_Transit |Household |Year  |integer  |trips   |NA, < 0  |            |Daily transit average trip length                                    |
-|WalkPMT              |Household |Year  |distance |MI      |NA, < 0  |            |Daily transit person miles traveled by all members of the household  |
-|BikePMT              |Household |Year  |distance |MI      |NA, < 0  |            |Daily biking person miles traveled by all members of the household   |
-|TransitPMT           |Household |Year  |distance |MI      |NA, < 0  |            |Daily transit person miles traveled by all members of the household  |
+|NAME               |TABLE     |GROUP |TYPE     |UNITS   |PROHIBIT |ISELEMENTOF |DESCRIPTION                                                          |
+|:------------------|:---------|:-----|:--------|:-------|:--------|:-----------|:--------------------------------------------------------------------|
+|WalkTrips          |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of walk trips per year by household members           |
+|BikeTrips          |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of bicycle trips per year by household members        |
+|TransitTrips       |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of public transit trips per year by household members |
+|WalkAvgTripDist    |Household |Year  |double   |MI      |NA, < 0  |            |Daily walking average trip length                                    |
+|BikeAvgTripDist    |Household |Year  |double   |MI      |NA, < 0  |            |Daily biking average trip length                                     |
+|TransitAvgTripDist |Household |Year  |double   |MI      |NA, < 0  |            |Daily transit average trip length                                    |
+|WalkPMT            |Household |Year  |distance |MI      |NA, < 0  |            |Daily walking person miles traveled by all members of the household  |
+|BikePMT            |Household |Year  |distance |MI      |NA, < 0  |            |Daily biking person miles traveled by all members of the household   |
+|TransitPMT         |Household |Year  |distance |MI      |NA, < 0  |            |Daily transit person miles traveled by all members of the household  |

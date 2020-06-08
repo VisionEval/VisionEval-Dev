@@ -4,14 +4,12 @@
 \name{WalkTFLModel_df}
 \alias{WalkTFLModel_df}
 \title{list-column data frame (tibble) with estimated model objects for household Walking TFL model}
-\format{
-The main data frame \code{WalkTFLModel} has 2 rows and 3 variables:
+\format{The main data frame \code{WalkTFLModel} has 2 rows and 3 variables:
 \describe{
   \item{metro}{metro or non-metro segment of the Walking TFL model}
   \item{model}{the model objects stored in list-column of the data frames}
   \item{post_func}{the function for post-processing model predictions}
-  }
-}
+  }}
 \usage{
 WalkTFLModel_df
 }

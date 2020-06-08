@@ -255,14 +255,6 @@ UNLIKELY - Values that are unlikely. Values that meet any of the listed conditio
 
 DESCRIPTION - A description of the data.
 
-### azone_vehicle_access_times.csv
-|NAME                 |TYPE |UNITS |PROHIBIT |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                                          |
-|:--------------------|:----|:-----|:--------|:-----------|:--------|:--------------------------------------------------------------------------------------------------------------------|
-|Geo                  |     |      |         |Azones      |         |Must contain a record for each Azone and model run year.                                                             |
-|Year                 |     |      |         |            |         |Must contain a record for each Azone and model run year.                                                             |
-|OwnedVehAccessTime   |time |MIN   |NA, < 0  |            |         |Average amount of time in minutes required for access to and egress from a household-owned vehicle for a trip        |
-|HighCarSvcAccessTime |time |MIN   |NA, < 0  |            |         |Average amount of time in minutes required for access to and egress from a high service level car service for a trip |
-|LowCarSvcAccessTime  |time |MIN   |NA, < 0  |            |         |Average amount of time in minutes required for access to and egress from a low service level car service for a trip  |
 ### azone_fuel_power_cost.csv
 |   |NAME      |TYPE     |UNITS |PROHIBIT |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                |
 |:--|:---------|:--------|:-----|:--------|:-----------|:--------|:----------------------------------------------------------|
@@ -278,12 +270,14 @@ DESCRIPTION - A description of the data.
 |6  |FuelTax          |currency |USD        |NA, < 0      |            |         |Tax per gas gallon equivalent of fuel in dollars                                                                                                                           |
 |7  |VmtTax           |currency |USD        |NA, < 0      |            |         |Tax per mile of vehicle travel in dollars                                                                                                                                  |
 |8  |PevSurchgTaxProp |double   |proportion |NA, < 0, > 1 |            |         |Proportion of equivalent gas tax per mile paid by hydrocarbon fuel consuming vehicles to be charged to plug-in electric vehicles per mile of travel powered by electricity |
-### region_prop_externalities_paid.csv
-|   |NAME                 |TYPE   |UNITS      |PROHIBIT     |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                           |
-|:--|:--------------------|:------|:----------|:------------|:-----------|:--------|:-----------------------------------------------------------------------------------------------------|
-|1  |Year                 |       |           |             |            |         |Must contain a record for each model run year                                                         |
-|9  |PropClimateCostPaid  |double |proportion |NA, < 0, > 1 |            |         |Proportion of climate change costs paid by users (i.e. ratio of carbon taxes to climate change costs) |
-|10 |PropOtherExtCostPaid |double |proportion |NA, < 0, > 1 |            |         |Proportion of other social costs paid by users                                                        |
+### azone_vehicle_access_times.csv
+|NAME                 |TYPE |UNITS |PROHIBIT |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                                          |
+|:--------------------|:----|:-----|:--------|:-----------|:--------|:--------------------------------------------------------------------------------------------------------------------|
+|Geo                  |     |      |         |Azones      |         |Must contain a record for each Azone and model run year.                                                             |
+|Year                 |     |      |         |            |         |Must contain a record for each Azone and model run year.                                                             |
+|OwnedVehAccessTime   |time |MIN   |NA, < 0  |            |         |Average amount of time in minutes required for access to and egress from a household-owned vehicle for a trip        |
+|HighCarSvcAccessTime |time |MIN   |NA, < 0  |            |         |Average amount of time in minutes required for access to and egress from a high service level car service for a trip |
+|LowCarSvcAccessTime  |time |MIN   |NA, < 0  |            |         |Average amount of time in minutes required for access to and egress from a low service level car service for a trip  |
 ### region_co2e_costs.csv
 This input file is OPTIONAL.
 
@@ -291,6 +285,12 @@ This input file is OPTIONAL.
 |:--|:--------|:--------|:-----|:--------|:-----------|:--------|:--------------------------------------------------------------|
 |1  |Year     |         |      |         |            |         |Must contain a record for each model run year                  |
 |11 |CO2eCost |currency |USD   |NA, < 0  |            |         |Environmental and social cost of CO2e emissions per metric ton |
+### region_prop_externalities_paid.csv
+|   |NAME                 |TYPE   |UNITS      |PROHIBIT     |ISELEMENTOF |UNLIKELY |DESCRIPTION                                                                                           |
+|:--|:--------------------|:------|:----------|:------------|:-----------|:--------|:-----------------------------------------------------------------------------------------------------|
+|1  |Year                 |       |           |             |            |         |Must contain a record for each model run year                                                         |
+|9  |PropClimateCostPaid  |double |proportion |NA, < 0, > 1 |            |         |Proportion of climate change costs paid by users (i.e. ratio of carbon taxes to climate change costs) |
+|10 |PropOtherExtCostPaid |double |proportion |NA, < 0, > 1 |            |         |Proportion of other social costs paid by users                                                        |
 
 ## Datasets Used by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:
