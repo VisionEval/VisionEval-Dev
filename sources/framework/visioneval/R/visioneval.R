@@ -691,10 +691,12 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
     )
     for (Alias in names(M$Specs$Call)) {
       #Called module function when specified as package::module
+      Function <- M$Specs$Call[[Alias]]
+      #Called module function when only module is specified
       if (length(unlist(strsplit(Function, "::"))) == 1) {
         Pkg_df <- getModelState()$ModuleCalls_df
         if (sum (Pkg_df$Module == Function) != 0  ) {
-          Pkg_df <- getModelState()$ModulesByPackage_df
+          Pkg_df <- getModelState()$ModuleCalls_df
           Function <-
             paste(Pkg_df$Package[Pkg_df$Module == Function], Function, sep = "::")
           
@@ -707,6 +709,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
           rm(Pkg_df)
         }
       }
+      
       #Called module specifications
       Specs <- paste0(Function, "Specifications")
       #Assign the function and specifications of called module to alias
@@ -732,7 +735,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
     }
     #Run module
     if (exists("Call")) {
-      R <- M$Func(L, Call$Func)
+      R <- M$Func(L, M = Call$Func)
     } else {
       R <- M$Func(L)
     }

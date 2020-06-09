@@ -1,5 +1,5 @@
 #===================
-#CalculateRoadDvmt.R
+#CalculateSafetyMeasures.R
 #===================
 
 #<doc>
@@ -281,29 +281,11 @@ usethis::use_data(CalculateSafetyMeasuresSpecifications, overwrite = TRUE)
 #------------------------------------------------
 #' Assign base year DVMT by vehicle type and road class for Mareas
 #'
-#' \code{CalculateSafetyMeasures} calculates DVMT on roadways within the
-#' urbanized portions of Mareas by vehicle type (light-duty vehicle,
-#' heavy truck, bus) and road class (freeway, arterial, other). It computes
-#' some other values as explained in the details. It also calls the
-#' assignHhUrbanDvmtProp function to assign a proportion of each household's
-#' DVMT to urban roadways.
+#' \code{CalculateSafetyMeasures} Calculates number of yearly fatal and injury crashes
+#' for Auto, Bike, Walk, Rail, Bus and Van modes
 #'
-#' This function calculates several values necessary for calculating road
-#' performance and vehicle energy consumption and emissions. These include
-#' calculating base year daily vehicle miles of travel (DVMT) by vehicle type
-#' (light-duty, heavy truck, bus), and jointly by vehicle type and road class
-#' (freeway, arterial, other) for roadways in the urbanized proportions in
-#' Mareas. The function also computes required parameters used for calculating
-#' future year DVMT by vehicle type and road class. The function computes base
-#' year heavy truck DVMT and ratios of heavy truck DVMT to total region
-#' population and income. The function calculates base year commercial service
-#' light-duty vehicle (LDV) DVMT and ratios of that DVMT to population,
-#' household DVMT, and income by Marea. The ratio of LDV urbanized area road
-#' DVMT to total DVMT of households residing in the urbanized area, commercial
-#' service LDV associated with resident households, and public transit LDV DVMT
-#' is calculated for each Marea. This ratio is used to calculate future year LDV
-#' roadway DVMT from total urbanized area LDV demand.
-#'
+#'This function uses estimated VMT and PMT for all the modes and apply the 
+#'crash rates which are the input of the moduls to get the total number of crashes
 #' @param L A list containing data defined by the module specification.
 #' @return A list containing data produced by the function consistent with the
 #' module specifications.
@@ -338,12 +320,12 @@ CalculateSafetyMeasures <- function(L) {
              AutoInjuryCrashUrban= AutoInjur[[1]] * UrbanHhDvmt[[1]] / (10^8),
              AutoFatalCrashTown = AutoFatal[[1]] * TownHhDvmt[[1]] / (10^8),
              AutoInjuryCrashTown = AutoInjur[[1]] * TownHhDvmt[[1]] / (10^8),
-             busfatal = BusFatal[[1]] * BusDvmt[[1]] / (10^8), 
-             businjury = BusInjur[[1]] *BusDvmt[[1]] / (10^8),
-             railfatal = RailFatal[[1]] * RailDvmt[[1]] / (10^8), 
-             railinjury = RailInjur[[1]] *RailDvmt[[1]] / (10^8),
-             vanfatal = BusFatal[[1]] * VanDvmt[[1]] / (10^8), 
-             vaninjury = BusInjur[[1]] *VanDvmt[[1]] / (10^8) )
+             busfatal = BusFatal[[1]] * BusDvmt[[1]] / (10^6), 
+             businjury = BusInjur[[1]] *BusDvmt[[1]] / (10^6),
+             railfatal = RailFatal[[1]] * RailDvmt[[1]] / (10^6), 
+             railinjury = RailInjur[[1]] *RailDvmt[[1]] / (10^6),
+             vanfatal = BusFatal[[1]] * VanDvmt[[1]] / (10^6), 
+             vaninjury = BusInjur[[1]] *VanDvmt[[1]] / (10^6) )
     
       
     Out_ls <- initDataList()
@@ -376,51 +358,4 @@ CalculateSafetyMeasures <- function(L) {
 #Run module automatic documentation
 #----------------------------------
 documentModule("CalculateSafetyMeasures")
-
-#Test code to check specifications, loading inputs, and whether datastore
-#contains data needed to run module. Return input list (L) to use for developing
-#module functions
-#-------------------------------------------------------------------------------
-# #Load libraries and test functions
-# library(visioneval)
-# library(filesstrings)
-# source("tests/scripts/test_functions.R")
-# load("data/RoadDvmtModel_ls.rda")
-# #Set up test environment
-# TestSetup_ls <- list(
-#   TestDataRepo = "../Test_Data/VE-CLMPO",
-#   DatastoreName = "Datastore.tar",
-#   LoadDatastore = TRUE,
-#   TestDocsDir = "veclmpo",
-#   ClearLogs = TRUE,
-#   # SaveDatastore = TRUE
-#   SaveDatastore = FALSE
-# )
-# setUpTests(TestSetup_ls)
-# #Run test module
-# TestDat_ <- testModule(
-#   ModuleName = "CalculateRoadDvmt",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = FALSE,
-#   DoRun = FALSE,
-#   RunFor = "BaseYear"
-# )
-# L <- TestDat_$L
-# R <- CalculateRoadDvmt(L)
-#
-# TestDat_ <- testModule(
-#   ModuleName = "CalculateRoadDvmt",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
-#   DoRun = TRUE,
-#   RunFor = "BaseYear"
-# )
-#
-# TestDat_ <- testModule(
-#   ModuleName = "CalculateRoadDvmt",
-#   LoadDatastore = TRUE,
-#   SaveDatastore = TRUE,
-#   DoRun = TRUE,
-#   RunFor = "NotBaseYear"
-# )
 

@@ -111,14 +111,14 @@ ISELEMENTOF - Categorical values that are permitted. Values in the datastore are
 
 DESCRIPTION - A description of the data.
 
-|NAME               |TABLE     |GROUP |TYPE     |UNITS   |PROHIBIT |ISELEMENTOF |DESCRIPTION                                                          |
-|:------------------|:---------|:-----|:--------|:-------|:--------|:-----------|:--------------------------------------------------------------------|
-|WalkTrips          |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of walk trips per year by household members           |
-|BikeTrips          |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of bicycle trips per year by household members        |
-|TransitTrips       |Household |Year  |compound |TRIP/YR |NA, < 0  |            |Average number of public transit trips per year by household members |
-|WalkAvgTripDist    |Household |Year  |double   |MI      |NA, < 0  |            |Daily walking average trip length                                    |
-|BikeAvgTripDist    |Household |Year  |double   |MI      |NA, < 0  |            |Daily biking average trip length                                     |
-|TransitAvgTripDist |Household |Year  |double   |MI      |NA, < 0  |            |Daily transit average trip length                                    |
-|WalkPMT            |Household |Year  |distance |MI      |NA, < 0  |            |Daily walking person miles traveled by all members of the household  |
-|BikePMT            |Household |Year  |distance |MI      |NA, < 0  |            |Daily biking person miles traveled by all members of the household   |
-|TransitPMT         |Household |Year  |distance |MI      |NA, < 0  |            |Daily transit person miles traveled by all members of the household  |
+|NAME               |TABLE     |GROUP |TYPE     |UNITS     |PROHIBIT |ISELEMENTOF |DESCRIPTION                                                          |
+|:------------------|:---------|:-----|:--------|:---------|:--------|:-----------|:--------------------------------------------------------------------|
+|WalkTrips          |Household |Year  |compound |TRIP/YEAR |NA, < 0  |            |Average number of walk trips per year by household members           |
+|BikeTrips          |Household |Year  |compound |TRIP/YEAR |NA, < 0  |            |Average number of bicycle trips per year by household members        |
+|TransitTrips       |Household |Year  |compound |TRIP/YEAR |NA, < 0  |            |Average number of public transit trips per year by household members |
+|WalkAvgTripDist    |Household |Year  |double   |MI        |NA, < 0  |            |Daily walking average trip length                                    |
+|BikeAvgTripDist    |Household |Year  |double   |MI        |NA, < 0  |            |Daily biking average trip length                                     |
+|TransitAvgTripDist |Household |Year  |double   |MI        |NA, < 0  |            |Daily transit average trip length                                    |
+|WalkPMT            |Household |Year  |distance |MI        |NA, < 0  |            |Daily walking person miles traveled by all members of the household  |
+|BikePMT            |Household |Year  |distance |MI        |NA, < 0  |            |Daily biking person miles traveled by all members of the household   |
+|TransitPMT         |Household |Year  |distance |MI        |NA, < 0  |            |Daily transit person miles traveled by all members of the household  |
