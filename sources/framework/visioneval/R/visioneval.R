@@ -735,7 +735,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
     }
     #Run module
     if (exists("Call")) {
-      R <- M$Func(L, M = Call$Func)
+      R <- M$Func(L, Call$Func)
     } else {
       R <- M$Func(L)
     }
