@@ -4,10 +4,12 @@
 \name{DvmtSplit_LM}
 \alias{DvmtSplit_LM}
 \title{DVMT split factor model}
-\format{A linear model object
+\format{
+A linear model object
 \describe{
   \item{DvmtSplit_LM}{a linear model object}
-}}
+}
+}
 \source{
 CalculateRoadPerformance.R script.
 }

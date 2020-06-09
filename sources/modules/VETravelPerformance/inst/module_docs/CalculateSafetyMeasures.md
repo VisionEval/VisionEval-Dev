@@ -4,14 +4,14 @@
 
 A comprehensive analysis of transport futures might include direct impacts of travel decisions and transport system impacts, to include fuel consumption and carbon footprints. The measures have been key VisionEval performance measures from its outset. However, many analysts seek to include potential safety measures in their analyses, especially when comparing the status quo to lower auto ownership scenarios. Compiling safety impacts currently requires post-processing VisionEval results and advanced R programming skills:
 
-* *Crash rates per exposure level (e.g., million miles of travel) and associated morbidity and mortality rates and their economic (social) costs must be established
-* *The crash (incident) frequencies are summarized by vehicle type, and possibly age group, for the study area
-* *The economic impacts are calculated based upon exogenously specified rates and their associated costs. The user can create these summaries in a spreadsheet or with custom R code.
+* Crash rates per exposure level (e.g., million miles of travel) and associated morbidity and mortality rates and their economic (social) costs must be established
+* The crash (incident) frequencies are summarized by vehicle type, and possibly age group, for the study area
+* The economic impacts are calculated based upon exogenously specified rates and their associated costs. The user can create these summaries in a spreadsheet or with custom R code.
 
  This module aims to calculate safety measures for the model area. It uses the fatality and injury rates for different modes. 
  All these rates are per miles traveled. Therefore this module simply uses calculated VMT from model to estimate the 
  fatality and injury rates for Mrea
- 
+
 ## Model Parameter Estimation
 
 This module has no estimated parameters.
@@ -62,10 +62,10 @@ DESCRIPTION - A description of the data.
 |BikeInjur |compound |CRASH/MI |< 0      |            |         |Number of injury bike crashes per 100 millions of mile traveled |
 |WalkFatal |compound |CRASH/MI |< 0      |            |         |Number of fatal walk crashes per 100 millions of mile traveled  |
 |WalkInjur |compound |CRASH/MI |< 0      |            |         |Number of injuy walk crashes per 100 millions of mile traveled  |
-|BusFatal  |compound |CRASH/MI |< 0      |            |         |Number of fatal bus crashes per 100 millions of mile traveled   |
-|BusInjur  |compound |CRASH/MI |< 0      |            |         |Number of injury bus crashes per 100 millions of mile traveled  |
-|RailFatal |compound |CRASH/MI |< 0      |            |         |Number of fatal rail crashes per 100 millions of mile traveled  |
-|RailInjur |compound |CRASH/MI |< 0      |            |         |Number of injury rail crashes per 100 millions of mile traveled |
+|BusFatal  |compound |CRASH/MI |< 0      |            |         |Number of fatal bus crashes per 1 millions of mile traveled     |
+|BusInjur  |compound |CRASH/MI |< 0      |            |         |Number of injury bus crashes per 1 millions of mile traveled    |
+|RailFatal |compound |CRASH/MI |< 0      |            |         |Number of fatal rail crashes per 1 millions of mile traveled    |
+|RailInjur |compound |CRASH/MI |< 0      |            |         |Number of injury rail crashes per 1 millions of mile traveled   |
 
 ## Datasets Used by the Module
 The following table documents each dataset that is retrieved from the datastore and used by the module. Each row in the table describes a dataset. All the datasets must be present in the datastore. One or more of these datasets may be entered into the datastore from the user input files. The table names and their meanings are as follows:

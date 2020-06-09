@@ -7,9 +7,9 @@
 ## CalculateSafetyMeasures Module
 #### June 02, 1992
 #
-# This module aims to calculate safety measures for the model area. It uses the fatality and injury rates for different modes comnig
-# crashes from  soruce. All these rates are per miles traveled. Therefore this module simply uses calculated VMT from model to estimate the 
-# fatality and injury rates for Mrea
+# This module aims to calculate safety measures for the model area. It uses the fatality and injury crash rates for different modes
+# All these rates are per miles traveled. Therefore this module simply uses calculated VMT from model to estimate the 
+# fatality and injury rates for Marea
 ### Model Parameter Estimation
 #
 #This module has no estimated parameters.
@@ -18,7 +18,7 @@
 #
 #This module calculates following metrics:
 #
-#* * Auto daily fataility and injuries for Marea
+#* * Auto daily fataility and injuries for Urban, Rural and Town areas
 #* * Bike daily fataility and injuries for Marea
 #* * Walk daily fataility and injuries for Marea
 #* * Bus daily fataility and injuries for Marea
@@ -90,10 +90,10 @@ CalculateSafetyMeasuresSpecifications <- list(
           "Number of injury bike crashes per 100 millions of mile traveled",
           "Number of fatal walk crashes per 100 millions of mile traveled",
           "Number of injuy walk crashes per 100 millions of mile traveled",
-          "Number of fatal bus crashes per 100 millions of mile traveled",
-          "Number of injury bus crashes per 100 millions of mile traveled",
-          "Number of fatal rail crashes per 100 millions of mile traveled",
-          "Number of injury rail crashes per 100 millions of mile traveled"
+          "Number of fatal bus crashes per 1 millions of mile traveled",
+          "Number of injury bus crashes per 1 millions of mile traveled",
+          "Number of fatal rail crashes per 1 millions of mile traveled",
+          "Number of injury rail crashes per 1 millions of mile traveled"
         )
     )
   ),

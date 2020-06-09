@@ -4,7 +4,8 @@
 \name{RoadDvmtModel_ls}
 \alias{RoadDvmtModel_ls}
 \title{Roadway DVMT models}
-\format{A list having the following components:
+\format{
+A list having the following components:
 RuralVmt_StVtRc: array of DVMT on non-urban roads by state, vehicle type and
 road class used to calculate average split on non-urban roads;
 HvyTrkDvmtPC_St: the ratio of heavy truck DVMT to population by state;
@@ -19,7 +20,8 @@ road class in each state;
 UzaRcProps_UaVtRc: the proportional split of each type of DVMT by urban
 road class in each urbanized area;
 ComSvcDvmtFactor: the factor to calculate light-duty commercial service
-vehicle DVMT from household DVMT.}
+vehicle DVMT from household DVMT.
+}
 \source{
 CalculateRoadDVMT.R
 }

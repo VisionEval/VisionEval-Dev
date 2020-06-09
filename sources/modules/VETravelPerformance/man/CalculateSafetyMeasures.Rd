@@ -14,27 +14,10 @@ A list containing data produced by the function consistent with the
 module specifications.
 }
 \description{
-\code{CalculateSafetyMeasures} calculates DVMT on roadways within the
-urbanized portions of Mareas by vehicle type (light-duty vehicle,
-heavy truck, bus) and road class (freeway, arterial, other). It computes
-some other values as explained in the details. It also calls the
-assignHhUrbanDvmtProp function to assign a proportion of each household's
-DVMT to urban roadways.
+\code{CalculateSafetyMeasures} Calculates number of yearly fatal and injury crashes
+for Auto, Bike, Walk, Rail, Bus and Van modes
 }
 \details{
-This function calculates several values necessary for calculating road
-performance and vehicle energy consumption and emissions. These include
-calculating base year daily vehicle miles of travel (DVMT) by vehicle type
-(light-duty, heavy truck, bus), and jointly by vehicle type and road class
-(freeway, arterial, other) for roadways in the urbanized proportions in
-Mareas. The function also computes required parameters used for calculating
-future year DVMT by vehicle type and road class. The function computes base
-year heavy truck DVMT and ratios of heavy truck DVMT to total region
-population and income. The function calculates base year commercial service
-light-duty vehicle (LDV) DVMT and ratios of that DVMT to population,
-household DVMT, and income by Marea. The ratio of LDV urbanized area road
-DVMT to total DVMT of households residing in the urbanized area, commercial
-service LDV associated with resident households, and public transit LDV DVMT
-is calculated for each Marea. This ratio is used to calculate future year LDV
-roadway DVMT from total urbanized area LDV demand.
+This function uses estimated VMT and PMT for all the modes and apply the 
+crash rates which are the input of the moduls to get the total number of crashes
 }

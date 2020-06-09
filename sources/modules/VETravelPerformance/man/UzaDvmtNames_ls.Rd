@@ -4,11 +4,13 @@
 \name{UzaDvmtNames_ls}
 \alias{UzaDvmtNames_ls}
 \title{Urbanized area names list}
-\format{A list containing 2 components:
+\format{
+A list containing 2 components:
 \describe{
  \item{Names}{a vector of urbanized area names sorted by state and name}
  \item{Table}{a 3-column data frame of the names to include in documentation}
-}}
+}
+}
 \source{
 Initialize.R script.
 }
