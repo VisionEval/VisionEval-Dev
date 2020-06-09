@@ -67,7 +67,7 @@ initializeModel <-
     DatastoreName = NULL,
     SaveDatastore = TRUE
   ) {
-
+    
     #====================================================================
     #INITIALIZE MODEL STATE AND LOG FILES, AND ASSIGN DATASTORE FUNCTIONS
     #====================================================================
@@ -101,7 +101,7 @@ initializeModel <-
     }
     #Assign the correct datastore interaction functions
     assignDatastoreFunctions(readModelState()$DatastoreType)
-
+    
     #=======================================
     #CHECK CONFLICTS WITH EXISTING DATASTORE
     #=======================================
@@ -285,7 +285,7 @@ initializeModel <-
         "must be corrected. Check log for details."))
     }
     rm(DstoreConflicts)
-
+    
     #============================================================
     #LOAD OR INITIALIZE THE DATASTORE AND SAVE EXISTING DATASTORE
     #============================================================
@@ -385,7 +385,7 @@ initializeModel <-
         loadModelParameters(ModelParamFile = ModelParamFile)
       }
     })
-
+    
     #===========================================================================
     #PARSE SCRIPT TO MAKE TABLE OF ALL THE MODULE CALLS, CHECK AND COMBINE SPECS
     #===========================================================================
@@ -514,17 +514,21 @@ initializeModel <-
             }
             #Load and check the module specifications and add Get specs if
             #there are no specification errors
-            CallSpecs_ls <-
-              processModuleSpecs(getModuleSpecs(Call_[2], Call_[1]))
-            Err <- checkModuleSpecs(CallSpecs_ls, Call_[2])
-            if (length(Err) > 0) {
-              Errors_ <- c(Errors_, Err)
-              next()
-            } else {
-              AllSpecs_ls[[i]]$Specs$Get <-
-                c(AllSpecs_ls[[i]]$Specs$Get <- Specs_ls$Get)
-            }
-          }
+            for (i in 1: (length(Call_)-1)) {
+              CallSpecs_ls <-
+                processModuleSpecs(getModuleSpecs(Call_[length(Call_)], Call_[i]))
+              Err <- checkModuleSpecs(CallSpecs_ls, Call_[length(Call_)])
+              if (length(Err) > 0) {
+                Errors_ <- c(Errors_, Err)
+                
+                
+                next()
+              } else {
+                AllSpecs_ls[[i]]$Specs$Get <-
+                  c(AllSpecs_ls[[i]]$Specs$Get <- Specs_ls$Get)
+              }
+            }  
+          } 
         }
       }
     }
@@ -538,12 +542,12 @@ initializeModel <-
       writeLog(Errors_)
       stop(Msg)
     }
-
+    
     #==================
     #SIMULATE MODEL RUN
     #==================
     simDataTransactions(AllSpecs_ls)
-
+    
     #===============================
     #CHECK AND PROCESS MODULE INPUTS
     #===============================
@@ -585,7 +589,7 @@ initializeModel <-
       stop("Input files have errors. Check the log for details.")
     }
     rm(InpErrors_)
-
+    
     #Load model inputs into the datastore
     #------------------------------------
     for (i in 1:nrow(ModuleCalls_df)) {
@@ -617,7 +621,7 @@ initializeModel <-
         inputsToDatastore(ProcessedInputs_ls[[EntryName]], ModuleSpecs_ls, Module)
       }
     }
-
+    
     #If no errors print out message
     #------------------------------
     SuccessMsg <-
@@ -690,11 +694,22 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
       Function <- M$Specs$Call[[Alias]]
       #Called module function when only module is specified
       if (length(unlist(strsplit(Function, "::"))) == 1) {
-        Pkg_df <- getModelState()$ModulesByPackage_df
-        Function <-
-          paste(Pkg_df$Package[Pkg_df$Module == Function], Function, sep = "::")
-        rm(Pkg_df)
+        Pkg_df <- getModelState()$ModuleCalls_df
+        if (sum (Pkg_df$Module == Function) != 0  ) {
+          Pkg_df <- getModelState()$ModuleCalls_df
+          Function <-
+            paste(Pkg_df$Package[Pkg_df$Module == Function], Function, sep = "::")
+          
+          rm(Pkg_df)          
+        } else {
+          Pkg_df <- getModelState()$ModulesByPackage_df
+          Function <-
+            paste(Pkg_df$Package[Pkg_df$Module == Function], Function, sep = "::")
+          
+          rm(Pkg_df)
+        }
       }
+      
       #Called module specifications
       Specs <- paste0(Function, "Specifications")
       #Assign the function and specifications of called module to alias
@@ -720,7 +735,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
     }
     #Run module
     if (exists("Call")) {
-      R <- M$Func(L, Call$Func)
+      R <- M$Func(L, M = Call$Func)
     } else {
       R <- M$Func(L)
     }
@@ -794,7 +809,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
         writeLog(Errors_)
         Msg <-
           paste0("Module ", ModuleName, " has reported one or more errors. ",
-                "Check log for details.")
+                 "Check log for details.")
         if(StopOnErr) {
           stop(Msg)
         } else {
