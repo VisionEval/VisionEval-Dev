@@ -44,7 +44,11 @@ evalq(
         }
       }
       make.me <- paste("make",paste(flags,collapse=" "),paste(targets,collapse=" "))
-      shell(make.me)
+      if(.Platform$OS.type == 'unix') {
+        system(make.me)
+        } else {
+          shell(make.me)
+        }
       if ( exists("r.home") ) Sys.setenv(R_HOME=r.home)
       setwd(owd)
     }
