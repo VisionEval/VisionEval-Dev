@@ -44,4 +44,4 @@ Each one is displayed as a histogram of the number of scenarios.
 
 More detail on how to view and select results is described in [[Multiple Scenarios | VERPAT-Tutorial-Multiple-Scenarios]].
 
-[[Overview | VERPAT-Tutorial-Overview]]
+[Overview](Main.md)
