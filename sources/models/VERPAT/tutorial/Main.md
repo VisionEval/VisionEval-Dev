@@ -25,4 +25,4 @@ To learn how to install and run VERPAT for a single scenario, see [[Running the 
   * [Inputs and Outputs](Input_Outputs.md): detailed list of model inputs and outputs.
 
 ## Notes
-Source for images is [documents/verpat_tutorial.pptx](documents/verpat_tutorial.pptx)
+Source for images is [documents/verpat_tutorial.pptx](documents/verpat_tutorial_images.pptx)
