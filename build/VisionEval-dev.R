@@ -46,6 +46,11 @@ evalq(
       r.home <- Sys.getenv("R_HOME")
       tryCatch(
         { 
+          if(Sys.info()['sysname'] == 'Windows' & 
+             !grepl('rtools', Sys.which('make'))){
+            stop('Please install Rtools for Windows, and make sure it is available in the system PATH. \n https://cran.r-project.org/bin/windows/Rtools/')
+          }
+          
           if ( length(r.version)>0 ) {
             r.version <- r.version[1] # only the first is used
             Sys.setenv(VE_R_VERSION=r.version)
