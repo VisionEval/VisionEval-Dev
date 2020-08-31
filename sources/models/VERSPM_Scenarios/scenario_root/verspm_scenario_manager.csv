@@ -32,5 +32,5 @@ Fuel Price,Context factor on the assumed market price of gasoline (exclusive of 
 Fuel Price,Context factor on the assumed market price of gasoline (exclusive of fuel taxes.),1,G,Fuel Price,Real fuel price in 2010 USD.,,2,Double fuel price,Real fuel price doubles.,azone_fuel_power_cost.csv
 Fuel Price,Context factor on the assumed market price of gasoline (exclusive of fuel taxes.),2,G,Fuel Price,Real fuel price in 2010 USD.,,3,Quadruple fuel price,Real fuel price quadruples.,azone_fuel_power_cost.csv
 Income,Context factor on the assumed growth of statewide average per capita income.,0,I,Income,Real average household income in 2010 USD.,,1,Base,Baseline household income.,azone_per_cap_inc.csv
-Income,Context factor on the assumed growth of statewide average per capita income.,1,I,Income,Real average household income in 2010 USD.,,2,Income growth 1,Income growth of 7% w.r.t reference.,azone_per_cap_inc
-Income,Context factor on the assumed growth of statewide average per capita income.,2,I,Income,Real average household income in 2010 USD.,,3,Income growth 2,Income growth of 14% w.r.t reference.,azone_per_cap_inc
+Income,Context factor on the assumed growth of statewide average per capita income.,1,I,Income,Real average household income in 2010 USD.,,2,Income growth 1,Income growth of 7% w.r.t reference.,azone_per_cap_inc.csv
+Income,Context factor on the assumed growth of statewide average per capita income.,2,I,Income,Real average household income in 2010 USD.,,3,Income growth 2,Income growth of 14% w.r.t reference.,azone_per_cap_inc.csv

@@ -112,25 +112,26 @@ These are the current list of VERSPM_Scenarios categories:
     "ISELEMENTOF" : ""
   }
 ]
-
-                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                         
 ```
-** Model folder : The VERSPM base model folder name 
-** ScenarioInputFolder: Folder name for scenario root where scenario manager file is located. All the scenario level folders will be created here
-** ScenarioManagerFile : Scenario manager database file name
-** ScenarioOutputFolder: Name of the folder where all the scenarios are created
+
+* Model folder : The VERSPM base model folder name 
+* ScenarioInputFolder: Folder name for scenario root where scenario manager file is located. All the scenario level 
+folders will be created here
+* ScenarioManagerFile : Scenario manager database file name
+* ScenarioOutputFolder: Name of the folder where all the scenarios are created
 
 
-### Running VERSPM_Scnearios
+### Running VERSPM_Scenarios
 
-Running VERSPM_Scenario has 5 major steps. After initalizing the module there are 5 modules to call
+Running VERSPM_Scenario has 5 major steps. After initalizing the module there are 5 modules to call:
 
 
-** NewScenarioSet : This module creates the required categories and scenarios json files from csv database. It also creates the folder structure and required inputs for all scenario levels  
-** BuildScenarios: This module creates all possible scnearios which are defined in previous step. It copies the base VERSPM files for each scenario folder 
-** RunScenarios : This module runs all scenarios 
-** VERSPMResults: This model summarizes all different scenario outputs from datastor to standard format
-** ViewResults:  This module create the visualization and summaries for different performance measures 
+* NewScenarioSet : This module creates the required categories and scenarios json files from csv database. It also creates the folder structure and required inputs for all scenario levels  
+* BuildScenarios: This module creates all possible scnearios which are defined in previous step. It copies the base VERSPM files for each scenario folder 
+* RunScenarios : This module runs all scenarios 
+* VERSPMResults: This model summarizes all different scenario outputs from datastor to standard format
+* ViewResults:  This module create the visualization and summaries for different performance measures 
 
 ```{r, eval=FALSE}
 

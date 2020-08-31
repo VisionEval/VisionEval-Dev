@@ -45,19 +45,19 @@ Full instructions and reference materials are included below and in various refe
 Here's a sequence of steps that will get you started:
 
 1. Install [Git for Windows][Git4W] or equivalent - technically optional, but recommended
-1. Install R\
+1. Install R
    (usually the most recent version works; must be 3.6.0 or later)
 2. Install RTools40
-3. Install RStudio\
+3. Install RStudio
    (a version compatible with RTools40)
 4. Copy or clone the VisionEval repository
-5. Start RStudio and open the VisionEval-dev.Rproj project\
+5. Start RStudio and open the VisionEval-dev.Rproj project
    (On most graphic display machines, just double-click it)
-6. Execute the ve.build() function:\
+6. Execute the ve.build() function:
    (A full build from scratch takes from 45 minutes to an hour and a half on a typical Windows machine)\
    ```
    ve.build()
-   ```\
+   ```
 7. Once the build is done, you can get into the runtime environment in two ways:
    1. By executing ve.run() from the VisionEval-dev RStudio project.
    2. By double-clicking the VisionEval.Rproj RStudio project file down in the
@@ -115,21 +115,23 @@ consdier using is "-n", which does a "dry run" (it will build the configuration 
 ### `ve.build()` Additional Notes
 
 You can build for any supported version of R on Windows, provided it is installed and can be located on your system.
-Just give `ve.build` a different `r.version` parameter (e.g. `ve.build(r.version='3.6.3')`
+Just give `ve.build` a different `r.version` parameter (e.g. `ve.build(r.version='3.6.3')`.
 
-r.version will not look for other versions of R on Linux or the Mac; on those systems you should set RStudio (via
+`r.version` will not look for other versions of R on Linux or the Mac; on those systems you should set RStudio (via
 its global options) to use an R installed some place other than the default R path.
 
 If you want to reset the build products (e.g. if you are using the default 'visioneval' build branch and need to
 build a different branch in the same place), you should clean your output:
 
 ```
-ve.build(c("clean")
+ve.build("clean")
 ```
-You can build an installer by doing this:\
+You can build an installer by doing this:
+
 ```
 ve.build("installer")
-```\
+```
+
 If you ask for an installer and you have not already built the runtime, it will go ahead and do that for you anyway.
 
 The complete set of build targets is documented in build/Makefile.md. Some of the "-clean" targets can be helpful for

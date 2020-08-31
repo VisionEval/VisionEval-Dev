@@ -31,6 +31,13 @@ initializeModel(
 #---------------------------------
 for(Year in getYears()) {
   runModule(
+    ModuleName = "NewScenarioSet",
+    PackageName = "VEScenario",
+    RunFor = "AllYears",
+    RunYear = Year
+  )
+  
+  runModule(
     ModuleName = "BuildScenarios",
     PackageName = "VEScenario",
     RunFor = "AllYears",
