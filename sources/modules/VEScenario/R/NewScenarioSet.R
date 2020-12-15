@@ -25,19 +25,19 @@ NewScenarioSetSpecifications <- list(
   # Specify Input data
   # Specify data to be loaded from the datastore
   Get = items(
-
-  item(
-    NAME = "ModelFolder",
-    TABLE = "Model",
-    GROUP = "Global",
-    TYPE = "character",
-    UNITS = "NA",
-    SIZE = 20,
-    PROHIBIT = "NA",
-    ISELEMENTOF = ""
-  )
-  ,
-  
+    
+    item(
+      NAME = "ModelFolder",
+      TABLE = "Model",
+      GROUP = "Global",
+      TYPE = "character",
+      UNITS = "NA",
+      SIZE = 20,
+      PROHIBIT = "NA",
+      ISELEMENTOF = ""
+    )
+    ,
+    
     item(
       NAME = "ScenarioInputFolder",
       TABLE = "Model",
@@ -47,33 +47,33 @@ NewScenarioSetSpecifications <- list(
       PROHIBIT = "NA",
       ISELEMENTOF = "",
       DESCRIPTION = "Scenario Input folder"
-    
+      
+    )
+    ,
+    item(
+      NAME = "ScenarioManagerFile",
+      TABLE = "Model",
+      GROUP = "Global",
+      TYPE = "character",
+      UNITS = "NA",
+      PROHIBIT = "NA",
+      ISELEMENTOF = "",
+      DESCRIPTION = "name of scenario management csv database"
+      
+    )
+  ),
+  Set = items(
+    item(
+      NAME = "Scenarioset",
+      TABLE = "Model",
+      GROUP = "Global",
+      TYPE = "integer",
+      UNITS = "NA",
+      PROHIBIT = "NA",
+      ISELEMENTOF = "",
+      DESCRIPTION = "Returns 1 if scenario set build is complete"
+    )
   )
-  ,
-  item(
-    NAME = "ScenarioManagerFile",
-    TABLE = "Model",
-    GROUP = "Global",
-    TYPE = "character",
-    UNITS = "NA",
-    PROHIBIT = "NA",
-    ISELEMENTOF = "",
-    DESCRIPTION = "name of scenario management csv database"
-    
-  )
-),
-Set = items(
-  item(
-    NAME = "Scenarioset",
-    TABLE = "Model",
-    GROUP = "Global",
-    TYPE = "integer",
-    UNITS = "NA",
-    PROHIBIT = "NA",
-    ISELEMENTOF = "",
-    DESCRIPTION = "Returns 1 if scenario set build is complete"
-  )
-)
 )
 
 #Save the data specifications list
@@ -124,7 +124,7 @@ NewScenarioSet <- function(L){
   ModelPath <- file.path(RunDir, L$Global$Model$ModelFolder)
   
   assign("%>%",getFromNamespace("%>%","magrittr"))
-
+  
   # private methods --------------------------------------------------------------
   .ReadScenarioFormFromCSV <- function(input_file_name) {
     
@@ -249,8 +249,9 @@ NewScenarioSet <- function(L){
   #   input_form_file_name:
   #     Standard VisionEval scenario configuration CSV file, which can have any name and
   #     file location that you wish. 
-  ve.scenario_management.make_directory_structure <- function(target_root_dir, input_form_csv){
-
+  ve.scenario_management.make_directory_structure <- function(target_root_dir = scenario_root_dir, input_form_csv=csv_database_file){
+    
+    unlink(list.files(target_root_dir, full.names = TRUE), recursive = TRUE)
     form_df <- .ReadScenarioFormFromCSV(input_form_csv)
     
     for (row_index in 1:nrow(form_df)) {
@@ -265,27 +266,32 @@ NewScenarioSet <- function(L){
       inputs_list <-  unlist(strsplit(inputs_requierd, ","))
       #check if inputs exist in parent directry
       for (i in 1:length(inputs_list)) {
-
-          if( !file.exists(file.path(ModelPath, "inputs", inputs_list[i])) ) {
-            stop(paste0(inputs_list[i] , " does not exist in the main input directory "))
-         
-          } else {
-         
-            file.copy(file.path(ModelPath, "inputs",inputs_list[i]), level_two_dir)
-         
-          }
-
+        
+        if( !file.exists(file.path(ModelPath, "inputs", inputs_list[i])) ) {
+          stop(paste0(inputs_list[i] , " does not exist in the main input directory "))
+          
+        } else {
+          
+          file.copy(file.path(ModelPath, "inputs",inputs_list[i]), level_two_dir)
+          file.rename(file.path(level_two_dir,inputs_list[i]),
+                      file.path(level_two_dir,paste0("Unedited_",inputs_list[i])))
+          
+        }
+        
       } 
     }
   }
-
+  
   ## read user defined scenario database and makes json files   
-    
-  scenario_root_dir <- file.path(RunDir, L$Global$Model$ScenarioInputFolder)
-  csv_database_file <- file.path(scenario_root_dir,L$Global$Model$ScenarioManagerFile)
+  setwd("../Stage-2")
+  stage_2_dir <- getwd()
+  scenario_root_dir <- file.path(stage_2_dir, L$Global$Model$ScenarioInputFolder)  
+  scenario_manager_dir <- file.path(RunDir, "defs")
+  csv_database_file <- file.path(scenario_manager_dir,L$Global$Model$ScenarioManagerFile)
   ve.scenario_management.make_json_from_form_csv(csv_database_file, scenario_root_dir)
   ve.scenario_management.make_directory_structure(scenario_root_dir,csv_database_file)
- 
+  ve.scenario_management.make_json_from_form_csv(csv_database_file, scenario_root_dir)
+  
   Out_ls <- initDataList()
   Out_ls$Global$Model <- list(Scenarioset = 1L)
   return(Out_ls)
