@@ -6,7 +6,7 @@
 
 #Load libraries
 #--------------
-cat('run_model.R: script entered\n')
+cat('run_model.R: Stage-2 script entered\n')
 library(visioneval)
 cat('run_model.R: libraries loaded\n')
 
@@ -22,14 +22,15 @@ initializeModel(
   RunParamFile = "run_parameters.json",
   GeoFile = "geo.csv",
   ModelParamFile = "model_parameters.json",
-  LoadDatastore = FALSE,
-  DatastoreName = NULL,
+  LoadDatastore = TRUE,
+  DatastoreName = "../Stage-1/Datastore",
   SaveDatastore = TRUE
 )
 
 #Run all demo module for all years
 #---------------------------------
 for(Year in getYears()) {
+  
   runModule(
     ModuleName = "BuildScenarios",
     PackageName = "VEScenario",
@@ -55,6 +56,5 @@ for(Year in getYears()) {
     RunYear = Year
   )
 }
-cat('run_model.R: run complete.\n')
-
+cat('run_model.R: Stage 2 complete.\n')
 proc.time() - ptm
