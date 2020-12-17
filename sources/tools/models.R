@@ -134,13 +134,21 @@ log.level <- function(level) {
   }
 }
 
-ve.run.model <- function(verbose=TRUE,path=NULL,stage=NULL,log="ERROR") {
+ve.run.model <- function(verbose=TRUE,path=NULL,stage=NULL,lastStage=NULL,log="ERROR") {
   # Unlike .dir the path/stage says where to start - the run will
   # then continue by running that stage then each following stage
   if ( missing(path) ) path <- stage    # Still might be NULL; allow alias
   pathLength <- length(self$modelPath)
   stageStart <- if ( ! is.null(path) ) path else 1
-  for ( ms in stageStart:self$stageCount ) {
+
+  if ( is.null(lastStage) || lastStage < stageStart ) {
+    lastStage <- stageStart
+  } else if ( lastStage==0 ) {
+    lastStage <- self$stageCount
+  } # else it is what it is (hopefully a number > stageStart)
+
+  if ( is.null(lastStage) ) lastStage <- self$stageCount
+  for ( ms in stageStart:lastStage ) {
     stage <- self$modelPath[ms]
     if ( verbose ) {
       message("Running model stage:")

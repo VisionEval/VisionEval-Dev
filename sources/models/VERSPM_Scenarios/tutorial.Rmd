@@ -127,6 +127,9 @@ After creating this database when you run the VERSPM_Scenarios model, a director
 ** ScenarioManagerFile : Scenario manager database file name
 ** ScenarioOutputFolder: Name of the folder where all the scenarios are created
 
+### Base Model
+
+VERSPM scenarios requires a base model for running different scnearios. The model folder is called VERSPM_Base_model and located in stage-2 folder. If you need to change the base model, for instance if you want to use VERSPM_MM model, you need to replace the files in VERSPM_Base_model folder with the new base model
 
 ### Modules
 Running VERSPM_Scenario has 5 major modules:
