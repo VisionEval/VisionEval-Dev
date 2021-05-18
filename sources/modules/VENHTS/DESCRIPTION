@@ -1,0 +1,26 @@
+Package: VENHTS
+Type: Package
+Title: Create 2009 NHTS datasets for model estimation
+Version: 2.0.0
+Date: 2020-08-14
+Author: Arash Asadabadi [aut, cre],
+Copyright: AASHTO
+Description: This package creates and saves 3 data frames that are used to 
+    estimate various VisionEval models. These data frames are created from
+    the publically available data from the 2009 National Household Travel Survey 
+    (NHTS) augmented with data on metropolitan area freeway supply and transit
+    supply. The package produces a data frames of household characteristics and
+    travel, vehicle characteristics, household tours .
+License: file LICENSE
+LazyData: TRUE
+Depends: R (>= 3.6.0)
+Imports:
+    visioneval,
+	dplyr,
+	tidyr
+Suggests:
+    knitr
+VignetteBuilder: knitr
+Encoding: UTF-8
+Roxygen: list(load='source')
+RoxygenNote: 7.1.1

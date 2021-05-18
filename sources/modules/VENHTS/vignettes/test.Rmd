@@ -1,0 +1,419 @@
+---
+title: "NHTS_Comparison"
+author: "AA"
+date: "April 20, 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Overhead
+```{r overhead, include = FALSE}
+packages_vector <- c("tidyverse",
+                     "dplyr",
+                     "ggplot2"
+                     )
+
+need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
+
+if (length(need_to_install)) install.packages(need_to_install)
+
+for (package in packages_vector){
+  library(package, character.only = TRUE)
+}
+
+```
+## R Markdown
+
+
+### load data
+```{r data, include=FALSE}
+
+
+
+Hh_df_2001 <- VE2001NHTS::Hh_df
+Veh_df_2001 <- VE2001NHTS::Veh_df
+Per_df_2001 <- VE2001NHTS::Per_df
+Tour_df_2001 <- VE2001HTS::HhTours_df
+
+Hh_df_2009 <- VENHTS::Hh_df
+Veh_df_2009 <- VENHTS::Veh_df
+Per_df_2009 <- VENHTS::Per_df
+Tour_df_2009 <- VEHTS::HhTours_df
+
+```
+
+
+## Household size
+```{r Household size, echo=FALSE}
+
+size_2001 <- Hh_df_2001 %>%
+  select(Hhsize,Expfllhh)%>%
+  mutate(Hhsize = if_else(Hhsize>5,"6+",as.character(Hhsize)))%>%
+  group_by(Hhsize)%>%
+  summarise(count = sum(Expfllhh))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+size_2009 <- Hh_df_2009 %>%
+  select(Hhsize,Wthhfin)%>%
+  mutate(Hhsize = if_else(Hhsize>5,"6+",as.character(Hhsize)))%>%
+  group_by(Hhsize)%>%
+  summarise(count = sum(Wthhfin))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+size <- select(rbind(size_2001,size_2009),Hhsize, percentage, Source)
+ggplot(size, aes(x= Hhsize, y=percentage,fill =Source )) + geom_bar(stat = "identity",position = "dodge") +
+  labs(y = "Percent", 
+      x = "Hh Size",
+      title = "Household Size") +
+  theme(plot.title = element_text(hjust=0.5))
+
+```
+
+
+## Household number of vehicles
+```{r Vehicles, echo=FALSE}
+veh_2001 <- Hh_df_2001 %>%
+  select(NumVeh,Expfllhh)%>%
+  mutate(NumVeh = if_else(NumVeh>4,"5+",as.character(NumVeh)))%>%
+  group_by(NumVeh)%>%
+  summarise(count = sum(Expfllhh))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+veh_2009 <- Hh_df_2009 %>%
+  select(NumVeh,Wthhfin)%>%
+  mutate(NumVeh = if_else(NumVeh>4,"5+",as.character(NumVeh)))%>%
+  group_by(NumVeh)%>%
+  summarise(count = sum(Wthhfin))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+veh <- select(rbind(veh_2001,veh_2009),vehicle = NumVeh, percentage, Source)
+ggplot(veh, aes(x= vehicle, y=percentage,fill =Source )) + geom_bar(stat = "identity",position = "dodge")+
+  labs(y = "Percent", 
+      x = "Number of Vehicles",
+      title = "Number of Household Vehicles") +
+  theme(plot.title = element_text(hjust=0.5))
+
+
+```
+
+
+## Household Income
+```{r Income, echo=FALSE}
+income_2001 <- Hh_df_2001 %>%
+  select(IncGrp,Expfllhh )%>%
+  filter(IncGrp != "NA") %>%
+  group_by(IncGrp)%>%
+  summarise(count = sum(Expfllhh))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+income_2009 <- Hh_df_2009 %>%
+  select(IncGrp,Wthhfin )%>% 
+  filter(IncGrp != "NA") %>%
+  group_by(IncGrp)%>%
+  summarise(count = sum(Wthhfin))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+income <- select(rbind(income_2001,income_2009),income = IncGrp, percentage, Source)
+ggplot(income, aes(x= income, y=percentage,fill =Source )) + geom_bar(stat = "identity",position = "dodge")+
+  labs(y = "Percent", 
+       x = "Income Group",
+       title = "Distribution of Household Income") +
+  theme(plot.title = element_text(hjust=0.5))
+
+
+
+```
+
+
+## Development Type 
+```{r urbanized, echo=FALSE}
+Urban_2001 <- Hh_df_2001 %>%
+  select(Expfllhh,UrbanDev,TownDev,RuralDev,SecondCityDev,SuburbanDev )%>% 
+  mutate_each(funs(replace(., is.na(.), 0))) %>%
+  mutate(Dev_Type = if_else(UrbanDev==1,"UrbanDev",
+                    if_else(TownDev==1,"TownDev",
+                    if_else(RuralDev==1,"RuralDev",
+                    if_else(SecondCityDev==1,"SecondCityDev",
+                    if_else(SuburbanDev==1,"SuburbanDev", NULL))))))  %>%
+  filter(Dev_Type  != "NA") %>%
+  group_by(Dev_Type )%>%
+  summarise(count = sum(Expfllhh))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+
+Urban_2009 <- Hh_df_2009 %>%
+  select(Wthhfin,UrbanDev,TownDev,RuralDev,SecondCityDev,SuburbanDev )%>% 
+  mutate_each(funs(replace(., is.na(.), 0))) %>%
+  mutate(Dev_Type = if_else(UrbanDev==1,"UrbanDev",
+                    if_else(TownDev==1,"TownDev",
+                    if_else(RuralDev==1,"RuralDev",
+                    if_else(SecondCityDev==1,"SecondCityDev",
+                    if_else(SuburbanDev==1,"SuburbanDev", NULL))))))  %>%
+  filter(Dev_Type  != "NA") %>%
+  group_by(Dev_Type )%>%
+  summarise(count = sum(Wthhfin))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+ 
+Urban <- select(rbind(Urban_2001,Urban_2009),Dev_Type, percentage, Source)
+
+ggplot(Urban, aes(x= Dev_Type, y=percentage,fill =Source )) + geom_bar(stat = "identity",position = "dodge")+
+  labs(y = "Percent", 
+       x = "Development Category",
+       title = "Number of Household living in different Development Types") +
+  theme(plot.title = element_text(hjust=0.5))
+
+
+```
+
+## House Type
+```{r Home Type, echo=FALSE}
+home_type_2001 <- Hh_df_2001 %>%
+  select(Hometype,Expfllhh )%>%
+  filter(Hometype != "NA") %>%
+  group_by(Hometype)%>%
+  summarise(count = sum(Expfllhh))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+home_type_2009 <- Hh_df_2009 %>%
+  select(Hometype,Wthhfin )%>% 
+  filter(Hometype != "NA") %>%
+  group_by(Hometype)%>%
+  summarise(count = sum(Wthhfin))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+home_type <- select(rbind(home_type_2001,home_type_2009),Hometype, percentage, Source)
+ggplot(home_type, aes(x= Hometype, y=percentage,fill =Source )) + geom_bar(stat = "identity",position = "dodge")+
+  labs(y = "Percent", 
+       x = "House Type",
+       title = "Distribution of House Types") +
+  theme(plot.title = element_text(hjust=0.5))
+
+
+
+```
+
+## Age
+```{r Age, echo=FALSE}
+Age_2001 <- Hh_df_2001 %>%
+  select(Expfllhh,Age0to14,Age15to19,Age20to29,Age30to54,Age55to64,Age65Plus )%>% 
+  mutate(Age_Category = if_else(Age0to14==1,"Age0to14",
+                    if_else(Age15to19==1,"Age15to19",
+                    if_else(Age20to29==1,"Age20to29",
+                    if_else(Age30to54==1,"Age30to54",
+                    if_else(Age55to64==1,"Age55to64",
+                    if_else(Age65Plus==1,"Age65Plus",        NULL)))))))  %>%
+  filter(Age_Category  != "NA") %>%
+  group_by(Age_Category )%>%
+  summarise(count = sum(Expfllhh))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+
+Age_2009 <- Hh_df_2009 %>%
+  select(Wthhfin,Age0to14,Age15to19,Age20to29,Age30to54,Age55to64,Age65Plus )%>% 
+  mutate(Age_Category = if_else(Age0to14==1,"Age0to14",
+                    if_else(Age15to19==1,"Age15to19",
+                    if_else(Age20to29==1,"Age20to29",
+                    if_else(Age30to54==1,"Age30to54",
+                    if_else(Age55to64==1,"Age55to64",
+                    if_else(Age65Plus==1,"Age65Plus",        NULL)))))))  %>%
+  filter(Age_Category  != "NA") %>%
+  group_by(Age_Category )%>%
+  summarise(count = sum(Wthhfin))%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+ 
+Age <- select(rbind(Age_2001,Age_2009),Age_Category, percentage, Source)
+
+ggplot(Age, aes(x= Age_Category, y=percentage,fill =Source )) + geom_bar(stat = "identity",position = "dodge")+
+  labs(y = "Percent", 
+       x = "Age Category",
+       title = "Distribution of Age Groups") +
+  theme(plot.title = element_text(hjust=0.5))
+```
+
+## Total Miles
+```{r Miles, echo=FALSE}
+miles_2001 <- Hh_df_2001 %>%
+  select(Totmiles,Expfllhh)%>%
+  filter(Totmiles  != "NA") %>%
+  summarise(miles = sum(Expfllhh*Totmiles)/sum(Expfllhh))%>%
+  mutate(Source = "NHTS2001")
+
+
+miles_2009 <- Hh_df_2009 %>%
+  select(Totmiles,Wthhfin)%>%
+  filter(Totmiles  != "NA") %>%
+  summarise(miles = sum(Wthhfin*Totmiles)/sum(Wthhfin))%>%
+  mutate(Source = "NHTS2009")
+
+miles <- select(rbind(miles_2001,miles_2009),miles, Source)
+ggplot(miles, aes(x= Source,y=miles,fill =Source )) + geom_bar(stat = "identity",position = "dodge") +
+  labs( y = "miles",
+      x = "Source",
+      title = "Average Annual Miles driven by a household") +
+  theme(plot.title = element_text(hjust=0.5)) 
+```
+
+## MPG
+```{r MPG, echo=FALSE}
+MPG_2001 <- Hh_df_2001 %>%
+  select(AveMpg,Expfllhh)%>%
+  filter(AveMpg  != "NaN") %>%
+  summarise(MPG = sum(Expfllhh*AveMpg)/sum(Expfllhh))%>%
+  mutate(Source = "NHTS2001")
+
+
+MPG_2009 <- Hh_df_2009 %>%
+  select(AveMpg,Wthhfin)%>%
+  filter(AveMpg  != "Nan") %>%
+  summarise(MPG = sum(Wthhfin*AveMpg)/sum(Wthhfin))%>%
+  mutate(Source = "NHTS2009")
+
+MPG <- select(rbind(MPG_2001,MPG_2009),MPG, Source)
+ggplot(MPG, aes(x= Source,y=MPG,fill =Source )) + geom_bar(stat = "identity",position = "dodge") +
+  labs( y = "MPG",
+      x = "Source",
+      title = "Average Vehicle's MPG") +
+  theme(plot.title = element_text(hjust=0.5)) 
+```
+
+## Fuel Cost
+```{r GS cost, echo=FALSE}
+GS_2001 <- Hh_df_2001 %>%
+  select(Gscostmile,Expfllhh)%>%
+  filter(Gscostmile  != "NaN") %>%
+  summarise(Gscostmile = sum(Expfllhh*Gscostmile)/sum(Expfllhh))%>%
+  mutate(Source = "NHTS2001")
+
+
+GS_2009 <- Hh_df_2009 %>%
+  select(Gscostmile,Wthhfin)%>%
+  filter(!is.na(Gscostmile)) %>%
+  summarise(Gscostmile = sum(Wthhfin*Gscostmile*100)/sum(Wthhfin))%>%
+  mutate(Source = "NHTS2009")
+
+GS <- select(rbind(GS_2001,GS_2009),Gscostmile, Source)
+ggplot(GS, aes(x= Source,y=Gscostmile,fill =Source )) + geom_bar(stat = "identity",position = "dodge") +
+  labs( y = "Gscostmile",
+      x = "Source",
+      title = "Gasoline cost per mile") +
+  theme(plot.title = element_text(hjust=0.5)) 
+```
+
+## Mode PMT
+```{r PMT, echo=FALSE}
+MM_2001 <- Hh_df_2001 %>%
+  select(TransitTrips,Nbiketrp,Nwalktrp,Expfllhh)%>%
+  summarise(Transit_Trips = sum(Expfllhh*TransitTrips)/sum(Expfllhh),
+            Bike_Trips = sum(Expfllhh*Nbiketrp)/sum(Expfllhh),
+            Walk_Trips = sum(Expfllhh*Nwalktrp)/sum(Expfllhh))%>%
+  mutate(Source = "NHTS2001") %>%
+  gather(Mode,Trips,Transit_Trips:Walk_Trips)
+
+
+MM_2009 <- Hh_df_2009 %>%
+  select(TransitTrips,Nbiketrp,Nwalktrp,Wthhfin)%>%
+  summarise(Transit_Trips = sum(Wthhfin*TransitTrips)/sum(Wthhfin),
+            Bike_Trips = sum(Wthhfin*Nbiketrp)/sum(Wthhfin),
+            Walk_Trips = sum(Wthhfin*Nwalktrp)/sum(Wthhfin))%>%
+  mutate(Source = "NHTS2009") %>%
+    gather(Mode,Trips,Transit_Trips:Walk_Trips)
+
+
+MPG <- select(rbind(MM_2001,MM_2009),Mode,Trips, Source)
+ggplot(MPG, aes(x= Mode,y=Trips,fill =Source )) + geom_bar(stat = "identity",position = "dodge") +
+  labs( y = "Average Number of daily trips",
+      x = "Mode",
+      title = "Non-Auto mode daily trips") +
+  theme(plot.title = element_text(hjust=0.5)) 
+```
+
+## Household VMT
+```{r VMT, echo=FALSE}
+VMT_2001 <- Hh_df_2001 %>%
+  select(PvtVehDvmt,ShrVehDvmt,Expfllhh)%>%
+  summarise(Private_DVMT = sum(Expfllhh*PvtVehDvmt)/sum(Expfllhh),
+            Shared_DVMT = sum(Expfllhh*ShrVehDvmt)/sum(Expfllhh)) %>%
+  mutate(Source = "NHTS2001") %>%
+  gather(Mode,DVMT,Private_DVMT:Shared_DVMT)
+
+
+VMT_2009 <- Hh_df_2009 %>%
+  select(PvtVehDvmt,ShrVehDvmt,Wthhfin)%>%
+  summarise(Private_DVMT = sum(Wthhfin*PvtVehDvmt)/sum(Wthhfin),
+            Shared_DVMT = sum(Wthhfin*ShrVehDvmt)/sum(Wthhfin)) %>%
+  mutate(Source = "NHTS2009") %>%
+  gather(Mode,DVMT,Private_DVMT:Shared_DVMT)
+
+
+VMT <- select(rbind(VMT_2001,VMT_2009),Mode,DVMT, Source)
+ggplot(VMT, aes(x= Mode,y=DVMT,fill =Source )) + geom_bar(stat = "identity",position = "dodge") +
+  labs( y = "DVMT",
+      x = "Mode",
+      title = "Average Household DVMT") +
+  theme(plot.title = element_text(hjust=0.5)) 
+```
+
+## Mode share
+```{r  mode share, echo=FALSE}
+mode_work_2001 <- Tour_df_2001 %>%
+  select(Mode,IncludesWork)%>%
+  filter(!is.na(Mode)) %>%
+  group_by(Mode)%>%
+  summarise(count = n())%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+
+mode_work_2009 <- Tour_df_2009 %>%
+  select(Mode,IncludesWork)%>%
+  filter(!is.na(Mode)) %>%
+  group_by(Mode)%>%
+  summarise(count = n())%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+
+
+mode_work <- select(rbind(mode_work_2001,mode_work_2009),Mode,percentage, Source)
+            
+ggplot(mode_work, aes(x= Mode,y=percentage,fill =Source, label=percentage )) + geom_bar(stat = "identity",position = "dodge") +
+  labs( y = "Share",
+      x = "Mode",
+      title = "Tour Mode share") +
+  theme(plot.title = element_text(hjust=0.5),axis.text.x = element_text(angle = 90))
+
+```
+
+
+
+## Work Distance Distribution
+```{r work distance, echo=FALSE}
+bin_size  <- 1
+dist_work_2001 <- Tour_df_2001 %>%
+  select(Disttowk)%>%
+  filter(!is.na(Disttowk) ) %>%
+  filter(Disttowk<72) %>%
+  mutate(distance_category = floor(Disttowk/bin_size) + 1) %>%
+  group_by(distance_category) %>%
+  summarise(count = n())%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2001")
+
+dist_work_2009 <- Tour_df_2009 %>%
+  select(Disttowk)%>%
+  filter(!is.na(Disttowk) ) %>%
+  filter(Disttowk<72) %>%
+  mutate(distance_category = floor(Disttowk/bin_size) + 1) %>%
+  group_by(distance_category) %>%
+  summarise(count = n())%>%
+  mutate(percentage= round(prop.table(count) * 100,1))%>% 
+  mutate(Source = "NHTS2009")
+
+dist_work <- select(rbind(dist_work_2001,dist_work_2009),distance_category,percentage, Source)
+ggplot(dist_work, aes(x= distance_category,y=percentage,fill =Source )) + geom_bar(stat = "identity",position = "dodge") +
+  labs( y = "Share %",
+      x = "distance to work",
+      title = "Average Household DVMT") +
+  theme(plot.title = element_text(hjust=0.5)) 
+```
