@@ -26,7 +26,7 @@ Components:
       - filesstrings
     BioC:
       - rhdf5
-  VE2001NHTS:
+  VENHTS:
     Type: module
     Path: sources/modules
     Test: { Script: tests/scripts/test.R, Group: 1 }
@@ -72,7 +72,7 @@ Components:
       - data.table
       - pscl
     VE:
-      - VE2001NHTS
+      - VENHTS
   VETravelDemandMM:
     Type: module
     Path: sources/modules
@@ -92,7 +92,7 @@ Components:
       - ordinal
       - reshape2
     VE:
-      - VE2001NHTS
+      - VENHTS
 #   VEHouseholdVehiclesWithAdj:
 #     Type: module
 #     Path: sources/modules
@@ -101,7 +101,7 @@ Components:
 #       - ordinal
 #       - reshape2
 #     VE:
-#       - VE2001NHTS
+#       - VENHTS
   VELandUse:
     Type: module
     Path: sources/modules
@@ -110,7 +110,7 @@ Components:
       - fields
       - geosphere
     VE:
-      - VE2001NHTS
+      - VENHTS
       - VESimHouseholds
   VEPowertrainsAndFuels:
     Type: module
@@ -119,7 +119,7 @@ Components:
     CRAN:
       - data.table
     VE:
-      - VE2001NHTS
+      - VENHTS
       - VEHouseholdTravel
       - VETravelDemandMM      
   VEReports:
