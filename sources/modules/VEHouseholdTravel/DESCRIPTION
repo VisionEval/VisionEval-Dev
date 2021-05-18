@@ -16,9 +16,9 @@ LazyData: TRUE
 Depends: R (>= 3.6.0)
 Imports:
     visioneval,
-    VE2001NHTS,
     data.table,
-    pscl
+    pscl,
+	VENHTS
 Suggests:
     knitr
 Encoding: UTF-8

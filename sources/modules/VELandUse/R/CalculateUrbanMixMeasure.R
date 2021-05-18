@@ -82,14 +82,15 @@ estimateUrbanMixModel <- function(EstData_df, StartTerms_) {
 #Estimate the binomial logit model for urban mixed-use
 #-----------------------------------------------------
 #Create model estimation dataset
-NhtsHometype_ <- VE2001NHTS::Hh_df$Hometype
+#NhtsHometype_ <- VE2001NHTS::Hh_df$Hometype
+NhtsHometype_ <- VENHTS::Hh_df$Hometype
 HouseType_ <- rep("SF", length(NhtsHometype_))
 HouseType_[NhtsHometype_ == "Dorm"] <- "GQ"
 HouseType_[NhtsHometype_ %in% c("Duplex", "Multi-family", "Other")] <- "MF"
 Data_df <-
   data.frame(
-    UrbanMix = VE2001NHTS::Hh_df$UrbanDev,
-    LocalPopDensity = VE2001NHTS::Hh_df$Hbppopdn,
+    UrbanMix = VENHTS::Hh_df$UrbanDev,
+    LocalPopDensity = VENHTS::Hh_df$Hbppopdn,
     IsSF = as.numeric(HouseType_ == "SF"))
 Data_df <- Data_df[complete.cases(Data_df),]
 rm(NhtsHometype_, HouseType_)

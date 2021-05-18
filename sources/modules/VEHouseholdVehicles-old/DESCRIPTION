@@ -23,7 +23,7 @@ Imports:
     visioneval,
     ordinal,
     reshape2,
-    VE2001NHTS
+    VENHTS
 Suggests:
     knitr
 Encoding: UTF-8

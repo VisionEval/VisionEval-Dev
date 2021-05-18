@@ -20,7 +20,7 @@ LazyData: TRUE
 Depends: R (>= 3.6.0)
 Imports:
     visioneval,
-    VE2001NHTS,
+    VENHTS,
     VEHouseholdTravel,
     data.table
 Suggests:

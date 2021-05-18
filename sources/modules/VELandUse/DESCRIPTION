@@ -23,7 +23,7 @@ Imports:
     visioneval,
     geosphere,
     fields,
-    VE2001NHTS,
+    VENHTS,
     VESimHouseholds
 Suggests:
     knitr
