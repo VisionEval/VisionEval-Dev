@@ -70,6 +70,7 @@
 #' Summary: the summary of the binomial model estimation results.
 #' @import visioneval stats
 #' @importFrom utils capture.output
+
 #Define function to estimate the income model
 estimateHousingModel <- function(Data_df, StartTerms_) {
   #Define function to prepare inputs for estimating model
@@ -563,7 +564,7 @@ ipf <-
     #Eliminate zero values in margins
     MrgnVals_ls <-
       lapply(MrgnVals_ls, function(x) {
-        x[x = 0] <- 1e-6
+        x[x == 0] <- 1e-6
         x
       })
     #Starting value for Units_ar
