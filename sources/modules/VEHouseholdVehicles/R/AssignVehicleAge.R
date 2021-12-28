@@ -49,8 +49,13 @@
 #Prepare 2001 NHTS data
 #----------------------
 #Load 2001 NHTS household and vehicle data
+<<<<<<< HEAD
 Hh_df <- VENHTS::Hh_df
 Veh_df <- VENHTS::Veh_df
+=======
+Hh_df <- loadPackageDataset("Hh_df","VE2001NHTS")
+Veh_df <- loadPackageDataset("Veh_df","VE2001NHTS")
+>>>>>>> development-next
 #Create a vehicle age variable and cap at 30 years
 MaxAge <- 30
 #Veh_df$VehAge <- 2002 - Veh_df$Vehyear
@@ -558,7 +563,7 @@ AssignVehicleAge <- function(L) {
     NumVeh_IgTy <- with(Own_df, table(IncGrp, Type))
     IncProp_IgTy <- sweep(NumVeh_IgTy, 2, colSums(NumVeh_IgTy), "/")
     #Calculate cumulative age distributions by type
-    VehicleAgeModel_ls <- VEHouseholdVehicles::VehicleAgeModel_ls
+    VehicleAgeModel_ls <- loadPackageDataset("VehicleAgeModel_ls","VEHouseholdVehicles")
     AutoAgeProp_Ag <-
       adjustAgeDistribution(
         VehicleAgeModel_ls$Auto$AgeCDF_Ag,

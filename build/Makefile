@@ -2,7 +2,7 @@
 # on the command line or export them from your environment
 # ve.build() handles useful defaults
 VE_CONFIG?=config/VE-config.yml
-VE_VERSION?=2.0
+VE_VERSION?=3.0
 VE_RUNTESTS?=Default
 VE_EXPRESS?=YES # should be NO, or unset, for standard use
 VE_BRANCH?=$(shell git branch --show-current 2>/dev/null || echo visioneval)
@@ -132,8 +132,10 @@ configure-clean build-clean: build-reset # Resets the built status of all the ta
 
 modules-clean: $(VE_MAKEVARS) modules-reset # Reset all VE modules for complete rebuild
 	[[ -n "$(VE_REPOS)" ]] && rm -rf "$(VE_REPOS)"/*
-	[[ -n "$(VE_SRC)" ]] && rm -rf "$(VE_SRC)"/*
-	[[ -n "$(VE_LIB)" ]] && rm -rf "$(VE_LIB)"/VE* "$(VE_LIB)"/visioneval
+	[[ -n "$(VE_SRC)" ]] && rm -rf "$(VE_SRC)"/VE*
+	[[ -n "$(VE_SRC)" ]] && rm -rf "$(VE_SRC)"/visioneval
+	[[ -n "$(VE_LIB)" ]] && rm -rf "$(VE_LIB)"/VE*
+	[[ -n "$(VE_LIB)" ]] && rm -rf "$(VE_LIB)"/visioneval
 
 lib-clean: $(VE_MAKEVARS) lib-reset # Reset installed package library for complete rebuild
 	[[ -n "$(VE_LIB)" ]] && rm -rf "$(VE_LIB)"/*
@@ -210,9 +212,7 @@ modules: modules-reset modules-build
 
 modules-build: $(VE_LOGS)/modules.built
 
-$(VE_LOGS)/modules.built: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built \
-        scripts/build-modules.R scripts/build-framework.R
-	$(RSCRIPT) scripts/build-framework.R
+$(VE_LOGS)/modules.built: $(VE_LOGS)/repository.built $(VE_LOGS)/velib.built scripts/build-modules.R
 	$(RSCRIPT) scripts/build-modules.R
 	@touch $(VE_LOGS)/modules.built
 
@@ -233,7 +233,7 @@ docs: docs-reset docs-build
 docs-build: $(VE_LOGS)/docs.built
 
 $(VE_LOGS)/docs.built: $(VE_LOGS)/modules.built $(VE_LOGS)/runtime.built\
-	$(VE_LOGS)/velib.built scripts/build-docs.R scripts/build-inventory.R
+        $(VE_LOGS)/velib.built scripts/build-docs.R scripts/build-inventory.R
 	$(RSCRIPT) scripts/build-docs-framework.R
 	$(RSCRIPT) scripts/build-docs-visual.R
 	$(RSCRIPT) scripts/build-inventory.R
@@ -252,7 +252,11 @@ installer installer-bin: installer-reset installer-build
 
 installer-build installer-bin-build: $(VE_LOGS)/installer-bin.built
 
-$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/docs.built $(VE_LOGS)/runtime.built\
+# TODO: Docs build no longer working in Next Generation - need to look at
+# hardcoded need for exported functions from the framework.
+
+# $(VE_LOGS)/docs.built 
+$(VE_LOGS)/installer-bin.built: $(VE_RUNTIME_CONFIG) $(VE_LOGS)/runtime.built\
             scripts/build-runtime-packages-bin.R scripts/build-installer-base.R scripts/build-installer-bin.R
 	$(RSCRIPT) scripts/build-runtime-packages-bin.R
 	$(RSCRIPT) scripts/build-installer-base.R

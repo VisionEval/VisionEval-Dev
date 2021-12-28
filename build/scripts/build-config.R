@@ -52,10 +52,13 @@ evalq(
   # r-versions.yml will override based on R version for visioneval packages themselves
   if ( ! suppressWarnings(require("yaml",quietly=TRUE)) ) {
     install.packages("yaml", lib=dev.lib, repos="https://cloud.r-project.org", dependencies=NA, type=.Platform$pkgType )
+  } else {
+    cat("Attempting to update ALL development packages\n")
+    update.packages(lib=dev.lib,repos="https://cloud.r-project.org",type=.Platform$pkgType,ask=FALSE)
   }
 
   # Get VisionEval release version (used in installer file.names
-  ve.version <- Sys.getenv("VE_VERSION","2.0")
+  ve.version <- Sys.getenv("VE_VERSION","3.0")
   cat("Building VisionEval version",ve.version,"\n")
 
   # Specify dependency repositories for known R versions
@@ -212,22 +215,50 @@ evalq(
   }
 
   # Helper function to compare package path (source) to a built target (modification date)
-  newerThan <- function( srcpath, tgtpath, quiet=TRUE ) {
+  # TODO: reimplement to use fileSnapshot, and pass a list of files as "srcpath" rather than the
+  # directory - then we can do .Rbuildignore processing to ignore presence of non-copied files.
+  newerThan <- function( srcpath, tgtpath, pkg.files=character(0), quiet=TRUE ) {
     # Compare modification time for a set of files to a target file
     #
     # Args:
     #   srcpath - a single folder containing a bunch of files that might be newer, or a vector of files
     #   tgtpath - one (or a vector) of files that may be older, or may not exist
+    #   pkg.files - if provided, make sure the same files are preent in both places
     #   quiet - if TRUE, then print a message about what is being tested
     #
     # Value: TRUE if the most recently modified source file is newer
-    #        than the oldest target file
+    #        than the newest target file
     if (!quiet) cat("Comparing",srcpath,"to",paste(tgtpath,collapse="\n"),"\n")
     if ( any(is.null(srcpath)) || any(is.na(srcpath)) || any(nchar(srcpath))==0 || ! file.exists(srcpath) ) return(TRUE)
     if ( any(is.null(tgtpath)) || any(is.na(tgtpath)) || any(nchar(tgtpath))==0 || ! file.exists(tgtpath) ) return(TRUE)
-    if ( dir.exists(srcpath) ) srcpath <- file.path(srcpath,dir(srcpath,recursive=TRUE,all.files=TRUE))
-    if ( dir.exists(tgtpath) ) tgtpath <- file.path(tgtpath,dir(tgtpath,recursive=TRUE,all.files=TRUE))
-    if ( length(tgtpath) < 1 ) return(TRUE)
+    if ( dir.exists(srcpath) ) {
+      srcfiles <- dir(srcpath,recursive=TRUE,all.files=TRUE)
+      if ( length(pkg.files)>0 ) {
+        srcfiles <- srcfiles[ srcfiles %in% pkg.files ]
+      }
+      srcpath <- file.path(srcpath,srcfiles)
+    }
+    if ( dir.exists(tgtpath) ) {
+      tgtfiles <- dir(tgtpath,recursive=TRUE,all.files=TRUE)
+      if ( length(pkg.files)>0 ) {
+        tgtfiles <- tgtfiles[ tgtfiles %in% pkg.files ]
+      }
+      tgtpath <- file.path(tgtpath,tgtfiles)
+    }
+    # TODO: implement with fileSnapshot and changedFiles? A bit hard because we're only interested
+    # in a subset of the files and fs$info keeps track of them by full path name...
+    if ( length(tgtpath) < 1 ) {
+      if (!quiet) cat("Newer: target files do not exist\n")
+      return(TRUE)
+    }
+    if ( length(pkg.files)>0 && length(srcpath) > length(tgtpath) ) {
+      # Only check for same length file list if pkg.files is provided
+      if (!quiet) {
+        cat("Newer: target files different length than source\n")
+        print( srcfiles[ ! srcfiles %in% tgtfiles ] )
+      }
+      return(TRUE)
+    }
     source.time <- file.mtime(srcpath)
     target.time <- file.mtime(tgtpath)
     source.newest <- order(source.time,decreasing=TRUE)
@@ -236,7 +267,7 @@ evalq(
     if (!quiet) cat("Target:",tgtpath[target.newest[1]],strftime(target.time[target.newest[1]],"%d/%m/%y %H:%M:%S"),"\n")
     newer <- source.time[source.newest[1]] > target.time[target.newest[1]]
     if (!quiet) cat("Newer:",newer,"\n")
-    newer
+    return(newer)
   }
 
   # ========== DONE WITH HELPER FUNCTIONS ==========
@@ -362,16 +393,6 @@ evalq(
   for ( loc in locs.lst ) dir.create( get(loc), recursive=TRUE, showWarnings=FALSE )
   ve.zipout <- dirname(ve.runtime) # Installer zip files always go next to ve.runtime
 
-  # Determine whether build should include tests
-  # Look at environment (possibly from Makefile) then at ve.cfg
-  # Result is TRUE (run tests) or FALSE (skip tests)
-  ve.runtests <- switch(
-    tolower(Sys.getenv("VE_RUNTESTS",unset="Default")),
-    false=FALSE,
-    true=TRUE,
-    ! is.null(ve.cfg[["RunTests"]]) && all(ve.cfg[["RunTests"]])
-    )
-
   # Create the .Renviron file in ve.output so dev-lib is included
   # That way we can have things like miniCRAN that are not needed by the runtime
   if ( ! exists("ve.lib") ) {
@@ -406,7 +427,6 @@ evalq(
     ,VE_RUNTIME        = ve.runtime
     ,VE_SRC            = ve.src
     ,VE_DOCS           = ve.docs
-    ,VE_RUNTESTS       = ve.runtests
     ,VE_DEPS           = ve.dependencies
     ,VE_ROOT           = ve.root
   )
@@ -625,7 +645,6 @@ evalq(
     , "ve.platform"
     , "ve.build.type"
     , "ve.binary.build"
-    , "ve.runtests"
     , "ve.all.dependencies"
     , "CRAN.mirror"
     , "BioC.mirror"

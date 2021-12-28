@@ -3,6 +3,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*.R-text
 *.bak
 .DS_Store
 built/
@@ -12,3 +13,5 @@ dev/
 docs/
 external/
 Log_*.txt
+Test/
+make*out

@@ -9,92 +9,6 @@
 #functions don't directly interact with the datastore. Instead, they rely on the
 #datastore listing (Datastore) that is maintained in the model state file.
 
-
-#CHECK DATASET EXISTENCE
-#=======================
-#' Check dataset existence
-#'
-#' \code{checkDataset} a visioneval framework control function that checks
-#' whether a dataset exists in the datastore and returns a TRUE or FALSE value
-#' with an attribute of the full path to where the dataset should be located in
-#' the datastore.
-#'
-#' This function checks whether a dataset exists. The dataset is identified by
-#' its name and the table and group names it is in. If the dataset is not in the
-#' datastore, an error is thrown. If it is located in the datastore, the full
-#' path name to the dataset is returned.
-#'
-#' @param Name a string identifying the dataset name.
-#' @param Table a string identifying the table the dataset is a part of.
-#' @param Group a string or numeric representation of the group the table is a
-#' part of.
-#' @param DstoreListing_df a dataframe which lists the contents of the datastore
-#'   as contained in the model state file.
-#' @return A logical identifying whether the dataset is in the datastore. It has
-#' an attribute that is a string of the full path to where the dataset should be
-#' in the datastore.
-#' @export
-checkDataset <- function(Name, Table, Group, DstoreListing_df) {
-  Name <- as.character(Name)
-  Table <- as.character(Table)
-  Group <- as.character(Group)
-  #TableName <- checkTable(Table, Group, DstoreListing_df)[[2]]
-  DatasetName <- file.path(Group, Table, Name)
-  DatasetExists <- DatasetName %in% DstoreListing_df$groupname
-  Result <- ifelse (DatasetExists, TRUE, FALSE)
-  attributes(Result) <- list(DatasetName = DatasetName)
-  Result
-}
-
-
-#GET ATTRIBUTES OF A DATASET
-#===========================
-#' Get attributes of a dataset
-#'
-#' \code{getDatasetAttr} a visioneval framework control function that retrieves
-#' the attributes for a dataset in the datastore.
-#'
-#' This function extracts the listed attributes for a specific dataset from the
-#' datastore listing.
-#'
-#' @param Name a string identifying the dataset name.
-#' @param Table a string identifying the table the dataset is a part of.
-#' @param Group a string or numeric representation of the group the table is a
-#' part of.
-#' @param DstoreListing_df a dataframe which lists the contents of the datastore
-#'   as contained in the model state file.
-#' @return A named list of the dataset attributes.
-#' @export
-getDatasetAttr <- function(Name, Table, Group, DstoreListing_df) {
-  DatasetName <- file.path(Group, Table, Name)
-  #checkDataset(Name, Table, Group, DstoreListing_df)[[2]]
-  DatasetIdx <- which(DstoreListing_df$groupname == DatasetName)
-  DstoreListing_df$attributes[[DatasetIdx]]
-}
-
-
-#CHECK WHETHER TABLE EXISTS
-#==========================
-#' Check whether table exists in the datastore
-#'
-#' \code{checkTableExistence} a visioneval framework control function that
-#' checks whether a table is present in the datastore.
-#'
-#' This function checks whether a table is present in the datastore.
-#'
-#' @param Table a string identifying the table.
-#' @param Group a string or numeric representation of the group the table is a
-#' part of.
-#' @param DstoreListing_df a dataframe which lists the contents of the datastore
-#'   as contained in the model state file.
-#' @return A logical identifying whether a table is present in the datastore.
-#' @export
-checkTableExistence <- function(Table, Group, DstoreListing_df) {
-  TableName <- file.path(Group, Table)
-  TableName %in% DstoreListing_df$groupname
-}
-
-
 #CHECK SPECIFICATION CONSISTENCY
 #===============================
 #' Check specification consistency
@@ -460,8 +374,7 @@ checkDataConsistency <- function(DatasetName, Data_, DstoreAttr_) {
 #' UNITS component has been parsed and the YEAR and MULTIPLIER components
 #' extracted, the UNITS component is modified to only be the units name.
 #' @export
-parseUnitsSpec <-
-  function(Spec_ls, ComponentName) {
+parseUnitsSpec <- function(Spec_ls, ComponentName) {
     #Define function to return a multiplier value from a multiplier string
     #NA if none, NaN if not a properly specified scientic notation (e.g. 1e3)
     getMultiplier <- function(String) {
@@ -483,10 +396,10 @@ parseUnitsSpec <-
     #NA if none or not a correct year
     getYear <- function(String) {
       CurrentString <- unlist(strsplit(as.character(Sys.Date()), "-"))[1]
-      if (is.na(as.numeric(String)) | is.na(String)) {
+      if (is.na(as.numeric(String)) || is.na(String)) {
         Result <- NA
       } else {
-        if (as.numeric(String) < 1900 | as.numeric(String) > CurrentString) {
+        if (as.numeric(String) < 1900 || as.numeric(String) > CurrentString) {
           Result <- NA
         } else {
           Result <- String
@@ -799,9 +712,9 @@ checkUnits <- function(DataType, Units) {
   }
   #Define function to split units from compound type
   splitUnits <- function(Units){
-    OperatorLoc_ <- str_locate_all(Units, "[*/]")[[1]][,1]
+    OperatorLoc_ <- stringr::str_locate_all(Units, "[*/]")[[1]][,1]
     Operators_ <- sapply(OperatorLoc_, function(x) substr(Units, x, x))
-    UnitParts_ <- unlist(str_split(Units, "[*/]"))
+    UnitParts_ <- unlist(stringr::str_split(Units, "[*/]"))
     list(units = unname(UnitParts_),
          types = unname(findTypeFromUnit(UnitParts_)),
          operators = unname(Operators_))
@@ -1089,8 +1002,7 @@ checkSpec <- function(Spec_ls, SpecGroup, SpecNum) {
   #Define function to check one specification requirement
   #ReqName argument is the requirement name (e.g. TYPE). Is NULL for RunBy
   #specification group.
-  checkRequirement <-
-    function(ReqName = NULL){
+  checkRequirement <- function(ReqName = NULL){
       if (is.null(ReqName)) {
         Spec <- Spec_ls
         Req_ls <- Require_ls
@@ -1435,10 +1347,11 @@ findSpec <- function(Specs_ls, Name, Table, Group) {
 #' of the geographic areas to sort by and any number of additional data fields.
 #' @param Table a string for the table that is to be matched against.
 #' @param Group a string for the generic group that the table resides in.
+#' @param envir An environment from which to extract G / ModelState_ls
 #' @return The data frame which has been sorted to match the order of geography
 #' in the specified table in the datastore.
 #' @export
-sortGeoTable <- function(Data_df, Table, Group) {
+sortGeoTable <- function(Data_df, Table, Group, envir=modelEnvironment()) {
   if (!("Geo" %in% names(Data_df))) {
     Msg <-
       paste0(
@@ -1448,7 +1361,8 @@ sortGeoTable <- function(Data_df, Table, Group) {
       )
     stop(Msg)
   }
-  DstoreNames_ <- readFromTable(Table, Table, Group)
+  # readFromTable will search DatastorePath
+  DstoreNames_ <- readFromTable(Table, Table, Group, envir=envir)
   Order_ <- match(DstoreNames_, Data_df$Geo)
   Data_df[Order_,]
 }
@@ -1493,8 +1407,7 @@ sortGeoTable <- function(Data_df, Table, Group) {
 #' the list is named with the value of the Name component (i.e. the field name
 #' without the year and multiplier elements.)
 #' @export
-parseInputFieldNames <-
-  function(FieldNames_, Specs_ls, FileName) {
+parseInputFieldNames <- function(FieldNames_, Specs_ls, FileName) {
     #Define function to return a multiplier value from a multiplier string
     #NA if none, NaN if not a properly specified scientic notation (e.g. 1e3)
     getMultiplier <- function(String) {
@@ -1670,23 +1583,39 @@ parseInputFieldNames <-
 #' the VisionEval requirements.
 #' @param ModuleName a string identifying the name of the module (used to document
 #' module in error messages).
-#' @param Dir a string identifying the relative path to the directory where the
-#' model inputs are contained.
 #' @return A list containing the results of the input processing. The list has
 #' two components. The first (Errors) is a vector of identified file and data
 #' errors. The second (Data) is a list containing the data in the input files
 #' organized in the standard format for data exchange with the datastore.
 #' @export
-processModuleInputs <-
-  function(ModuleSpec_ls, ModuleName, Dir = "inputs") {
+processModuleInputs <- function(ModuleSpec_ls, ModuleName) {
     G <- getModelState()
-    InpSpec_ls <- ModuleSpec_ls$Inp
+    InpSpec_ls <- (ModuleSpec_ls$Inp)
 
     #ORGANIZE THE SPECIFICATIONS BY INPUT FILE AND NAME
     SortSpec_ls <- list()
+    FilePath_ <- character(0)
     for (i in 1:length(InpSpec_ls)) {
       Spec_ls <- InpSpec_ls[[i]]
-      File <- Spec_ls$FILE
+      File <- basename(Spec_ls$FILE) # should already be a base name
+      Spec_ls$FILEPATH <- file.path(Spec_ls$INPUTDIR,File)
+      if ( is.na( FilePath_[File] ) ) {
+        pos <- length(FilePath_)+1
+        FilePath_[pos] <- Spec_ls$FILEPATH
+        names(FilePath_)[pos] <- File
+      } else if ( Spec_ls$FILEPATH != FilePath_[File] ) {
+        # All the field specs for this FILE need to have the same INPUTDIR
+        stop(
+          writeLog(
+            c(
+              paste("Multiple locations for File",File,"are not resolved:"),
+              paste(FilePath_[File],Spec_ls$FILEPATH,sep=",")
+            ),
+            Level="error"
+          ),
+          call.=FALSE
+        )
+      }
       Name <- Spec_ls$NAME
       if (is.null(SortSpec_ls[[File]])) {
         SortSpec_ls[[File]] <- list()
@@ -1694,6 +1623,7 @@ processModuleInputs <-
       SortSpec_ls[[File]][[Name]] <- Spec_ls
       rm(Spec_ls, File, Name)
     }
+
     #Initialize a list to store all the input data
     Data_ls <- initDataList()
 
@@ -1707,19 +1637,19 @@ processModuleInputs <-
       FileWarn_ <- character(0)
       #Extract the specifications
       Spec_ls <- SortSpec_ls[[File]]
-      #Check that file exists
-      if (!file.exists(file.path(Dir, File))) {
+      #We defer error handling to here so we can report on all missing files at once.
+      if ( ! file.exists(FilePath_[File]) ) {
         Msg <-
           paste(
             "Input file error.", "File '", File, "' required by '",
-            ModuleName, "' is not present in the 'inputs' directory."
+            ModuleName, "' is not present in",FilePath_[File]
           )
         FileErr_ <- c(FileErr_, Msg)
         FileErr_ls <- c(FileErr_ls, FileErr_)
         next()
       }
       #Read in the data file and check that it is properly formatted
-      Data_df <- try(read.csv(file.path(Dir, File), as.is = TRUE), silent = TRUE)
+      Data_df <- try(read.csv(FilePath_[File], as.is = TRUE), silent = TRUE)
       if (class(Data_df) == "try-error") {
         Msg <-
           paste0(
@@ -1734,6 +1664,10 @@ processModuleInputs <-
         next()
       }
 
+      # TODO: Do a "try"/"recover" loop to check for encoding and use
+      # it if available; if the BOM is not found, re-try with plain
+      # UTF-8 encoding.
+      #
       # Remove the Byte order mark that sometimes appears in the beginning of
       # UTF-8 files on Windows.  Byte Order Mark can't be saved in this
       # windows encoded text file so I include it as raw
@@ -1751,7 +1685,7 @@ processModuleInputs <-
       ParsingErrors_ <- unlist(lapply(ParsedNames_ls, function(x) x$Error))
       if (length(ParsingErrors_) != 0) {
         writeLog(
-          c("Input file field name errors as follows:", ParsingErrors_))
+          c("Input file field name errors as follows:", ParsingErrors_),Level="error")
         FileErr_ <- c(FileErr_, ParsingErrors_)
         FileErr_ls <- c(FileErr_ls, FileErr_)
         next()
@@ -2042,7 +1976,7 @@ processModuleInputs <-
             "Has one or more errors in the data inputs as follows:"
           )
         FileErr_ <- c(FileErr_, Msg, DataErr_ls$Errors)
-        writeLog(FileErr_)
+        writeLog(FileErr_,Level="error")
       }
       FileErr_ls <- c(FileErr_ls, FileErr_)
       if (length(DataErr_ls$Warnings) != 0) {
@@ -2053,7 +1987,7 @@ processModuleInputs <-
             "Has one or more warnings for the data inputs as follows:"
           )
         FileWarn_ <- c(FileWarn_, Msg, DataErr_ls$Warnings)
-        writeLog(FileWarn_)
+        writeLog(FileWarn_,Level="warn")
       }
       FileWarn_ls <- c(FileWarn_ls, FileWarn_)
     }#End loop through input files

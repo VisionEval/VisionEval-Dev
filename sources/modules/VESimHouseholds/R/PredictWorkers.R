@@ -133,7 +133,7 @@ PredictWorkersSpecifications <- list(
               "Ratio of workers to persons age 30 to 54 in model year vs. in estimation data year",
               "Ratio of workers to persons age 55 to 64 in model year vs. in estimation data year",
               "Ratio of workers to persons age 65 or older in model year vs. in estimation data year"),
-      OPTIONAL = TRUE
+      OPTIONAL = TRUE # It turns out it's not really optional.
     )
   ),
   #Specify data to be loaded from data store
@@ -342,7 +342,7 @@ PredictWorkers <- function(L) {
   }
   #Iterate through age groups and Azones and identify number of workers by
   #age group for each household
-  PropHhWkr_HtAg <- VESimHouseholds::PropHhWkr_HtAg
+  PropHhWkr_HtAg <- loadPackageDataset("PropHhWkr_HtAg","VESimHouseholds")
   for (i in 1:length(Ag)) {
     NumWkr_Hh <- integer(NumHh)
     for (az in Az) {
@@ -360,7 +360,7 @@ PredictWorkers <- function(L) {
           MaxVal <- TotPrsn / sum(NumPrsn_ * Probs_)
           Msg <- paste0(
             "Error during run of PredictWorkers module! ",
-            "The value of ", Re[i], " for Azone ", az, " in Year ", Year,
+            "The value of ", Re[i], " for Azone ", az,
             " will result in more workers than people in that age category. ",
             "The maximum value of ", Re[i], " must be less than ",
             round(MaxVal, 2), ".")
