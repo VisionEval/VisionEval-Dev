@@ -19,10 +19,7 @@ LazyData: TRUE
 Depends: R (>= 3.6.0)
 Imports:
     visioneval,
-<<<<<<< HEAD
     VENHTS,
-=======
->>>>>>> development-next
     VEHouseholdTravel,
     data.table
 Suggests:

@@ -21,12 +21,8 @@ Imports:
     pscl,
     rmarkdown,
     data.table,
-<<<<<<< HEAD
     visioneval,
     VENHTS
-=======
-    visioneval
->>>>>>> development-next
 Suggests:
     knitr,
     VE2001NHTS,

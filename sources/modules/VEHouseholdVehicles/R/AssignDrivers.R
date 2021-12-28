@@ -89,21 +89,13 @@ estimateDriverModel <- function(Data_df, StartTerms_, ValidationProp) {
 
 #Set up data estimate models
 #---------------------------
-#Load NHTS household data
-<<<<<<< HEAD
-Hh_df <- VENHTS::Hh_df
+#Identify records used for estimating metropolitan area models
+Hh_df <- loadPackageDataset("Hh_df","VENHTS")
 #Identify records used for estimating metropolitan area models
 Hh_df$IsMetro <- Hh_df$Msacat %in% c("1", "2")
 #Load NHTS person data to use for model estimation
-Per_df <- VENHTS::Per_df[, c("Houseid", "Driver", "AgeGroup", "Worker")]
-=======
-Hh_df <- loadPackageDataset("Hh_df","VE2001NHTS")
-#Identify records used for estimating metropolitan area models
-Hh_df$IsMetro <- Hh_df$Msacat %in% c("1", "2")
-#Load NHTS person data to use for model estimation
-Per_df <- loadPackageDataset("Per_df","VE2001NHTS")
+Per_df <- loadPackageDataset("Per_df","VENHTS")
 Per_df <- Per_df[, c("Houseid", "Driver", "AgeGroup", "Worker")]
->>>>>>> development-next
 #Join person data with select household data
 ModelVars_ <-
   c("Houseid", "Hbppopdn", "Income", "Hhsize", "Hometype", "UrbanDev",
@@ -509,12 +501,7 @@ AssignDrivers <- function(L) {
 
   #Function to make a model dataset for an age bin
   #-----------------------------------------------
-<<<<<<< HEAD
-  Hh_df <- VENHTS::Hh_df
-  
-=======
-  loadPackageDataset("Hh_df","VE2001NHTS")  
->>>>>>> development-next
+  Hh_df <- loadPackageDataset("Hh_df","VENHTS")  
   makeModelDataset <- function(Bin) {
     # Make data frame for households that have persons in the age group
     Hh_df <- data.frame(

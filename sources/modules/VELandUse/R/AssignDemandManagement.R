@@ -93,13 +93,8 @@ rm(Inp_ls, TdmParameters_df, PropDvmtReduce_)
 #by household including tabulations of total tour mileage, work tour mileage,
 #work tour mileage per worker, number of workers, and household size
 TourMiles_df <- local({
-<<<<<<< HEAD
-  NhtsTours_df <- VENHTS::HhTours_df
-  NhtsHouseholds_df <- VENHTS::Hh_df
-=======
-  NhtsTours_df <- loadPackageDataset("HhTours_df","VE2001NHTS")
-  NhtsHouseholds_df <- loadPackageDataset("Hh_df","VE2001NHTS")
->>>>>>> development-next
+  NhtsTours_df <- loadPackageDataset("HhTours_df","VENHTS")
+  NhtsHouseholds_df <- loadPackageDataset("Hh_df","VENHTS")
   IsHhVehTour_ <- with(NhtsTours_df, Mode %in% c("Auto", "LtTrk"))
   VehTours_df <- NhtsTours_df[IsHhVehTour_,]
   TourMiles_Hh <-

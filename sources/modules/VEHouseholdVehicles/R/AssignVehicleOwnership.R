@@ -58,11 +58,7 @@
 #Create model estimation dataset
 #-------------------------------
 #Load selected data from VE2001NHTS package
-<<<<<<< HEAD
-Hh_df <- VENHTS::Hh_df
-=======
-Hh_df <- loadPackageDataset("Hh_df","VE2001NHTS")
->>>>>>> development-next
+Hh_df <- loadPackageDataset("Hh_df","VENHTS")
 FieldsToKeep_ <-
   c("NumVeh", "Income", "Hbppopdn", "Hhsize", "Hometype", "UrbanDev", "FwyLnMiPC",
     "Wrkcount", "Drvrcnt", "Age0to14", "Age65Plus", "MsaPopDen", "BusEqRevMiPC")

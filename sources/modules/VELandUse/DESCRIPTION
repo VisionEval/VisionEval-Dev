@@ -22,10 +22,7 @@ Imports:
     visioneval,
     geosphere,
     fields,
-<<<<<<< HEAD
     VENHTS,
-=======
->>>>>>> development-next
     VESimHouseholds
 Suggests:
     knitr,

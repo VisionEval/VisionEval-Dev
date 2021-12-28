@@ -114,11 +114,7 @@ HhVars_ <-
   c("Houseid", "Hbppopdn", "Hhsize", "Age0to14", "Age15to19", "Hhsize",
     "Income", "Drvrcnt", "Wrkcount", "Hometype", "UrbanDev", "NumAuto",
     "NumLightTruck", "NumVeh")
-<<<<<<< HEAD
-Hh_df <- VENHTS::Hh_df[, HhVars_]
-=======
-Hh_df <- loadPackageDataset("Hh_df","VE2001NHTS")[, HhVars_]
->>>>>>> development-next
+Hh_df <- loadPackageDataset("Hh_df","VENHTS")[, HhVars_]
 Hh_df <- Hh_df[complete.cases(Hh_df),]
 Hh_df <- Hh_df[Hh_df$NumVeh != 0,]
 Hh_df <- Hh_df[Hh_df$Drvrcnt >= 1,]
