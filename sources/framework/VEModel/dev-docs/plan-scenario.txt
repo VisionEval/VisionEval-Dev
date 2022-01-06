@@ -1,0 +1,711 @@
+## Next steps
+
+ModelStage and Combination models both appear to be working.
+Develop a smaller subset of combinations to test all the way through running the combinations.
+
+Take the results through to the visualizer:
+  - Finish developing the visualizer standard queries
+  - Generate data (with ScenarioElement identifiers) from query results
+  - Generate category and scenario (element) tables for visualizer
+  - Construct default category and scenario (elements) for ModelStage scenarios
+
+Make sure the installable scenario models are up to date with required structures.
+  The combinatorial version should just do a few categories and levels
+  The model stage version should lack category/scenario element
+  Later, in the tests.R, modify those base model settings to introduce/handle some errors and
+    to do the partial specifications described below.
+
+Finish the queries for the installable models (to track original visualizer - that will exercise the
+query mechanism very well!).
+
+## Rethink on loading scenarios:
+
+Use "ModelStages" in ScenarioDir/visioneval.cnf to do manual scenarios
+
+Use "ScenarioCategories" to specify
+
+  a) ScenarioCategory Name/Description plus Levels (each of which incorporates one or more
+     ScenarioElement levels)
+  b) Various defaults collapse that down to allow a single Category in which each ModelStage
+     scenario is a level.
+  d) Categories will be permuted if ScenarioElements each define a proper subset of the
+     input files (which are all and only the files in each ScenarioElement Level directory)
+  e) Permutation will develop ModelStages with appropriate properties for the visualizer.
+     Those ModelStages will be dumped into a metadata configuration file so the resulting
+     RunPaths can be related back to how they were set up.
+
+In the ModelStage, construct ScenarioCategory with description plus level for this stage.
+(Visualizer uses "Categories" to understand the universe).
+
+When the visualizer runs, it looks only at the scenarios portion of the overall model configuration,
+and the ModelStages identified therein.
+
+We also need a ScenarioElement categorizer (if ScenarioElements exist) that maps the structure of
+the Category levels to one or more ScenarioElements and Levels. The visualizer uses that to identify
+which ModelStages are "in" or "out" for purposes of filtering.
+
+The Permutation approach to auto-generating ModelStages has the following requirements (to reconcile
+with the ScenarioCategory and ScenarioElement). Do not do this expansion if ScenarioElements are
+defined explicitly.
+  Scenario Category
+    Defaults to a single Category called "Scenarios", with one Category Level per Scenario Element
+    Level.
+
+    If no Scenario Elements are explicitly defined, the scenario ModelStages (plus StartFrom)
+    each become one Level of a single Scenario Element entitled "Scenario" and the Levels are named
+    for the (already defined) ModelStages. Their visualizer ID is sequential (the full name appears
+    in the data table at the bottom of the visualizer). The Scenario Element name need not be specifically
+    identified, and the Level Name must match one of the scenario ModelStages (and the descriptive
+    information for the level will be pulled from the ModelStage).
+
+    If more than one Category is specified, Category levels will be permuted if all the Scenario
+    Elements are permutable. It is an error to have more than one Category if all the Scenario
+    Elements are NOT permutable.
+
+    A permutable Scenario Element Level includes a File definition identifying all (and only) the
+    files that must be present in the Scenario Element Level directory, and no listed File can
+    appear in more than one Scenario Element. It is an error to have more than one Category if
+    Scenario Elements are not permutable. The directory for the Scenario Element Level must
+    contain only those files. The user will be warned if all the files in any two Levels are
+    identical (we expect at least one to be different).
+
+    If there is more than one Scenario Element Level for a single Category Level, all the Category
+    Levels will be permuted (with each Scenario Element Level contributing its InputPath to the
+    resulting ModelStage).
+
+    The main objection to more than one Category with non-permuted Scenario Elements is that the
+    R visualizer will want to crossfilter them.
+
+    When permutation is performed, the resulting ModelStages should get dumped into a
+    configuration-like file listing the ModelStage parameters (notably descriptions and InputPaths,
+    plus the category/scenario element identifiers needed to cross-filter in the R Visualizer).
+    The purpose of that file is to have a human-readable index of what the different scenario model
+    stages are about.
+    
+###### Concrete steps
+
+These should be tested out in "test_scenarios" in tests/test.R.
+
+    Are ScenarioCategories defined:
+      No: Create a default ScenarioCategory called "Scenarios". Create a default ScenarioElement
+          called "Scenario". Create ScenarioCategory Levels keyed one-to-one to ScenarioElement
+          "Scenario" Levels, which are in turn built from each ModelStage plus StartFrom defined
+          in the scenario section.
+    If one ScenarioCategory is defined, does it have defined Category Levels?
+      No: Just like default, except we've named the Category (for the Visualizer)
+    If it has defined Category Levels, does each of those have a ScenarioElement Level
+      No: Error; each category level has to be associated with one or more ScenarioElement Levels
+      CategoryLevel can also include a Name (default is definition sequence) and Description
+      Level includes a list of one more more ScenarioElement/Level pairs. The ScenarioElement/Level
+      can only appear in one CategoryLevel.
+    If Category Level has ScenarioElement Levels, do we have a ScenarioElement structure
+      No: Just like default, but interpret ScenarioElement Levels as scenario ModelStage names,
+      and only include those explicitly named model stages in visualization (ignore the rest)
+    If the ScenarioElement structure is defined, are the ScenarioElements permutable
+      Requirement: has Files defined for each ScenarioElement. Directories attached to each
+        element have (error) all and only those Files and (warning) at least one directory
+        file differs among each of the levels.
+      No: If Files descriptor is missing, exactly one ScenarioELement Level is allowed. The Level
+          Name must belong to a scenario ModelStage. The ScenarioElement will supply descriptive
+          information (rather than interpolating ModelStage values)
+    Does each ScenarioElement Level appear in either zero or exactly one ScenarioCategory Level?
+      No: error
+    Permute the ScenarioCategory Levels and generate a summary of each resulting ModelStage
+      (including the StartFrom) - provides documentation of what is being run.
+      Permutation should work even if there is just one ScenarioCategory (permutations are based
+      on InputPaths associated with each ScenarioElement Level)
+      ModelStage must include ScenarioElement Name:Value pairs for each ScenarioElement Level
+        included in the permuted ModelStage. A Name:Value pair is added for each ScenarioElement, if
+        a non-zero Level for that ScenarioElement does not appear in the permutation (missing), then
+        the Value is zero. Might start by making them all zero, then just dropping in the permuted
+        non-zero values.
+
+###### Deeper architecture follows:
+
+Set up a stock model variant VERSPM variant="scenario" which installs a couple of scenario
+variant folders - one a ModelStages version that emulates the in-memory version we'll build in
+tests/test.R, and one a Category version that uses the setup from the old VERSPM-scenarios. The
+model should also include queries for making visualizer-friendly metrics.
+
+Need a model stage scenario variant that includes altered input files. Test needs to ensure
+that InputPath is being implemented correct for the stages.
+
+So the sample model needs:
+  1. ScenarioDir for ModelStages
+  2. ScenarioDir for CategoryStages
+  3. Queries directory with a sample query emulating metrics from original VERSPM metrics
+  4. Base it on the VERSPM-pop variant
+  5. Maybe do a pair of variants: one for "scenario-stages" and one for "scenario-categories"
+  6. They just copy different scenario dir (with different visioneval.cnf and sub-folders)
+  7. Same test data can get copied into each
+
+Things to put into the scenario test:
+  1. In-memory stages added (addstage should let us push it into the file but also the memory
+     RunParam_ls)
+     Visualizer: see each stage added to master "Scenarios" Category/Scenario, and the stage
+     becomes its own level
+  1. Adjust in-memory stages to add an explicit category to them
+     Visualier: see two categories instead of one
+  2. ScenarioDir with ModelStages descriptions of scenarios (same as In-Memory except we've
+     added those specific stages plus StartFrom to the ScenarioDir visioneval.cnf)
+     Visualizer: Should have explicit Categories? or not? Won't differ much from the earlier
+  3. ScenarioDir with Category/Scenario descriptions - spins up 
+     Visualizer: Check for full elaboration of Category/Scenario structure with a bunch of
+     scenarios
+
+Need to finish scenario construction and stage building, and handle all the ways stages can be
+visualized - get the visualizer working first for a set of 1 or more reportable stages and a set of
+measures from that stage (via running a VEQuery on it). Then expand out to more refined types of
+Categories and Scenarios (combination build, including StartFrom).
+
+When we process scenario ModelStages that were build from Category/Scenario, we need to keep the
+list of Scenario/Level for each set of results. The StartFrom stage goes in as a stage where all the
+Levels are set to zero (the "base case"). Levels are only defined for inputs that deviate. Scenarios
+are only built for Categories (which map over to Scenarios). Categories can be made for manual
+scenarios (see below).
+
+If we add a new Category or a new Level (e.g. by way of a new Scenario) we should not have to re-run
+everything. If a new Category appears, we just mark the ModelStage for all the other built stages as
+having Level=0 for that Category so we're done (if a Category/Level is not part of the list of how a
+ModelState scenario was defined, we presume it is Level=0). If a new Level appears, we will build
+that Category/Level scenario in combination with all others and just do the additional stages that
+for combinations of the new Level. Likewise, if we drop a Category (for export or otherwise), we
+just ignore its components and do not build model stages for it.
+
+That suggests that the built name of scenarios for Category/Level should not include explicit
+reference to Level=0 - if the Category/Level was not used for the scenario, the implication is that
+it is the base state. That also means we don't explicitly have to assign Category/Level to the
+StartFrom stage since the default for all Categories is Level=0.
+
+When we are tagging scenario ModelStages for use in the VEData structure for the Visualizer, we look
+at what Categories are requested for the Visualization (default = all defined categories) and we
+only pull scenarios for combinations of the requested Category/Levels (there will always be a "zero
+level" for the missing Category where we just vary the others). So the build tree of category/level
+looks like this:
+
+expand.grid does what we need, but must have the zero level explicit (we drop it again)
+
+StartFrom
+C1/L1
+C1/L2
+C2/L1 (level 0 for C1)
+C2/L2
+C2/L3
+C3/L1
+C1/L1/C2/L1 (inclues level 0 for C3)
+C1/L1/C2/L1/C3/L1
+C1/L2/C2/L1
+C1/L2/C2/L1/C3/L1
+C1/L1/C2/L2
+C1/L1/C2/L2/C3/L1
+C1/L2/C2/L2
+C1/L2/C2/L2/C3/L1
+C1/L1/C2/L3
+C1/L1/C2/L3/C3/L1
+C1/L2/C2/L3
+C1/L2/C2/L3/C3/L1
+
+So we just do stages for (just)
+                levels of the first category (L1 stages)
+Then stages for levels of second category (L2 stages)
+Then stages for levels of third category (L3 stages)
+Then stages for levels of first category plus second category (L1 * L2 stages)
+Then stages for levels of first category plus third category (L1 * L3 stages)
+Then stages for levels of first category plus second plus third category (L1 * L2 * L3 stages)
+Then stages for levels of second category plus third category (L2 * L3 stages)
+
+If we add another Category with L4 levels we'll just do another version of each of those stages
+with all combinations of L4 levels, as well as the L4 levels alone. The permutations go up fast,
+but keeping track is easy, and we don't have to rename or redefine anything to run.
+
+We do need to look at the indexing in the Visualizer and make sure we generate the categories
+with the initial Level 0 into categoryconfig. It's all keyed off the Name so we should be good.
+
+VEModel Adjustments
+
+  - Need to update the "dir" and "clear" functions for the model to manage queries. QueryDir
+    contains query templates. They are not managed by "clear" which looks only at results.
+    Need to recognize queries in the ResultsDir and treat those like log files with respect to
+    listing and clearing. Clearing results will take out the QueryRun-*.Rda along with Logs.
+    The Query outputs are .Rda files called QueryRun-<QueryName>.Rda where the QueryName is
+    same one that was loaded to run the query.
+  - VEQuery uses an attached model to manage query results (and we can call up results - which
+    internally calls run if there are no results yet). Do VEQuery$results to get results (report "No
+    Model" if a model is not attached; report "Model run status: X" if the model is not "Run
+    Complete").
+  - Accessing a query through a model automatically attaches the model. Otherwise use
+    VEQuery$model(VEModel object) to attach. Opional Save parameter will create QueryDir for the
+    model (if it doesn't exist) and save to VEQuery name if there is no corresponding .VEqry yet.
+  - Archiving Results should also archive query results (like Log files) - and outputs should also
+    probably come along for the ride generally.
+  - Copying a model has the option to copy its results and dataset. If we have the model name in
+    the results ModelState.Rda, it needs to change, as does the ModelDir and everything derived from
+    it - that's also the case with just archiving the results (make sure RunPath is correct - the
+    archive should look just like results that were genereated if ResultsDir = ArchiveDir).
+  - Suggests we need a function to operate on the ModelState and fix everything up (certain
+    parameters get replaced and rebuilt).
+
+Run ModelStage Punch List:
+
+  - When we run a ModelStage, we need to save key features of the ModelStage into the ModelState.Rda
+    In particular, we want to keep the Scenario/Level list. The RunParam_ls for the ModelStage
+    (if it was built as a scenario) should include the "Scenario/Level" descriptors as
+    built when we identify scenarios - that's the "ScenarioConfig" key described below. Any
+    ModelStage that is a scenario needs to have that key.
+
+Setting up scenario ModelStages:
+
+  - For manual scenarios, the ModelStage should include a "Category" key, referring to the
+    "Categories" tag (which should only contain "NAME", "LABEL" and "DESCRIPTION", not "LEVELS").
+    If there is no Category key, it gets a default one called "Scenarios". If there are Category
+    keys but no "Categories" tag, build the latter from whatever is present (at a minimum, a
+    "Scenarios" category).
+
+  - If no "Scenarios" tag, but "Categories" exists, use that to classify any manual scenarios - drop
+    any Categories that are not referred to by any of the defined ModelStages. If the "Levels"
+    element of "Categories" is provided, only include the scenario ModelStages listed there (by
+    their ModelStage Name) and give it Level=1. The default is to include all scenario model stages
+    as levels in the corresponding Category if no levels are defined for the Category.
+
+  - If "Scenarios" tag exists but no Categories, just do a one-to-one mapping from "Scenarios"
+    to "Categories". Name and Description are elevated from the Scenario Label and Description
+    respectively, and the Category levels just track over to the Scenario/Level list from
+    "Scenarios". Amounts to renaming "Scenarios" into "Categories"
+
+  - If no "Categories" and "Scenarios" are pre-defined:
+      - "Categories" and "Scenarios" tags will be created as the set of unique "Category" tags in
+        each Reportable ModelStage (if no "Category" tag, create a default Category="Scenarios")
+      - Each reportable ModelStage:
+        - Adds a Scenario/Level to the scenarios list (NAME=Scenario Name/Dir, LEVEL=1)
+        - Adds a Category/Level (or just a level to the Categories table)
+          - If the stage has no Category, its category is "Scenarios"
+          - If the stage category does not exist it is created in the categories table
+          - The stage is appended to the list of category levels (NAME = next available number)
+          - The Category level only has one scenario (NAME=ModelStage name, LEVEL=1)
+
+  - If there are both "Categories" and "Scenarios" defined
+      - "Categories" must contain "LEVELS", which is a list of the defined NAME and LEVEL from
+        the "Scenarios" tag
+      - FILES tag goes on "Scenarios", not "Categories" in the visualizer scheme.
+      - The Scenario Name/Level is sought as an input folder in ScenarioDir (paste0(Name,Level))
+        Input path for the Scenario/Level is the corresponding input folder. Description for
+        the Scenario/Level is placed in the "Scenarios" tag.
+      - We build model stages from combinations of Category/Level (where each Category/Level
+        supplies the vector of InputPaths from its Scenario/Level elements as well as the structure
+        that identifies the active set of Scenario/Level for that Scenario ).
+          - Visit all the Scenario/Levels and add InputPath (normalized) and Level NAME
+          - When building a ModelStage for a combination of Category/Level, add the InputPaths
+            of all the Scenario/Levels in the Category/Levels and accumulate a named vector of
+            Scenario/Level
+          - A special "Level 0" is added to the front of the list of Category/Levels, with
+            description "Base Conditions" and Name "0"
+      - The StartFrom stage is also tagged: it is tagged with level zero for each possible
+        Scenario entry
+
+Extracting information from ModelStages:
+
+  - When building a ModelStage from scenario categories, add a "ScenarioConfig" tag to RunParam_ls
+    which is a list of items with the following elements:
+      Name
+      Level
+    Build the Scenario name by concatenating the selected NameLevel for each scenario element. The
+    combinations are composed by permuting the Scenario/Level listed for the category levels.
+    The defined levels in the scenario configuration file will be numbered starting from 1,
+    but there will be a folder with the scenario name joined to the level number for each level
+    of 1 or greater.
+
+  - The only thing we're interested in for creating a runnable stage is the Dir/Name for the
+    ModelStage (build by concatenating the Name+Level for each scenario component) and the InputPath
+    (build by concatenating the normalized directory path for each ScenarioName-Level) and setting
+    the StartFrom, which comes from the overall ScenarioDir/visioneval.cnf or from
+    "CategorySettings" within that file. Generally, the overall StartFrom will refer to a ModelStage
+    in the base model, whereas a stage set in CategorySettings is expected to be a folder-based
+    scenario within ScenarioDir - because StartFrom is only processed after the stages have been
+    loaded (as they are evaluated as "runnable"), it doesn't matter which place "StartFrom" refers
+    to: any runnable ModelStage defined in either place will work (except that in the Category
+    world, the stage does need to be a folder stage - i.e. not one of the auto-generated ones).
+
+  - Add tose tags retroactively (with Level=0 through all the scenario categories) to the
+    StartFrom ModelStage.
+
+  - When exporting data from this scenario for the Visualizer, put out these columns ahead of the
+    query values:
+    "Scenario" : RunParam_ls$Scenario // composed name of this scenario combining category pieces
+    "ScenarionName" : ScenarioLevel
+    // dump the ScenarioConfig tag, using Name (ideally one character) and Level (one
+    // character)
+
+  - When exporting the "scenarioconfig" descriptor for the Visualizer, put out the structure
+    for that file. Note that the Level always includes the StartFrom stage as the first level.
+    So what we need to define in ScenarioDir/visioneval.cnf are just the "extra" levels (so
+    there may only be one additional level defined there).
+     {
+        "NAME": Scenario$Name
+        "LABEL": Scenario$Label
+        "DESCRIPTION": Scenario$OverallDescription
+        "LEVELS": [
+          {
+            "NAME": "0", // auto-generated "no-build"; adds nothing to InputPath
+            "LABEL": "Base",
+            "DESCRIPTION": ["Base Scenario"] // auto-generated
+          },
+          {  // For example... This and subsequent are defined in "Scenario Land"
+            "NAME": "1",
+            "LABEL": "Double divesion",
+            "DESCRIPTION": ["Increase diversion of SOV tours to 20%"]
+          }
+        ]
+      },
+
+  - Generate the output config from the QuerySpecification (just dumping description for up to the
+    first N measures)
+
+  - Generate the category config from the scenario's category descripion (including map to the
+    Scenario/Level elements for each config level.  We'll only generate scenario combinations as
+    needed to do come up with one scenario for each combination of category level (not each
+    combination of scenario level). The Category config needed by the visualizer is pretty much
+    a dump of the (possibly augmented/auto-generated) "Categories" structure in the scenario
+    configuration.
+
+=== Earlier notes follow
+
+Changes to scenario setup to support visualizer:
+  Rename the basic unit of scenario input as "Scenarios"
+  Rename the units used to build model runs as "Categories"
+    When we generate the combinations, they are combinations of Category levels
+    The Category levels map to a set of Scenario Levels
+      For each category level, add the corresponding scenario levels to the full scenario config
+  Those are both configured for "category" scenarios
+  Also have CategorySettings as below
+  If folders that are not Scenarios exist, ignore them if Category/Scenarios are defined
+  ModelStages can be created, but they are ignored if they do not have a CATEGORY defined
+    They can still be used as a StartFrom (instead of overall StartFrom), so the base scenario can
+    be included as one of the scenarios - and a stage named "StartFrom" will automatically get
+    tagged as LEVEL:0 for each defined CATEGORY. If the explicit model stage does have a CATEGORY,
+    that category must not be used by non-ModelStage scenarios and it must not have pre-defined
+    levels. Each ModelStage will be assigned a LEVEL inside the CATEGORY. If there are no
+    Scenario/Category definitions (i.e. only ModelStage scenarios), then a CATEGORY is automatically
+    created for each ModelStage with the value "Scenarios".
+  There must be a StartFrom for the Scenarios (effectively, the BaseModel)
+    It can be a ModelStage within the Scenarios Folder, or a stage in the model to which
+    the scenarios are attached.
+  When building categories, auto-generate a Level 0 that has an empty InputPath for that Scenario
+    In practice, we inject a Scenario Level without an InputPath
+    Which suggests that before we do the permutations, we just turn each Scenario into its InputPath
+      so what we're permuting and adding up is just the list of InputPaths (with a record of the
+      corresponding scenario so we create a Scenario/Level tag).
+    If there is a StartFrom stage, we tag that one with "Level 0" for each defined Scenario.
+    The ModelStage contains a named character vector of scenario levels (Scenario$NAME: Level$NAME).
+  Suggests that we want to augment the VEModelStage objects to include Scenario/Level that was
+    used to generate each one (needed to make VEdata for visualizer for filtering results).
+
+For building Category scenarios
+
+  Do combinations of "Category" (not "Scenario")
+    For each Category Level included, add the input path to each configured Scenario.
+    Permute the Categories, but add the InputPath from each Scenario to the resulting model stage.
+  Load up the defined "Categories" (which map the "Scenarios)
+  So load up the defined "Scenarios" (Files/Levels/Input directories)
+
+For visualization:
+
+  If "Category" is defined
+    Do category scenario stages
+    Ignore Scenario model stages even if they exist
+  If only "ModelStages" (either explicit or implicit)
+    Auto-generate a single Category called "Scenarios"
+      NAME is just a digit
+      It has one level per defined scenario (INPUTS link to scenario NAME)
+    The "Scenarios" table has components built from ModelStages
+      NAME (of Scenario folder)
+      LABEL (NAME of Scenario folder)
+      DESCRIPTION (DESCRIPTION of Scenario folder)
+      CATEGORY: "Scenarios"
+    Does not have FILES
+    Has only one LEVEL
+      NAME (same as Scenario NAME)
+      LABEL (same as Scenario NAME)
+      DESCRIPTION (same as Scenario DESCRIPTION)
+
+Basic scenario operation:
+  We can have multiple sets of scenarios - set ScenarioDir in the Model's visioneval.cnf
+  Scenarios are just an alternate place/means of constructing model stages
+    Look for ScenarioDir and if found, process model stages from its visioneval.cnf (if any)
+  Inside ScenarioDir:
+    If visioneval.cnf:
+      Provides defaults (notably StartFrom) applied to ALL scenarios
+        Includes both Folders/ModelStages and Categories/Levels constructed from Scenarios/Levels
+        StartFrom can also be a CategorySetting instead
+          (and be an explicit ModelStage within the ScenarioDir)
+      if ModelStages explicit in ScenarioDir/visioneval.cnf
+        Process those as regular model stages
+      THEN, if Categories tag present, build those Categories into model stages
+        Include Optional CategorySettings (source: "CategorySettings")
+          Used as RunParams_ls (overlaid on overall scenario parameters)
+        Categories tag is an array of descriptors plus levels (visualizer top level)
+          Each level contains a list of Scenario/Level descriptions from the Scenarios tag
+          Name/LevelName for the scenarios to include
+        Scenarios tag is an array of Scenarios:
+          Name (short/distinct), Label, Description, Instructions
+          Files (array of files from model to include in Category)
+          Levels (array of levels)
+            Name, Label, Description
+    If no visioneval.cnf or if no ModelStages and no Categories in visioneval.cnf:
+      Process any sub-folders as if they were model stages defined in the base model
+      Just read their visioneval.cnf (and screen out non-runnable ones as usual)
+
+When we load ScenarioDir, we create a VEModelScenarios object
+  That object is used to provide the descriptors for 
+    ModelStages (tagged with the Category/level they belong to)
+
+Write a function for the VEModelScenarios object 
+
+Add category, file and level interrogation (VEModelScenarios object).
+Intersect files from basemodel and categories (which files are in which categories)
+
+  VEModelScenarios object
+    Can manipulate visioneval.cnf for VEScenarios object using standard environment tools.
+      Has a RunParam_ls and a loadedParam_ls elements
+    Can construct stages (build them on the fly if not already prepared; see above)
+      Rebuild/Revalidate categories (all+only the files; present in all levels) when making stages
+    Printing the scenarios object will show the stages that are defined
+      Will show Categories, Files, Levels if defined
+
+  Need to set:
+    StartFrom stage in base model (default is last Reportable, can provide non-character to ignore)
+    ScenarioDir (where to look for scenario configuration, inputs)
+  If ScenarioDir (default="scenarios" relative to ModelDir) exists:
+    - Look for ScenarioConfig defaulting to "scenarios.cnf";
+    - If ScenarioDir contains scenarios.cnf, that file will be opened and the keys "Categories" (optional)
+      and "Scenarios" will be sought in it.
+  The Scenarios key contains:
+    StartFrom (the stage that the scenarios will start from; must be Reportable)
+      - May be NULL (scenarios are free-standing runnable model stages)
+      - Even without StartFrom, InputPath for Scenarios will still include InputPath
+        for Model if the model has an InputPath
+      - So the scenarios can still just have the subset of inputs that are different
+    ModelStages (definitions of ModelStages)
+      - These can be constructed manually, built (loading available directories, or built
+        from Category/Level configuration)
+      - Reportable will be ignored (always TRUE)
+      - StartFrom can be specified (or NULL) for each ModelStage
+      - Any settings for the stage Config are always inline for Category-Level Scenarios
+      - Free-standing scenarios from directories can have a visioneval.cnf, which is read
+        just as for standard model stages
+  The Categories key (if present, along with the Scenarios key) contains:
+    Name, Description
+    Levels, each element of which contains a Scenario/Level pair (by Name)
+    We do combinations of the Categories to generate the ModelStages, picking just
+      those scenarios and levels that correspond to the Category.
+  The Scenarios key (if present, along with Categories key) contains:
+    A list of Scenarios (by Key)
+      with Name, Description
+    Within each category:
+      Levels
+        List of Levels (by Key) with Name, Description
+      Files
+        List of input files (name only) to be changed for this Category
+        Each level for the category gets those files (from StartFrom stage)
+
+The scenarios become "part" of the model they are attached to. The model (baseModel) is kept as part
+of the scenario management object, so certain model functions (like reloading the model or running
+the scenarios) can be performed by acting on the set of scenarios.
+
+TODO: develop VEModelScenario$add function to add a manual scenario; creates a folder
+  and drops visioneval.cnf into it (with InputPath set) pivoting off BaseModel/StartFrom.
+TODO: add nuance to "files" function; if we're doing manual scenarios, then we need
+  to add a Files key to visioneval.cnf for the manual scenario - those will be copied
+  if present when we build the scenario (but unchanged if they already exist - eventually
+  compare the files to the BaseModel/InputPath version).
+  Files key in visioneval.cnf will be loaded and saved.
+  If the Files key exists, those are the "scenario files" - so the files function
+    should have a flag to indicate what category or scenario we're getting the files
+    for (and which levels have files, and which are different from each other and the
+    BaseModel/StartFrom stage).
+
+[DONE] The model's "$scenarios" function returns a VEModelScenarios object
+  Pointer to the BaseModel
+  StartFrom stage
+  ScenarioDir (relative to model$modelPath, snapshot of BaseModel$setting("ScenarioDir"))
+    NULL if ScenarioDir does not exist
+  ScenarioConfig (snapshot of BaseModel$setting("ScenarioConfig") name)
+    NULL if ScenarioConfig does not exist
+  Option to create ScenarioDir and blank ScenarioConfig (create=TRUE)
+  Option to force reload (fromFile) or skip file reload
+Printing the scenarios object will say if scenarios are defined.
+  [DONE] VEModelScenarios$initialize(BaseModel,create=FALSE,startFrom=NULL)
+    BaseModel is required (search for ScenarioDir)
+    Populate the scenario structure
+      BaseModel, StartFrom, ScenarioDir, ScenarioConfig (nail it down at the moment of creation)
+    If create==TRUE, build ScenarioDir and add ScenarioConfig
+      Pull startFrom from BaseModel if create==TRUE and not provided (last Reportable stage)
+    If create==FALSE, just consider what is (not) there
+    Does $load if ScenarioDir exists or got created (ScenarioConfig may or may not exist)
+  [DONE] VEModelScenarios$load(StartFrom=NULL,build=TRUE,scenarioPath=NULL)
+    Option to (re)set "StartFrom" if provided (forces build to TRUE)
+    Will load "scenarios.cnf" if it exists in ScenarioDir and extract "Scenarios" key
+    If "Scenarios" key does not exist, create it and resave scenarios.cnf
+      Contains ScenarioDir, StartFrom (may be reset during loading)
+    Use Categories key if present, but don't build/create automatically
+    Can optionally specify "build" to try constructing ModelStages
+      Model stages will be rebuilt from what is in scenarios.cnf in this case
+      If $build fails, report what is missing
+      If $build succeeds
+        replace ModelStages
+        reload the baseModel (which will add the scenarios to its stages)
+    Otherwise note in print/status that ModelStages have not been built
+    If build==TRUE, also rewrite ScenarioDir/ScenarioConfig with any built changes.
+  [DONE] VEModelScenarios$save(overwrite=FALSE)
+    Save the in-memory scenario configuration back to ScenarioDir/ScenarioConfig
+    Use as an alternative (and perhaps call from within) to the Save=TRUE option on $load, $files, $build
+    Nuance the overwrite flag appropriately
+  [DONE] VEModelScenarios$stages(scenarios=NULL)
+    Return the built list of stages (or an empty list) as VEModelStage objects
+    TODO: May filter that list by scenario (stage) name, perhaps also by category (just stages
+      using a certain category) and further by level (just stages using a certain level)
+  VEModelScenarios$run
+    Dispatches to the model run, with option to list specific scenarios to run
+      Scenarios to run are listed by name (see $stages object to get the names)
+    Includes option to "save", "reset" or "continue" (with, in this case, "reset" being the default)
+  VEModelScenarios$print()
+    Indicate type of scenarios (folders, category-based)
+    Indicate how many scenarios are defined
+    List Folder-based scenarios
+    List Categories/Levels, plus number of generated scenarios
+  VEModelScenarios$inputs(scenario or category name; default all of them)
+    Return StartFrom inputs that have been defined in the requested (default: ALL) scenario or categories
+    Option to show all files (default for full scenario - looks at BaseModel/StartFrom inputs)
+      or just those defined in the scenario/category (looks at files named in the category)
+      For categories, will say if the file belongs to the category (perhaps also report levels in which the file actually exists)
+      For scenarios, will say if the file exists in the scenario directory
+    Validate category inputs - file can only occur in one category
+    For directory based scenarios
+  VEModelScenarios$fromCSV(CSVFile="scenario_categories.csv")
+    # Simpler function just to parse CSV files set up the "old way" (see VEScenario)
+    # Converts the spreadsheet into "Categories" key in the scenario description
+    Read that file to determine categories to attach to the Input files
+    Flag any inputs in the CSV that are not in the StartFrom Stage
+    Return constructed "Category" key
+    Return the Category_df from the CSV file
+    If Save is true, save Category_df to CSVFile
+    Don't change anything if the CSV does not have a valid configuration
+  VEModelScenarios$categories(levels=FALSE)
+    Return the Category names (for use, e.g. in examining inputs)
+    If levels==TRUE, return a named list of character vectors
+      Each list element is named for its category
+      The character vector contains the names of the levels
+    Usual workflow:
+      Update the Category key (a nested named list, or via the CSV)
+      Save the VEScenarios back out to to scenarios.cnf
+      Re-load the scenarios object (build=TRUE)
+  VEModelScenarios$build(Reset=FALSE,Save=TRUE)
+    Main activity of "build" is to construct ModelStages from the scenarios identified in scenario.cnf
+    Handle two types of scenarios (Categories and Folders)
+      Process "Folders" first
+      If "Categories" tag is present, holds a Category/Level structure
+        Optional StartFrom as the first element of Categories; may refer to a Folder scenario
+        Subsequent elements are names with Files and Levels
+        Process the combinations into ModelStages structures
+      if "ScenarioFolders" tag is present, is a list of directories to treat as scenarios
+        else generate ScenarioFolders from sub-directories of ScenarioDir (like VEModel$configure)
+        Process directories into ModelStages structures
+    If Reset is TRUE:
+      Ignore existing ModelStages - otherwise just check for additions/consistency
+    If Save is TRUE
+      Resave scenario.cnf with ModelStages added
+    If Save is FALSE
+      Just leave ModelStages in memory (for debugging/inspection)
+    The "load" function turns the ModelStages description for the Scenarios into VEModelStage objects (after build)
+    Folders are always processed first, then Categories
+    If processing Folders:
+      ModelStages will just use each of the ScenarioFolders as "StageDir" for the stages
+      If the sub-directory has a visioneval.cnf, set StageConfig instead
+      Names of sub-directories will be Names of scenario stages (must be unique relative to Model)
+      All the ScenarioFolders will StartFrom the overall scenario StartFrom
+      StartFrom need not be provided (in which case the Scenario folders must be runnable - error
+        will be generated when we attempt to reload the model in which the scenarios live)
+    If processing Categories
+      CategoryStartFrom (can refer to a Folder scenario)
+        Defaults to overall scenario StartFrom
+        If provided, it must refer to the name of a Folder scenario within this scenario set
+        If the name is not a folder within the scenario set, offer a warning and ignore it
+        If no StartFrom available, then an error (missing "StartFrom")
+      Categories structure is an array
+        NOTES (ignored)
+        NAME
+        LABEL
+        DESCRIPTION
+        INSTRUCTIONS
+        FILES
+        LEVELS
+          NAME
+          NOTES (ignored)
+          LABEL
+          DESCRIPTION
+        Files
+          Must be inputs to StartFrom stage, must be unique across all Categories
+        Levels
+          Name (short, for reports and output folder)
+          Description (describing intent)
+          Notes (ignored)
+      Proceed to complete the Category build (below)
+    Complete the Category build: After doing table or config build setup, complete as follows:
+      Validate categories:
+        Each category must have at least one additional level
+          StartFrom is the implied base scenario level for all categories
+        Each category must specify at least one file
+        Each file from StartFrom input must exist in at most one category
+      Create any Category-Level folders that do not exist
+        Make folders for each Category (create if not existing)
+          Make folders for each Level (create if not existing)
+      Install the Category files from StartFrom InputPath into each Level folder
+        If the file is present, just skip it
+        If a file not in the Category is present in a level, warn the user and stop the build
+        If a file is not present, copy it from the StartFrom InputPath
+      Build the ModelStages structure for Categories
+        Make a Scenarios/ModelStage entry for each combination of Category-Level
+        Name constructed from index of Category and Level (C1L2C2L3)
+          The stages are just the scenarios
+          The StartFrom stage corresponds to C1L0C2L0 but is not identifed that way
+        Set up InputPath (vector of Category-Level folders), Scenario, Description, ScenarioDir (for output)
+          # The ModelStages structure placed in the Model's Scenarios key:
+          # Should end up defining for each scenario (ModelStage):
+          #   Name (of stage; defaults to basename(Dir) )
+          #   Dir (compound name for stage, for ResultsDir; or folder if scenario is folder-based )
+          #   Scenario (or Name or basename(Dir)) - used for Query column headings
+          #   Description (Category + Level Descriptions): could end up REALLY long...
+          #   InputPath (compounded as path to CategoryLevel subdirectories relative to
+          #     BaeModel$modelPath/ScenarioDir) - should normalize when Scenario stages are loaded.
+          #   Reportable (always TRUE)
+          #   Additional configuration can be provided by hand for Category scenarios
+          #   Manual scenarios can be adjusted through their own visioneval.cnf
+        Goes straight into ModelStages (rewrite ModelStages structure)
+    If Save, rewrite scenarios.cnf
+    If not Save, then just keep the scenario object up to date in memory (can call VEModelScenarios$save)
+
+============================
+
+  Scenario stages are appended after the last regular ModelStage (note that the scenarios are
+  automatically considered Reportable, and we don't alter Reportable for any "StartFrom" stage).
+  Also require unique names for the scenarios. If scenario configuration is broken, just do a
+  warning. Warn if model has no scenarios at all.
+
+  Helper functions for VEModelScenario. Figure out how to interact these with the "build"
+    function: probably these should just help make templates.
+  VEModelScenarios$categories()
+    # Report if using directory-based (manual) scenarios
+      # Each scenario folder is a "Category"
+    # If category-based:
+      # Report the Categories key from Scenarios key, if present, else "No categories defined"
+  VEModelScenarios$list()
+    # Reports the ModelStages (Scenario names, possibly with Description)
+    # Works for both category-based and manual scenarios
+    # Or should it report a vector of VEModelStages - the latter is more flexible
+    #   and could support the internal operation of creating the group of scenarios
+    #   to run.
+    # Picking a "stage" for producing a directory or finding out about it should look
+    #   not just into the model's intrinsic ModelStages but also into the Scenarios$ModelStages
+
+  In the VEModel print function, we need to distinguish scenario model stages from those that
+    are intrinsic to the base model. We can do that by factoring out ModelStages whose names
+    are present/not present in the scenario list
