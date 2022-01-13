@@ -395,10 +395,10 @@ parseUnitsSpec <- function(Spec_ls, ComponentName) {
     #Define function to return a year value from a year string
     #NA if none or not a correct year
     getYear <- function(String) {
-      CurrentString <- unlist(strsplit(as.character(Sys.Date()), "-"))[1]
       if (is.na(as.numeric(String)) || is.na(String)) {
         Result <- NA
       } else {
+        CurrentString <- unlist(strsplit(as.character(Sys.Date()), "-"))[1]
         if (as.numeric(String) < 1900 || as.numeric(String) > CurrentString) {
           Result <- NA
         } else {
@@ -413,6 +413,9 @@ parseUnitsSpec <- function(Spec_ls, ComponentName) {
     Spec_ls$UNITS <- UnitsSplit_[1]
     #If currency type, the year is the 2nd element and multiplier is 3rd element
     if (Spec_ls$TYPE == "currency") {
+      # Presumes that a multiplier will only occur on a "currency" type if the currency also has a
+      # Year. That is, we won't ever see something like "USD.1e3" but always "USD.2010.1e3" even
+      # if 2010 is the BaseYear.
       if (length(UnitsSplit_) == 1 & ComponentName != "Inp") {
         Year <- getModelState()$BaseYear
         Multiplier <- NA
@@ -428,8 +431,32 @@ parseUnitsSpec <- function(Spec_ls, ComponentName) {
         attributes(Spec_ls)$WARN <- Msg
         rm(Msg)
       } else {
+        # Handle compound currency unit (e.g. USD.2010/DAY or USD.2010.1e3/DAY)
+        # UnitsSplit_[2] would be "2010/DAY" or if Multiplier, UnitsSplit_[3] would be "1e3/DAY"
+        whereIsCompound <- grep("/",UnitsSplit_) # returns 2 if just a Year, or 3 if a Multiplier too
+        if ( length(whereIsCompound) > 1 ) {
+          Msg <- paste0(
+            "Warning note to module developer. The ", ComponentName,
+            " specification for dataset ", Spec_ls$NAME, " in table ",
+            Spec_ls$TABLE, " has a malformed compound unit specification.",
+            "So NOT 'USD.2008/PRSN.1e3/DAY' but instead something like",
+            "'USD.2008.1e3/PRSN/DAY' with the compounds all together."
+          )
+          attributes(Spec_ls)$WARN <- Msg
+          rm(Msg)
+        } else if ( length(whereIsCompound)==1 ) { # compound currency unit
+          CompoundCurrency_ <- unlist(strsplit(UnitsSplit_[whereIsCompound],"/"))
+          if ( length(CompoundCurrency_) > 2 ) {
+            # only split on the first "/"
+            CompoundCurrency_ <- c(CompoundCurrency_[1],paste(CompoundCurrency_[-1],collapse="/"))
+          }
+          # Move the "/DAY" part to Spec_ls$UNITS specification
+          # return the non-compound part (either a Year or a Multiplier) to its rightful place
+          UnitsSplit_[whereIsCompound] <- CompoundCurrency_[1]
+          Spec_ls$UNITS <- paste0(Spec_ls$UNITS,"/",CompoundCurrency_[2])
+        }
         Year <- UnitsSplit_[2]
-        Multiplier <- UnitsSplit_[3]
+        Multiplier <- UnitsSplit_[3] # NA if there is no third element, which is what we want
       }
     } else {
       Year <- NA
@@ -444,18 +471,19 @@ parseUnitsSpec <- function(Spec_ls, ComponentName) {
   }
 #Test module developer warning if year not specified in UNITS spec for
 #currency data in Get or Set specifications
-# setwd("tests")
-# TestSpec_ls <- item(
-#   NAME = "RuralIncome",
-#   TABLE = "Marea",
-#   GROUP = "BaseYear",
-#   TYPE = "currency",
-#   UNITS = "USD",
-#   PROHIBIT = c("NA", "< 0"),
-#   ISELEMENTOF = ""
+# TestSpec_ls <- list(              
+#   NAME = "RuralIncome",           
+#   TABLE = "Marea",                
+#   GROUP = "BaseYear",             
+#   TYPE = "currency",              
+#   UNITS = "USD",                  
+#   PROHIBIT = c("NA", "< 0"),      
+#   ISELEMENTOF = ""                
 # )
+# if ( ! "ModelState_ls" in ls(modelEnvironment) {
+#   assign("ModelState_ls",list(BaseYear='2010'),envir=modelEnvironment())
+# }
 # parseUnitsSpec(TestSpec_ls, "Get")
-# setwd("..")
 
 #RECOGNIZED TYPES AND UNITS ATTRIBUTES FOR SPECIFICATIONS
 #========================================================
@@ -1428,10 +1456,10 @@ parseInputFieldNames <- function(FieldNames_, Specs_ls, FileName) {
     #Define function to return a year value from a year string
     #NA if none or not a correct year
     getYear <- function(String) {
-      CurrentString <- unlist(strsplit(as.character(Sys.Date()), "-"))[1]
       if (is.na(as.numeric(String)) | is.na(String)) {
         Result <- NA
       } else {
+        CurrentString <- unlist(strsplit(as.character(Sys.Date()), "-"))[1]
         if (as.numeric(String) < 1900 | as.numeric(String) > CurrentString) {
           Result <- NA
         } else {
@@ -1468,8 +1496,25 @@ parseInputFieldNames <- function(FieldNames_, Specs_ls, FileName) {
         #Decode the Year and Multiplier portions
         FieldType <- Specs_ls[[which(SpecdNames_ == Name)]]$TYPE
         if (FieldType == "currency") {
+          whereIsCompound <- grep("/",NameSplit_) # returns 2 if just a Year, or 3 if a Multiplier too or numeric(0) if not compound
+          if ( length(whereIsCompound)>1 ) {
+            Msg <-
+              paste0("Field name ", FieldName, " appears to be compound but it cannot be parsed",
+                     "for input file ", FileName)
+            Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
+          } else if ( length(whereIsCompound)==1 ) { # compound currency unit
+            # Handling something like "USD.2010/DAY"
+            CompoundCurrency_ <- unlist(strsplit(NameSplit_[whereIsCompound],"/"))
+            if ( length(CompoundCurrency_) > 2 ) {
+              # only split on the first "/" (handling USD.2008/PRSN/DAY => USD/PRSN/DAY with YEAR=2008
+              CompoundCurrency_ <- c(CompoundCurrency_[1],paste(CompoundCurrency_[-1],collapse="/"))
+            }
+            # Move the compound part to Spec_ls$UNITS specification
+            Fields_ls[[i]]$Name <- paste0(Fields_ls[[i]]$Name,"/",CompoundCurrency_[2])
+            NameSplit_[whereIsCompound] <- CompoundCurrency_[1] # The actual Year or Multiplier part
+          }
           Fields_ls[[i]]$Year <- getYear(NameSplit_[2])
-          Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[3])
+          Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[3]) # NA if no multiplier, which is good
         } else {
           Fields_ls[[i]]$Year <- NA
           Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[2])
