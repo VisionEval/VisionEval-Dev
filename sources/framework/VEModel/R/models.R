@@ -2563,7 +2563,7 @@ findStandardModel <- function( model, variant="", private=FALSE ) {
   if ( toupper(variant) %in% c("DELTA","OMICRON") ) return( "Cough, Cough!" )
 
   if ( missing(model) || is.null(model) || ! nzchar(model)) {
-    return( unique(showModelIndex(package=package,private=private)[,c("Model","Package")]) )
+    return( unique(showModelIndex(private=private)[,c("Model","Package")]) )
   }    
 
   # Locate the model
@@ -2579,7 +2579,7 @@ findStandardModel <- function( model, variant="", private=FALSE ) {
     if ( nzchar(variant) ) { # not in list of variants
       msg <- writeLog(paste0("Unknown variant '",variant,"' in model '",model,"'"),Level="error")
     }
-    index_df <- showModelIndex(package=package,private=private)
+    index_df <- showModelIndex(private=private)
     return(index_df[index_df$Model==model,])
   }
 
@@ -2645,7 +2645,6 @@ installStandardModel <- function( modelName, modelPath, confirm=TRUE, overwrite=
     return(model) # Data.frame is a subset of the model index
   } # Otherwise model is a list with details on the model we need to install
 
-  browser()
   if ( ! "Description" %in% names(model) ) model$Description <- paste(modelName,variant,sep="-")
 
   # Set up destination modelPath (always create in the first defined root)

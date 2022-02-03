@@ -480,7 +480,6 @@ getModelIndex <- function(reset=FALSE) {
       confPackage <- paste("Virtual",basename(dirname(sub("[/\\]models[/\\].*","",confPath))))
     }
     index <- try( yaml::yaml.load_file(confPath) )
-    browser(expr=confPackage=="VELandUse")
     if ( ! "variants" %in% names(index) ) {
       modelName <- names(index)
     } else {
