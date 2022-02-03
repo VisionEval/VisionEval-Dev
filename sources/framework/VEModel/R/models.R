@@ -2552,10 +2552,12 @@ openModel <- function(modelPath="",log="error") {
 
 #' Look up a standard model in the index of avaialble models
 #' @param model bare name of standard model (if not provided, list available models)
-#' @param variant name of variant with the model (use "" to get list of available variants)
+#' @param variant name of variant with the model (use "" to get list
+#of available variants)
+#' @param private if TRUE and showing an index, include private models
 #' @return the full path to that model template
 #' @export
-findStandardModel <- function( model, variant="", package=NULL, private=FALSE ) {
+findStandardModel <- function( model, variant="", private=FALSE ) {
 
   # COVID-19 Joke
   if ( toupper(variant) %in% c("DELTA","OMICRON") ) return( "Cough, Cough!" )
@@ -2643,6 +2645,7 @@ installStandardModel <- function( modelName, modelPath, confirm=TRUE, overwrite=
     return(model) # Data.frame is a subset of the model index
   } # Otherwise model is a list with details on the model we need to install
 
+  browser()
   if ( ! "Description" %in% names(model) ) model$Description <- paste(modelName,variant,sep="-")
 
   # Set up destination modelPath (always create in the first defined root)
@@ -2683,7 +2686,7 @@ installStandardModel <- function( modelName, modelPath, confirm=TRUE, overwrite=
     to.dir <- file.path(installPath,subdir$To)
     if ( ! dir.exists(from.dir) ) {
       writeLog(paste0("Searching ",from.dir),Level="info")
-      writeLog(msg<-paste0("No variant (",variant,") for ",modelName),Level="error")
+      writeLog(msg<-paste0("Could not load variant (",variant,") for ",modelName),Level="error")
       writeLog(c("Directory missing:",from.dir),Level="error")
       stop(msg)
     }
@@ -2744,7 +2747,7 @@ installStandardModel <- function( modelName, modelPath, confirm=TRUE, overwrite=
 #' @param log a string describing the minimum level to display
 #' @return A VEModel object of the model that was just installed
 #' @export
-installModel <- function(modelName=NULL, modelPath=NULL, variant="base", confirm=TRUE, overwrite=FALSE, log="warn") {
+installModel <- function(modelName=NULL, variant="base", modelPath=NULL, confirm=TRUE, overwrite=FALSE, log="warn") {
   # Load system model configuration (clear the log status)
   initLog(Save=FALSE,Threshold=log, envir=new.env())
   model <- installStandardModel(modelName, modelPath, confirm=confirm, overwrite=overwrite, variant=variant, log=log)

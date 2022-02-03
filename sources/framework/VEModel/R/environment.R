@@ -480,6 +480,7 @@ getModelIndex <- function(reset=FALSE) {
       confPackage <- paste("Virtual",basename(dirname(sub("[/\\]models[/\\].*","",confPath))))
     }
     index <- try( yaml::yaml.load_file(confPath) )
+    browser(expr=confPackage=="VELandUse")
     if ( ! "variants" %in% names(index) ) {
       modelName <- names(index)
     } else {
@@ -519,6 +520,7 @@ getModelIndex <- function(reset=FALSE) {
 #==================================
 #' Report package source of model variants and private status
 #' @param reset if TRUE, rebuild the index (e.g. after installing new VE packages)
+#' @param private if TRUE, list private models as well as public ones
 #' @return a data.frame listing all models, variants and their package source
 #' @export
 showModelIndex <- function(reset=FALSE, private=FALSE) {
@@ -530,18 +532,23 @@ showModelIndex <- function(reset=FALSE, private=FALSE) {
       modelSources$Model   <- c(modelSources$Model,m)
       modelSources$Variant <- c(modelSources$Variant,"None")
       modelSources$Package <- c(modelSources$Package,attr(modelIndex[[m]],"Package"))
-      if ( private) modelSources$Private <- "Unknown"
+      if ( private ) modelSources$Private <- "Unknown"
       writeLog("Added model with no variants",Level="info")
     } else {
       for ( v in names(modelIndex[[m]]) ) {
-        modelSources$Model   <- c(modelSources$Model,m)
-        modelSources$Variant <- c(modelSources$Variant,v)
-        modelSources$Package <- c(modelSources$Package,attr(modelIndex[[m]][[v]],"Package"))
-        if ( private ) {
-          modelSources$Private <- if( "private" %in% names(modelIndex[[m]]) && modelIndex[[m]]$private>0 )
-            "Private" else "Public"
+        is.private <- "private" %in% names(modelIndex[[m]][[v]]) && modelIndex[[m]][[v]]$private
+        if ( private || ! is.private ) {
+          modelSources$Model   <- c(modelSources$Model,m)
+          modelSources$Variant <- c(modelSources$Variant,v)
+          modelSources$Package <- c(modelSources$Package,attr(modelIndex[[m]][[v]],"Package"))
+          if ( private ) {
+            modelSources$Private <- c(
+              modelSources$Private,
+              if( is.private ) "Private" else "Public"
+            )
+          }
+          writeLog(paste("Added model",m,"Variant",v),Level="info")
         }
-        writeLog(paste("Added model",m,"Variant",v),Level="info")
       }
     }
   }
