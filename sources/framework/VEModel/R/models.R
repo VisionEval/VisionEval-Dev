@@ -209,8 +209,12 @@ cullInputPath <- function(InputPath,modelInputPath=NULL) {
   }
 
   # Normalize remaining InputPath elements, if any, and remove duplicates
-  writeLog(paste("Culling Input Path:\n",paste(InputPath,collapse="\n")),Level="debug")
-  InputPath <- unique(normalizePath(InputPath,winslash="/",mustWork=FALSE))
+  
+  if ( length(InputPath) > 0 ) {
+    # Don't cull if there is no stage-specific input path
+    writeLog(paste("Culling Input Path:\n",paste(InputPath,collapse="\n")),Level="debug")
+    InputPath <- unique(normalizePath(InputPath,winslash="/",mustWork=FALSE))
+  }
 
   if ( ! is.null(modelInputPath) ) {
     InputPath <- c(InputPath,modelInputPath)
@@ -1323,7 +1327,7 @@ ve.stage.runnable <- function(priorStages) {
   }
 
   # Save InputPath into stage run parameters
-  if ( ! is.null(InputPath) ) {
+  if ( ! is.null(InputPath) && length(InputPath)>0 ) {
     self$RunParam_ls <- visioneval::addRunParameter(
       self$RunParam_ls,
       Source="VEModelStage$runnable",
@@ -2551,18 +2555,17 @@ openModel <- function(modelPath="",log="error") {
 #' @param variant name of variant with the model (use "" to get list of available variants)
 #' @return the full path to that model template
 #' @export
-findStandardModel <- function( model, variant="" ) {
+findStandardModel <- function( model, variant="", package=NULL, private=FALSE ) {
 
   # COVID-19 Joke
   if ( toupper(variant) %in% c("DELTA","OMICRON") ) return( "Cough, Cough!" )
 
-  modelIndex <- getModelIndex()
-
   if ( missing(model) || is.null(model) || ! nzchar(model)) {
-    return( unique(showModelIndex()[,c("Model","Package")]) )
+    return( unique(showModelIndex(package=package,private=private)[,c("Model","Package")]) )
   }    
 
   # Locate the model
+  modelIndex <- getModelIndex()
   model <- model[1]
   if ( ! model %in% names(modelIndex) ) {
     writeLog(paste("No standard model called ",model),Level="error")
@@ -2574,7 +2577,7 @@ findStandardModel <- function( model, variant="" ) {
     if ( nzchar(variant) ) { # not in list of variants
       msg <- writeLog(paste0("Unknown variant '",variant,"' in model '",model,"'"),Level="error")
     }
-    index_df <- showModelIndex()
+    index_df <- showModelIndex(package=package,private=private)
     return(index_df[index_df$Model==model,])
   }
 
