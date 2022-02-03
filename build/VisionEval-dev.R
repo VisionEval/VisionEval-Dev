@@ -167,9 +167,9 @@ evalq(
       tests[expand.tests] <- file.path(VEPackage.path,"tests",tests[expand.tests])
       tests[!expand.tests] <- normalizePath(tests[!expand.tests],winslash="/",mustWork=FALSE) # relative to VEPackage.path
       tests <- tests[ file.exists(tests) ]
-      if ( length(tests)==0 ) {
-        stop("No 'test.R' file in ",VEPackage.path)
-      }
+#       if ( length(tests)==0 ) {
+#         stop("No 'test.R' file in ",VEPackage.path)
+#       }
 
       # Locate the runtime folder where the tests will run
       # TODO: work nicely with ve.run()
