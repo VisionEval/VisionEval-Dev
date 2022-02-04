@@ -7,13 +7,13 @@ date:   2022-02-02
 ## Overview
 
 This pull request does a lot of work to make a change that ultimately just inserts one character
-into one line of code! The change fixes a bug in establising a table margins for the iterative
+into one line of code! The change fixes a bug in establishing table margins for the iterative
 proportional fitting framework function. But the tiny change has the potential to change the results
 delivered from working models, so it is important to establish a thorough test procedure to call out
 the differences (as well as a control flag that allows users to select the old behavior if they
 really need it).
 
-To support thorough testing and comparison, this pull request also implements an update to the model
+To support thorough testing and comparison, this pull request also uses recent updates to the model
 installation subsystem to allow test models to be created and run but not exposed to end users. You
 can (and should) use the mechanism described and implemented here (including the development of the
 test.R script with functions `test_ipf()` and `compare_ipf()`) as prototypes for building thorough
@@ -67,24 +67,6 @@ Datastore. The Datastore fields needed for the `ipf` test are hard-coded, but it
 them with different fields. If there is interest, we might make a more general purpose comparison
 function (arbitrary field comparison between models and stages) and move it up into the VisionEval
 framework.
-
-## Extended Test Architecture
-
-To support really thorough testing and comparison, this pull request implements an update to the
-model installation subsystem to allow "hidden" test models to be created and run. It's important to
-hide them since in some cases they will deliberately implement "broken" behavior and we don't want
-end users to accidentally use those as the basis for their own work.
-
-You can (and should) use the elaborate mechanism set up here (including the development of the
-test.R script with functions `test_ipf()` and `compare_ipf()`) as prototypes for building thorough
-tests for module changes that have potential end-user consequences.
-
-The architecture for installModel has been enhanced to classify models in the `inst/models`
-directory of a package to be marked as `private: true` (the default is `false`). Models can also be
-sought in a specific package (in addition to the end user default of matching model name and variant
-name across all public models in all packages). If `private` models are requested, only models and
-variants that are private will be searched, and if a package is also named then the variants will
-only be sought in that package.
 
 ## Testing
 

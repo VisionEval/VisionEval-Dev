@@ -25,7 +25,7 @@ ModelStages:
       StartFrom   : stage-pop-synth
       ModelScript : run_ipf.R
       Scenario    : IPF Fixed
-      Description : VERSMP RVMPO with IPF triggers and fixed behavior
+      Description : VERSPM RVMPO with IPF triggers and fixed behavior
       Years       : [ 2038 ]
     "ipf-broken":
       Reportable  : true
@@ -33,5 +33,5 @@ ModelStages:
       StartFrom   : stage-pop-synth
       ModelScript : run_ipf.R
       Scenario    : IPF Broken
-      Description : VERSMP RVMPO with IPF triggers and original/broken behavior
+      Description : VERSPM RVMPO with IPF triggers and original/broken behavior
       Years       : [ 2038 ]
