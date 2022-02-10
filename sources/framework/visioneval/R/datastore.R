@@ -1906,7 +1906,7 @@ mergeDatastoreListings <- function(baseListing, addListing) {
   #   attributes       # list
   # The listing is presented as either a data.frame or a list; we can access the elements
   #   the same way just by using baseListing$group etc.
-  if ( ! is.list(baseListing) || !is.list(newListing) ) {
+  if ( ! is.list(baseListing) || !is.list(addListing) ) {
     stop(
       writeLog("Invalid listing types presented to mergeDatastoreListings",Level="error")
     )
