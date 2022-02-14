@@ -728,6 +728,7 @@ ve.select.find <- function(pattern=NULL,Group=NULL,Table=NULL,Name=NULL,as.objec
   searchName  <- Name
   newSelection <- self$selection
   newSelection <- with( self$results$modelIndex, {
+    browser()
     if ( !is.null(pattern ) ) {
       fld <- grepl(pattern,Name,ignore.case=TRUE)     # RegEx search for name
     } else if ( !is.null(searchName) ) {

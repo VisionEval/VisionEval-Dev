@@ -1382,6 +1382,16 @@ ve.stage.runnable <- function(priorStages) {
     # base year, full future year, and subsequent scenario stages use full future year with the
     # same script)
   }
+  if ( ScriptName != basename(stageModelScriptPath) ) {
+    # Tried to specify ModelScript but failed to find the script file
+    writeLog(
+      paste("Could not locate specified ModelScript:",ScriptName),
+      paste("Candidate stage",self$Name,"is not Runnable"),
+      Level="error"
+    )
+    # Abort the stage - it's not runnable as configured
+    return(FALSE)
+  }
   if ( length(stageModelScriptPath)>0 && nzchar(stageModelScriptPath) ) {
     writeLog(paste("Parsing stage ModelScriptFile:",stageModelScriptPath),Level="debug")
     self$RunParam_ls <- visioneval::addRunParameter(
