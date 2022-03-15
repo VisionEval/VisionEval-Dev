@@ -38,7 +38,7 @@ ModelStages :
       BaseYear    : 2010
       Years       : [ "2050" ]
 #       Years       : [ "2020", "2025", "2030", "2035", "2040", "2045", "2050" ]
-    "ev-constant"
+    "ev-constant":
       Reportable  : true
       StartFrom   : stage-year-2010
       ModelScript : ev_constant.R
