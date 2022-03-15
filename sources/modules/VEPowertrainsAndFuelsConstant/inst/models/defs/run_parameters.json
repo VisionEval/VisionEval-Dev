@@ -1,0 +1,21 @@
+{
+  "Model": "RefCase",
+  "Scenario": "RefCase",
+  "Description": "RefCase",
+  "Region": ["Metro","None"],
+  "BaseYear": "2010",
+  "Years": ["2005", "2010", "2020", "2025", "2030", "2035", "2040", "2045", "2050"],
+  "DatastoreName": "Datastore",
+  "DatastoreType": "RD",
+  "Seed": 1,
+  "RequiredVEPackages": [
+    "VESimHouseholds",
+    "VELandUse",
+    "VETransportSupply",
+    "VEHouseholdVehicles",
+    "VEHouseholdTravel",
+    "VEPowertrainsAndFuels",
+    "VETravelPerformance",
+	"VEReports"
+  ]
+}

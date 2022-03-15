@@ -1,0 +1,11 @@
+# Next Generation test model for PBOT
+# reproduces "base" VERSPM from VEModel with PBOT Data
+VERSPM:
+  variants:
+    pbot:
+      description: VERSPM 3.0 for PBOT EV/Gas fleet comparison
+      config: visioneval-pbot.cnf
+      scripts: scripts
+      inputs: inputs
+      queries: queries
+      defs: defs

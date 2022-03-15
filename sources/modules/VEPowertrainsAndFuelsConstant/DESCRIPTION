@@ -1,0 +1,36 @@
+Package: VEPowertrainsAndFuelsConstant
+Type: Package
+Title: Default Powertrains And Fuels for ODOT Adopted Plans scenario (xAP)
+Version: 2.0.0
+Date: 2020-08-14
+Author: Brian Gregor [aut, cre],
+Maintainer: Brian Gregor <gregorb@or-analytics.com>
+Copyright: AASHTO, ODOT
+Description: Contains modules for inputting default powertrain and fuel
+    characteristics and for allowing households to override some of the defaults
+    with characteristics for their region. Calculates the carbon intensity of 
+    fuels and assigns powertrains and powertrain characteristics to household 
+    vehicles and car service vehicles. The default values are for the Oregon
+    DOT Adopted Plans scenario as of February 25, 2020. The ICEV MPG values
+    by model year were adjusted 6% lower to better match validation targets for
+    fuel consumption. This is the "Constant" version, 2022-03-15, used for
+    comparing low-growth EV adoption with the full rate.
+License: file LICENSE
+LazyData: TRUE
+Depends: R (>= 3.6.0)
+Imports:
+    visioneval,
+    VEHouseholdTravel,
+    data.table
+Suggests:
+    knitr,
+    VE2001NHTS
+Encoding: UTF-8
+VignetteBuilder: knitr
+Roxygen: list(load='source')
+RoxygenNote: 7.1.2
+Collate: 
+    'LoadDefaultValues.R'
+    'Initialize.R'
+    'CalculateCarbonIntensity.R'
+    'AssignHhVehiclePowertrain.R'

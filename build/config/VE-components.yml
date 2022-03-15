@@ -149,6 +149,16 @@ Components:
     VE:
       - VE2001NHTS
       - VEHouseholdTravel
+  VEPowertrainsAndFuelsConstant:
+    Type: module
+    Path: sources/modules
+    Test:
+      Group: 3
+    CRAN:
+      - data.table
+    VE:
+      - VE2001NHTS
+      - VEHouseholdTravel
   VESimLandUse:
     Type: module
     Path: sources/modules

@@ -1,0 +1,49 @@
+Notes:
+- VERSPM for PBOT comparison of EV growth rates
+
+# Model Structural Parameters
+ScriptsDir  : scripts  # default, don't need to specify
+InputDir    : inputs   # default, don't need to specify
+ParamDir    : defs     # default, don't need to specify
+QueryDir    : queries  # default, don't need to specify
+Seed        : 1
+
+# Model description
+Model       : VERSPM 3.0 (RefCase/PBOT EV Growth Comparison)
+Region      : ["Metro","None"]
+State       : OR
+ModelStages :
+    # implicit stage directories (will generate results/stage-year-2010 etc)
+    "stage-year-2010":
+      Reportable  : true
+      ModelScript : ev_growing.R
+      Scenario    : VERSPM Portland Base Year
+      Description : Base Year Scenario (2010)
+      BaseYear    : 2010
+      Years       : [ 2010 ]
+#     "stage-year-2005":
+#       Reportable  : true
+#       StartFrom   : stage-year-2010
+#       ModelScript : ev_growing.R
+#       Scenario    : VERSPM Portland Base Year
+#       Description : Base Year Scenario (2010)
+#       BaseYear    : 2010
+#       Years       : [ 2005 ]
+    "ev-growing":
+      Reportable  : true
+      StartFrom   : stage-year-2010
+      ModelScript : ev_growing.R
+      Scenario    : VERSPM Portland Growing EV Fleet
+      Description : Future Year Scenario (2038)
+      BaseYear    : 2010
+      Years       : [ "2050" ]
+#       Years       : [ "2020", "2025", "2030", "2035", "2040", "2045", "2050" ]
+    "ev-constant"
+      Reportable  : true
+      StartFrom   : stage-year-2010
+      ModelScript : ev_constant.R
+      Scenario    : VERSPM Portland Constant EV Fleet
+      Description : Base Year Scenario (2010)
+      BaseYear    : 2010
+      Years       : [ "2050" ]
+#       Years       : [ "2020", "2025", "2030", "2035", "2040", "2045", "2050" ]
