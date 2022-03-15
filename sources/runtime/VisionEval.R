@@ -7,7 +7,9 @@
 # starting the VisionEval .Rproj, load up the environment from the
 # project root.
 
-require(utils,quietly=TRUE) # For install package
+require(utils,quietly=TRUE)                 # For install package
+requireNamespace("import",quietly=TRUE)     # for tools implementation
+requireNamespace("visioneval",quietly=TRUE)
 
 # Establish visioneval R environment on the R search path
 env.loc <- if ( ! "ve.env" %in% search() ) {
@@ -61,10 +63,17 @@ if ( ! exists("ve.runtime") ) {
 } else {
   setwd(ve.runtime)
 }
-
 # Check what installation we need
 
-install.success <- exists("ve.lib") && length(grep("^visioneval",dir(ve.lib)))>0
+# Locate ve-lib
+env.loc$checkVE <- function(lib.loc=NULL) {
+  return(all( c("visioneval","VEModel") %in% installed.packages(lib.loc=lib.loc)[,"Package"]))
+}
+
+install.success <- env.loc$checkVE()
+
+if ( ! exists("ve.lib.name") ) ve.lib.name <- "ve-lib"
+ve.lib <- file.path(ve.runtime,ve.lib.name)
 
 local( {
 
@@ -76,12 +85,12 @@ local( {
       tools <- character(0)
       for ( tf in tool.files ) {
         # Add error checking for tool.contents not present
+        message("Loading tool file: ",tf)
         try(
           silent=TRUE,
           eval(parse(text=paste0("import::here(tool.contents,.from='",tf,"')")))
         )
         if ( ! exists("tool.contents") ) next
-        tools <- c(tools,tool.contents)
         eval(parse(text=paste0("import::into(.into='ve.env',",paste(tool.contents,collapse=","),",.from='",tf,"')")))
         rm(tool.contents)
       }
@@ -90,6 +99,7 @@ local( {
     rm(tool.files,ve.tools)
   }
 
+  # Create function to check or perform installation
   env.loc$ve.install <- if ( ! install.success ) {
 
     function() {
@@ -97,75 +107,63 @@ local( {
       # Put the library directory into ve.lib
       # Note that ve.lib is already present and fully provisioned in the Windows offline installer
 
-      if ( ! exists("ve.lib.name") ) ve.lib.name <- "ve-lib"
-      ve.lib <- file.path(ve.runtime,ve.lib.name)
+      install.success <- env.loc$checkVE(ve.lib)
 
-      if ( ! dir.exists(ve.lib) || length(grep("visioneval",dir(ve.lib)))==0 ) {
-        # Look in the build environment for ve-lib
-        ve.lib.base <- ve.lib
-        ve.lib.local <- normalizePath(file.path(ve.runtime,"..",ve.lib.name),winslash="/",mustWork=FALSE)
-        if ( dir.exists(ve.lib.local) && (ve.len <- length(grep("visioneval",dir(ve.lib.local)))>0) ) {
-          ve.lib <- ve.lib.local # Use the build environment installed library
-          message("Development environment detected")
-        } else {
-          # See if ve-lib is set through .libPaths (and thus in .Renviron)
-          ve.lib <- .libPaths()[grep(ve.lib.name,.libPaths(),fixed=TRUE)]
-          if ( length(ve.lib)==1 && length(grep("visioneval",dir(ve.lib)))>0 ) {
-            message("Using pre-established environment.")
-          } else {
-            # Look for source or mac.binary packages to install
-            message("ve-lib not found. Installing from ve-pkg...")
-            if ( ! exists("ve.pkg.name") ) ve.pkg.name <- "ve-pkg"
-            ve.lib <- ve.lib.base
-            ve.pkg <- file.path(ve.runtime,ve.pkg.name)
-            if (  ! dir.exists(ve.pkg) ) {
-              ve.pkg.local  <- normalizePath(file.path(ve.runtime,"..",ve.pkg.name),winslash="/",mustWork=FALSE)
-              if ( dir.exists(ve.pkg.local) ) {
-                ve.pkg <- ve.pkg.local
-              } else {
-                message("Unable to locate ",ve.lib.name," or ",ve.pkg.name," in the file system.")
-                message("VisionEval packages are not available.")
-                stop("Installation failed - check error and warning messages.")
-              }
-            }
-            ve.pkg.type <- .Platform$pkgType
-            ve.contrib.url <- contrib.url(ve.pkg,type=ve.pkg.type) # binary (Windows, MacOSX) or source (Unix)
-            if ( ! dir.exists(ve.contrib.url) ) { # contrib.url does not have a binary branch
-              ve.pkg.type = "source"
-              ve.contrib.url <- contrib.url(ve.pkg,type=ve.pkg.type) # for source install on Windows or Mac
-            }
-            VE.pkgs <- available.packages(contriburl=paste0("file:",ve.contrib.url),type=ve.pkg.type)[,"Package"]
-            # Installation list is everything in the repository
-            # Consequently: test and abort if visioneval isn't in it
-            if ( ! "visioneval" %in% VE.pkgs ) {
-              message(paste("VisionEval not present in",ve.contrib.url))
-              message("VisionEval packages are not available.")
-              stop("Installation failed - check error and warning messages.")
-            }
-
-            # Install to local environment
-            dir.create(ve.lib.base,recursive=TRUE,showWarnings=FALSE) # under ve.runtime
-            message("Installing packages from ",paste0("file:",ve.pkg))
-            install.packages(
-                VE.pkgs,
-                lib=ve.lib,
-                repos=paste0("file:",ve.pkg),
-                dependencies=c("Depends", "Imports", "LinkingTo"),
-                type=ve.pkg.type,
-                INSTALL_opts="--no-test-load"
-            )
-            message("Done installing")
-          }
+      if ( ! install.success ) {
+        ve.lib.dev <- normalizePath(file.path(ve.runtime,"..",ve.lib.name),winslash="/",mustWork=FALSE)
+        install.success <- env.loc$checkVE(ve.lib.dev)
+        if ( install.success ) ve.lib <- ve.lib.dev # use development environment
+      } # else ve.lib is working
+      
+      if ( ! install.success ) {
+        # Attempt to install from package sources in ve-pkg
+        if ( ! exists("ve.pkg.name") ) ve.pkg.name <- "ve-pkg"
+        ve.pkg <- file.path(ve.runtime,ve.pkg.name)
+        if ( ! dir.exists(ve.pkg) ) {
+          ve.pkg.local  <- normalizePath(file.path(ve.runtime,"..",ve.pkg.name),winslash="/",mustWork=FALSE)
+          if ( dir.exists(ve.pkg.local) ) ve.pkg <- ve.pkg.local
         }
-      }
+        if ( ! dir.exists(ve.pkg) ) {
+          message("Unable to locate ",ve.lib.name," or ",ve.pkg.name," in the file system.")
+          message("VisionEval packages are not available.")
+          stop("Installation failed - check error and warning messages.")
+        }
 
-      install.success <- exists("ve.lib") && length(grep("^visioneval",dir(ve.lib)))>0
+        # Set up installation for current platform
+        message("ve-lib not found. Installing from ve-pkg...")
+        ve.pkg.type <- .Platform$pkgType
+        ve.contrib.url <- contrib.url(ve.pkg,type=ve.pkg.type) # binary (Windows, MacOSX) or source (Unix)
+        if ( ! dir.exists(ve.contrib.url) ) { # contrib.url does not have a binary branch
+          ve.pkg.type = "source"
+          ve.contrib.url <- contrib.url(ve.pkg,type=ve.pkg.type) # for source install on Windows or Mac
+        }
+
+        # Check if the packages are complete
+        VE.pkgs <- available.packages(contriburl=paste0("file:",ve.contrib.url),type=ve.pkg.type)[,"Package"]
+        if ( ! all( c("visioneval","VEModel") %in% VE.pkgs ) ) {
+          message(paste("VisionEval not present in",ve.contrib.url))
+          message("VisionEval packages are not available.")
+          stop("Installation failed - check error and warning messages.")
+        }
+
+        # Install to local environment
+        if ( ! dir.exists(ve.lib) ) dir.create(ve.lib)
+
+        message("Installing packages from ",paste0("file:",ve.pkg))
+        install.packages(
+            VE.pkgs,
+            lib=ve.lib,
+            repos=paste0("file:",ve.pkg),
+            dependencies=c("Depends", "Imports", "LinkingTo"),
+            type=ve.pkg.type,
+            INSTALL_opts="--no-test-load"
+        )
+      }
+      install.success <- env.loc$checkVE(ve.lib)
 
       if ( install.success ) {
         # Set .libPaths()
         .libPaths(c(ve.lib,.libPaths()))
-        load.helpers() # defined from environment creating this function
-        require("visioneval",quietly=TRUE)
         invisible(TRUE)
       } else {
         message("Installation failed.")
@@ -176,18 +174,71 @@ local( {
     function() {
       # Set .libPaths()
       .libPaths(c(ve.lib,.libPaths()))
-      load.helpers()
-      require("visioneval",quietly=TRUE)
       invisible(TRUE)
     }
   }
 })
 
+# Do the installation
 if ( .Platform$OS.type == 'windows' || install.success ) {
-  if ( ve.install() ) message("Welcome to VisionEval!")
+  install.success <- env.loc$ve.install()
+}
+
+# Load visioneval
+if ( install.success ) {
+  require("VEModel")
+  env.loc$load.helpers()
 } else {
   message("Please run ve.install() to complete installation.")
 }
 
+# Make sure there is a "Models" directory
+env.loc$ModelRoot <- file.path(
+  getRuntimeDirectory(),
+  visioneval::getRunParameter("ModelRoot") # Uses runtime configuration or default value "models"
+)
+if ( ! dir.exists(env.loc$ModelRoot) ) dir.create(env.loc$ModelRoot,recursive=TRUE,showWarnings=FALSE)
+
+# create the LoadTest function
+env.loc$loadTest <- function(Package=NULL,files=NULL,clear=FALSE) {
+  test.root <- file.path(getRuntimeDirectory(),"tools","tests")
+  if ( !is.character(Package) ) {
+    tests <- dir(test.root,pattern="\\.R$",recursive=TRUE)
+    if ( length(tests) == 0 ) {
+      tests <- "No package tests available"
+    }
+    return(tests)
+  }
+
+  # Environment to receive test functions/objects
+  test.env <- if ( ! "ve.tests" %in% search() ) {
+    attach(NULL,name="ve.tests")
+  } else {
+    as.environment("ve.tests")
+  }
+
+  if ( clear ) {
+    to.clear <- ls(test.env,all=TRUE)
+    if ( length(to.clear)>0 ) rm(list=to.clear,envir=test.env)
+  }
+
+  for ( pkg in Package ) {
+    test.dir <- file.path(test.root,Package)
+    if ( dir.exists(test.dir) ) {
+      if ( !is.character(files) ) {
+        tests <- dir(test.dir,pattern="\\.R$",full.names=TRUE)
+      } else tests <- files
+      for ( test in tests ) {
+        message("Loading tests from ",test," for ",Package)
+        sys.source(test,envir=test.env)
+      }
+    } else {
+      message("No tests available for Package ",Package)
+    }
+  }
+  return( objects(test.env) )
+}
+
+# clean up variables created during startup
 if ( exists("ve.lib",inherits=FALSE) ) rm(ve.lib)
 rm(env.loc,install.success)
