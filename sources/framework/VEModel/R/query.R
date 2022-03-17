@@ -398,7 +398,19 @@ ve.query.update <- function(obj) {
 #' @return a named list of VEQuerySpec objects created from the raw specifications
 #' @export
 asSpecList <- function(spec) {
-  spec.list <- lapply(spec,function(s) VEQuerySpec$new(s))
+  spec.list <- lapply(spec,function(s) {
+    qs <- VEQuerySpec$new(s)
+    if ( ! qs$valid() ) {
+      writeLog("Invalid spec",Level="error")
+      print(qs)
+    }
+    qs
+  })
+  invalid <- sapply(spec.list,function(s) ! s$valid())
+  if ( any(invalid) ) {
+    writeLog(paste("Invalid Query specifications at positions",paste(which(invalid),collapse=","),"(out of",length(invalid),"total)"),Level="error")
+  }
+  spec.list <- spec.list[!invalid]
   names(spec.list) <- sapply(spec.list,function(s) if ( is.null(name <- s$Name) ) "" else name)
   return(spec.list)
 }
@@ -423,13 +435,17 @@ asQuery <- function(obj,QueryName="Temp-Query") {
       qry.spec <- asSpecList(obj)
       # TODO: may have errors that need to be reported...
       if ( ! all(sapply(qry.spec,function(s) { "VEQuerySpec" %in% class(s) && s$valid() } )) ) {
-        # Second, if it wasn't a list of specs, perhaps it is an individual spec
+        # Second, if it wasn't a list of specs, perhaps it is an
+        # individual spec
         qry.spec <- list()
         spec <- VEQuerySpec$new(obj) # Attempt to convert unknown list to a single spec
         if ( spec$valid() ) {
           name <- spec$QuerySpec$Name
           loc <- if ( is.null(name) ) 1 else name
           qry.spec[[loc]] <- spec;
+        } else {
+          writeLogMessage("Invalid single specification in object",Level="error")
+          print(obj[[1]])
         }
       }
     } else if ( "VEQuerySpec" %in% class(obj) ) {
@@ -1392,8 +1408,10 @@ ve.spec.check <- function(Names=character(0), Clean=TRUE) {
     self$CheckMessages <- c(self$CheckMessages,"Specification list elements are unnamed")
   } else {
     if ( "Name" %in% nm.test.spec ) {
+      # Try skipping this if we have Require or RequireNot set for
+      # the specification...
       self$Name <- self$QuerySpec$Name
-      if ( length(Names)>0 && self$Name %in% Names ) {
+      if ( ! any(c("Require","RequireNot") %in% nm.test.spec) && length(Names)>0 && self$Name %in% Names ) {
         self$CheckMessages <- c(self$CheckMessages,paste("Duplicated Specification Name:",self$Name))
       }
     } else {
@@ -1762,9 +1780,10 @@ evaluateFunctionSpec <- function(measureName, measureSpec, measureEnv=NULL) {
     return( as.character(notFound) ) # empty character vector if all is well
   } # otherwise we'll fail below with a better "missing operand" message
 
-  Symbols <- Symbols[ foundSymbols ]
   GeoTypes <- sapply(Symbols,function(s) attr(get(s,envir=measureEnv),"GeoType"))
   GeoType <- validGeoTypes[ validGeoTypes %in% GeoTypes ][1]
+  if ( is.na(GeoType) ) GeoType <- "Region"
+  browser(expr=(is.na(Symbols) || is.na(GeoTypes) || is.na(GeoType)))
   GeoValues <- attr( get(Symbols[ GeoTypes==GeoType ][1],envir=measureEnv),"GeoValues" )
 
   if ( is.null(GeoType) || is.null(GeoValues) ) {

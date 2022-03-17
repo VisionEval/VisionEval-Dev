@@ -156,12 +156,12 @@ QuerySpec <- list(
 
   #Average annual low household income in urban area
   #-----------------------------------------------------
-  list(
-    Name = "UrbanAveHhIncomeLowInc_Ma",
-    Function = "UrbanTotalHhIncomeLowInc_Ma / UrbanHhNumLowInc_Ma",
-    Units = "USD per year",
-    Description = "Average annual low household income (0to20K 2010$) in the urban area"
-  ),
+#   list(
+#     Name = "UrbanAveHhIncomeLowInc_Ma",
+#     Function = "UrbanTotalHhIncomeLowInc_Ma / UrbanHhNumLowInc_Ma",
+#     Units = "USD per year",
+#     Description = "Average annual low household income (0to20K 2010$) in the urban area"
+#   ),
 
   ###_Vehicles&Fuels_###
 
@@ -367,13 +367,13 @@ QuerySpec <- list(
       Expr = "FuelCost",
       Units = c(
         FuelCost = "",
-        Marea = ""
+        Azone = ""
       ),
-      By = "Marea",
+      By = "Azone",
       Table = "Azone"
     ),
     Units = "Dollars",
-    Description = "Fuel cost by azone"
+    Description = "Fuel cost by Azone"
   ),
 
   ###Electricity Cost
@@ -384,9 +384,9 @@ QuerySpec <- list(
       Expr = "PowerCost",
       Units = c(
         PowerCost = "",
-        Marea = ""
+        Azone = ""
       ),
-      By = "Marea",
+      By = "Azone",
       Table = "Azone"
     ),
     Units = "Dollars/KH",
@@ -401,9 +401,9 @@ QuerySpec <- list(
       Expr = "FuelTax",
       Units = c(
         FuelTax = "",
-        Marea = ""
+        Azone = ""
       ),
-      By = "Marea",
+      By = "Azone",
       Table = "Azone"
     ),
     Units = "dollars",
@@ -448,20 +448,6 @@ QuerySpec <- list(
 
   ###Number of households in urban-mixed neighborhoods
   #-------------------------------------------------
-#   if (isDatasetPresent("LocType", "Bzone", Year, QPrep_ls)) {
-#     list(
-#       Name = "NumUrbanMixHh_Ma",
-#       Summarize=list(
-#         Expr = "sum(IsUrbanMixNbrhd)",
-#         Units = c(
-#           IsUrbanMixNbrhd = "",
-#           LocType = "category",
-#           Marea = ""
-#         ),
-#         By = "Marea",
-#         Table = "Household",
-#       )    ),
-#   } else {
   list(
     Name = "NumUrbanMixHh_Ma",
     Summarize=list(
@@ -511,9 +497,9 @@ QuerySpec <- list(
       Expr = "PropSovDvmtDiverted",
       Units = c(
         PropSovDvmtDiverted = "",
-        Marea = ""
+        Azone = ""
       ),
-      By = "Marea",
+      By = "Azone",
       Table = "Azone"
     ),
     Units = "percent",
@@ -1610,6 +1596,7 @@ QuerySpec <- list(
       By = "Marea",
       Table = "Bzone"
     ),
+    Require = c(Dataset="LocType",Table="Bzone"),
     Units = "Persons per acre",
     Description = "Median Bzone population density in urbanized area"
   ),
@@ -1626,6 +1613,7 @@ QuerySpec <- list(
       By = "Marea",
       Table = "Bzone"
     ),
+    RequireNot = c(Dataset="LocType",Table="Bzone"),
     Units = "Persons per acre",
     Description = "Median Bzone population density in urbanized area"
   ),
@@ -1646,6 +1634,7 @@ QuerySpec <- list(
       By = "Marea",
       Table = "Bzone"
     ),
+    Require = c(Dataset="LocType",Table="Bzone"),
     Units = "Households and jobs per acre",
     Description = "Average number of households and jobs per acre in the urbanized area"
   ),
@@ -1663,6 +1652,7 @@ QuerySpec <- list(
       By = "Marea",
       Table = "Bzone"
     ),
+    RequireNot = c(Dataset="LocType",Table="Bzone"),
     Units = "Households and jobs per acre",
     Description = "Average number of households and jobs per acre in the urbanized area"
   ),
@@ -1722,6 +1712,7 @@ QuerySpec <- list(
       By = "Marea",
       Table = "Bzone"
     ),
+    Require = c(Dataset="LocType",Table="Bzone"),
     Units = "Proportion of Households",
     Description = "Proportion of urbanized area households that reside in single-family dwellings"
   ),
@@ -1738,6 +1729,7 @@ QuerySpec <- list(
       By = "Marea",
       Table = "Bzone"
     ),
+    RequireNot = c(Dataset="LocType",Table="Bzone"),
     Units = "Proportion of Households",
     Description = "Proportion of urbanized area households that reside in single-family dwellings"
   ),

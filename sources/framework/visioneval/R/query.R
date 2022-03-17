@@ -1092,7 +1092,13 @@ calcWithBy <- function(CompiledQuery, CalcData_ls) with ( CompiledQuery,
         Select_ <- By_ls[[1]] == n1
         if (sum(Select_) != 0) {
           DataSelect_ls <- lapply(CalcData_ls, function(x) x[Select_])
-          Results_ar[n1] <- eval(parse(text = Expr), envir = DataSelect_ls)
+          tryCatch({
+            Results_ar[n1] <- eval(parse(text = Expr), envir = DataSelect_ls)
+          }, warning=function(w) {
+            writeLog(paste("Warning in expression:",deparse(Expr)),Level="warn")
+            writeLog(w$message,Level="warn")
+            writeLog(deparse(w$call),Level="warn")
+          })
         } else {
           Results_ar[n1] <- NA
         }
