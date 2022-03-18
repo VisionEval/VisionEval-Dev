@@ -1522,12 +1522,12 @@ QuerySpec <- list(
   ),
 
   #Low income household vehicle Own & out-of-pocket costs share of HH low Income total (all low income HHs)
-  list(
-    Name = "HhVehTravCostShareLowInc_Ma",
-    Function = "(UrbanVehOperatingCostLowInc_Ma  + UrbanVehOwnershipCostLowInc_Ma* UrbanHhNumLowInc_Ma)/ UrbanTotalHhIncomeLowInc_Ma",
-    Units = "Proportion",
-    Description = "Low income (0to20K 2010$) household vehicle Own & out-of-pocket costs share of HH low income total (all low income HHs)in urban area"
-  ),
+#   list(
+#     Name = "HhVehTravCostShareLowInc_Ma",
+#     Function = "(UrbanVehOperatingCostLowInc_Ma  + UrbanVehOwnershipCostLowInc_Ma* UrbanHhNumLowInc_Ma)/ UrbanTotalHhIncomeLowInc_Ma",
+#     Units = "Proportion",
+#     Description = "Low income (0to20K 2010$) household vehicle Own & out-of-pocket costs share of HH low income total (all low income HHs)in urban area"
+#   ),
 
   #household vehicle Own & out-of-pocket costs share of HH income total (all HHs)
   list(
@@ -1538,12 +1538,12 @@ QuerySpec <- list(
   ),
 
   #urban DVMT per Capita in LowInc HHs
-  list(
-    Name = "UrbanLdvDmvtPerCapLowInc_Ma",
-    Function = "UrbanHhDvmtLowInc_Ma / UrbanHhPopLowInc_Ma",
-    Units = "Dvmt per person",
-    Description = "daily vehicle miles traveled per person in low income (0to20K 2010$) households residing in the urban area."
-  ),
+#   list(
+#     Name = "UrbanLdvDmvtPerCapLowInc_Ma",
+#     Function = "UrbanHhDvmtLowInc_Ma / UrbanHhPopLowInc_Ma",
+#     Units = "Dvmt per person",
+#     Description = "daily vehicle miles traveled per person in low income (0to20K 2010$) households residing in the urban area."
+#   ),
 
   #Average car service light truck proportion of car service DVMT
   #--------------------------------------------------------------
