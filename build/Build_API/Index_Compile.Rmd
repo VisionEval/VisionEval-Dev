@@ -1,0 +1,54 @@
+---
+title: "[VisionEval](https://visioneval.org) Module Documentation Demo"
+output: html_document
+---
+
+```{r setup, echo=FALSE}
+library(DT)
+
+```
+
+## 
+
+## How to use this 
+
+- Filter by Module or search for a specific document
+- Click 'back' in your browser to return to this index page
+
+
+```{r index_create, echo=FALSE}
+base_ve = '~/git/VisionEval-Dev'
+output_dir = file.path(base_ve, 'Module_Docs')
+
+index_list <- read.csv(file.path(output_dir, 'Module_Compile_for_Index.csv'))
+
+Module_Doc_for_link <- sub('\\.md', '\\.html', index_list$Module_Doc)
+Module_Doc_for_link <- sub('\\.Rmd', '\\.html', Module_Doc_for_link)
+Module_Doc_for_name <- sub('\\..+$', '', index_list$Module_Doc)
+
+# For kable:
+# Link = paste0('[', Module_Doc_for_name, '](', Module_Doc_for_link, ')')
+
+# For DT:
+Link = paste0('<a href="', 
+              Module_Doc_for_link, 
+              '">',
+              Module_Doc_for_name,
+              '</a>'
+              )
+
+
+index_table <- data.frame(Module = index_list$Module, Link)
+
+```
+
+```{r index_out, echo = FALSE}
+
+# kable(index_table)
+
+datatable(index_table,
+          escape = F,
+          filter = 'top',
+          options = list(pageLength = 15))
+
+```
