@@ -387,6 +387,8 @@ BuildScenarios <- function(L){
   RunDir <- getwd()
   ScenarioInputFolder <- file.path(RunDir, L$Global$Model$ScenarioInputFolder)
   ScenarioOutputFolder <- file.path(RunDir, L$Global$Model$ScenarioOutputFolder)
+  InputLabels_ar <- list.dirs(path = ScenarioInputFolder, recursive = FALSE,
+                              full.names = FALSE)  
   ModelFolder <- file.path(RunDir, L$Global$Model$ModelFolder)
 
   BuildScenariosInterior(ScenarioInputFolder , ScenarioOutputFolder , ModelFolder) 
