@@ -15,9 +15,8 @@ Urban: Population in urban (urbanized) areas of the state
 
 Source:
 -------
-U.S. Bureau of the Census, 2010 Census of Population
-http://www.census.gov/geo/www/ua/2010urbanruralclass.html
-Urban_Rural_by_State_2010_short_ver.xls
+U.S. Bureau of the Census, 2020 Census of Population
+Washington, ORegon, and Idaho are the only state where the 2020 opoulation was changed. Urban/Rural split is unavailable and was estimated by WSDOT based on 2010 split.
 
 
 

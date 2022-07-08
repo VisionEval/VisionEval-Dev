@@ -15,8 +15,8 @@ Art_Rcr: Average arterial speed by congestion level considering only the effects
 
 Source:
 -------
-Alex Bigazzi and Kelly Clifton, Refining GreenSTEP: Impacts of Vehicle Technologies and ITS/Operational Improvements on Travel Speed and Fuel Consumption Curves, Report on Task 2: Incorporation of Operations and ITS Improvements, Portland State University, November 2011.
-Bigazzi_GreenSTEP_estimate_ops_impacts.xls
+
+Updated to align better with WSDOT’s “Maximum Throughput.” These may be adjusted in the future if WSDOT updates its congestion methodology.
 
 
 

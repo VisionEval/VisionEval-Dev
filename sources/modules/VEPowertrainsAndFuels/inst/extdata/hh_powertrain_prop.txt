@@ -20,4 +20,4 @@ LtTrkPropBev: The proportion of model year light trucks that are battery electri
 
 Source:
 -------
-These are demonstration data developed for the purpose of creating and testing modules. Data comes from various sources used to develop values for Oregon and other sources.
+Values up to 2020 are from the MOVES 3 model for Washington State. Values from 2030 and beyond reflect the Move Ahead Washington Legislative directive to end internal combustion engine vehicle (ICE or ICEV) sales in 2029, all new vehicle sales beginning in 2030 must be all electric.
