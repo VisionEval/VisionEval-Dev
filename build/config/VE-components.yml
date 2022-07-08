@@ -196,26 +196,26 @@ Components:
 #   # VERSPM has no package dependencies (only an installable model)
 #   VE:
 #      - # TODO: list all the packages used in VERSPM model
-  VETravelDemandMM:
-    Type: module
-    Path: sources/modules
-    Test:
-      Group: 5
-    CRAN:
-      - dplyr
-      - purrr
-      - tidyr
-      - splines
-      - MASS
-      - pscl
-    VE:
-      - VEHouseholdTravel
-      - VEHouseholdVehicles
-      - VELandUse
-      - VEPowertrainsAndFuels
-      - VESimHouseholds
-      - VETransportSupply
-      - VETravelPerformance
+#  VETravelDemandMM:
+#    Type: module
+#    Path: sources/modules
+#    Test:
+#      Group: 5
+#    CRAN:
+#      - dplyr
+#      - purrr
+#      - tidyr
+#      - splines
+#      - MASS
+#     - pscl
+#   VE:
+#      - VEHouseholdTravel
+#      - VEHouseholdVehicles
+#      - VELandUse
+#      - VEPowertrainsAndFuels
+#      - VESimHouseholds
+#      - VETransportSupply
+#      - VETravelPerformance
   VEState:
     Type: module
     Path: sources/modules
