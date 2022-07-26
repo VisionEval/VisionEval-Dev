@@ -1236,9 +1236,9 @@ findDataset <- function(DatasetName, DstoreListing_df=NULL, envir=modelEnvironme
   FoundIn_df <- NULL
   for ( ds in dsPaths ) {
     if (
-        class(DatasetName)!= "character" ||
-        class(ds$groupname)!="character" ||
-        length(ds$groupname) == 0 || length(DatasetName)==0
+        any(class(DatasetName)!= "character" |
+        class(ds$groupname)!="character" |
+        length(ds$groupname) == 0 | length(DatasetName)==0)
       ) {
       writeLog("Failed to find path element; entering debug browser (Q to quit)",Level="error")
       browser()
@@ -1313,10 +1313,10 @@ getDatasetAttr <- function(Name=NULL, Table=NULL, Group=NULL, DstoreListing_df=N
   # Warning: should call checkDataset first if the missing Dataset error needs to
   #   be accepted.
 
-  if ( missing(Table) || is.null(Table) || missing(Group) || is.null(Group) ) {
+  if (any( missing(Table) | is.null(Table) | missing(Group) | is.null(Group) )) {
     stop(writeLog("getDatasetAttr: must provide Group and Table",Level="error"))
   }
-  if ( missing(Name) || is.null(Name) ) {
+  if (any( missing(Name) | is.null(Name) )) {
     DatasetName <- file.path(Group, Table)
   } else {
     DatasetName <- file.path(Group, Table, Name)
@@ -1907,7 +1907,7 @@ mergeDatastoreListings <- function(baseListing, addListing) {
   #   attributes       # list
   # The listing is presented as either a data.frame or a list; we can access the elements
   #   the same way just by using baseListing$group etc.
-  if ( ! is.list(baseListing) || !is.list(addListing) ) {
+  if (any( ! is.list(baseListing) | !is.list(addListing) )) {
     stop(
       writeLog("Invalid listing types presented to mergeDatastoreListings",Level="error")
     )
@@ -1992,7 +1992,7 @@ copyDatastore <- function( ToDir, Flatten=TRUE, DatastoreType=NULL, envir=modelE
 
   paths <- character(0)
   success <- FALSE
-  Flatten <- Flatten[1] && ( length(ModelState_ls$DatastorePath) > 1 || isTRUE(Flatten[2]) )
+  Flatten <- Flatten[1] && (any( length(ModelState_ls$DatastorePath) > 1 | isTRUE(Flatten[2]) ))
   # Always use Flatten machinery if source model is internally staged, or if Flatten is c(TRUE,TRUE)
 
   # Don't flatten if already flat

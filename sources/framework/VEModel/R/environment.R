@@ -217,7 +217,7 @@ getSetup <- function(object=NULL,paramNames=NULL,fromFile=FALSE,reload=FALSE) {
 #' @importFrom yaml as.yaml
 #' @export
 viewSetup <- function(object=NULL,Param_ls=NULL,fromFile=FALSE,...) {
-  if ( ! is.null(object) || is.null(Param_ls) ) {
+  if ( any(! is.null(object) | is.null(Param_ls)) ) {
     Param_ls <- getSetup(object=object,fromFile=fromFile)
   } # else view Param_ls from function parameters
   Paraml <- yaml::as.yaml(Param_ls)
@@ -536,7 +536,7 @@ showModelIndex <- function(reset=FALSE, private=FALSE) {
     } else {
       for ( v in names(modelIndex[[m]]) ) {
         is.private <- "private" %in% names(modelIndex[[m]][[v]]) && modelIndex[[m]][[v]]$private
-        if ( private || ! is.private ) {
+        if (any( private | ! is.private )) {
           modelSources$Model   <- c(modelSources$Model,m)
           modelSources$Variant <- c(modelSources$Variant,v)
           modelSources$Package <- c(modelSources$Package,attr(modelIndex[[m]][[v]],"Package"))

@@ -81,7 +81,7 @@ test_install <- function(modelName="VERSPM",variant="base",installAs="",log="inf
   if ( ! missing(log) ) logLevel(log)
 
   if ( ! nzchar(variant) ) variant <- ""
-  if ( missing(installAs) || ! nzchar(installAs) ) {
+  if (any( missing(installAs) | ! nzchar(installAs)) ) {
     if ( nzchar(variant) && nzchar(modelName) ) {
       installAs <- paste0("test-",modelName,"-",variant)
     }
@@ -176,7 +176,7 @@ test_run <- function(modelName="VERSPM-base",baseModel="VERSPM",variant="base",r
 
   if ( ! missing(log) ) logLevel(log)
   model.dir <- dir("models")
-  if ( missing(modelName) || ! nzchar(modelName) ) {
+  if (any( missing(modelName) | ! nzchar(modelName) )) {
     return(model.dir)
   }
   if ( ! modelName %in% model.dir ) {
@@ -1262,7 +1262,7 @@ test_rpat <- function(run=TRUE) {
     testStep("Installing VERPAT as JRPAT")
     verpat <- installModel("VERPAT",modelPath="JRPAT")
   }
-  if ( run || ! verpat$results()$valid() ) {
+  if (any( run | ! verpat$results()$valid() )) {
     testStep("Clearing previous extracts")
     verpat$clear(force=TRUE) # outputs only
     testStep("Running JRPAT")
@@ -1343,7 +1343,7 @@ test_scenarios <- function(
 
   testStep(paste("Checking and installing scenario model"))
   existingModel <- dir.exists(modelPath <- file.path("models","VERSPM-scenario"))
-  if ( install || ! existingModel ) {
+  if (any( install | ! existingModel )) {
     if ( install && existingModel ) unlink(modelPath,recursive=TRUE)
     cat( sep="", if ( existingModel) "Existing" else "Installing",":\n", modelPath, "\n" )
 

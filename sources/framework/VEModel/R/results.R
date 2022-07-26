@@ -178,7 +178,7 @@ ve.results.list <- function(pattern="", details=FALSE, selected=TRUE, ...) {
   
   if ( ! self$valid() ) stop("Model has not been run yet.")
 
-  filter <- if ( missing(selected) || selected ) {
+  filter <- if (any( missing(selected) | selected )) {
     which( 1:nrow(self$modelIndex) %in% self$selection$selection )
   } else {
     rep(TRUE,nrow(self$modelIndex))
@@ -187,7 +187,7 @@ ve.results.list <- function(pattern="", details=FALSE, selected=TRUE, ...) {
     filter <- filter & grepl(pattern,self$modelIndex$Name,ignore.case=TRUE )
   }
 
-  if ( missing(details) || ! details ) {
+  if (any( missing(details) | ! details )) {
     ret.value <- with( self$modelIndex[ filter, ], paste(Group,Table,Name,sep="/") ) # generates a character vector
   } else {
     ret.value <- self$modelIndex[ filter, ] # Generates a data.frame with all columns
@@ -242,9 +242,9 @@ addDisplayUnits <- function(GTN_df,Param_ls) {
   if ( "DisplayUnits" %in% names(GTN_df) ) GTN_df <- GTN_df[,! grepl("DisplayUnits",names(GTN_df),fixed=TRUE)]
   # Only look at relevant columns in displayUnits when merging
   displayUnits <- try( merge(GTN_df,displayUnits[,displayColumns],by=c("Group","Table","Name"),all.x=TRUE), silent=TRUE )
-  if (
-    ! "data.frame" %in% class(displayUnits) ||
-    ! all( c("Group","Table","Name","DisplayUnits") %in% names(displayUnits) ) # it can have other fields, e.g. original Units
+  if (any(
+    ! "data.frame" %in% class(displayUnits) |
+    ! all( c("Group","Table","Name","DisplayUnits") %in% names(displayUnits) )) # it can have other fields, e.g. original Units
   ) {
     if ( "data.frame" %in% class(displayUnits) ) {
       displayUnits <- paste("Bad Fields - ",names(displayUnits),collapse=", ")
@@ -314,7 +314,7 @@ ve.results.units <- function(selected=TRUE,display=NULL) {
   Units_df <- self$modelIndex[ selected, c("Group","Table","Name","Units") ]
   Units_df$Source <- "Datastore"
   returnFields <- c("Group","Table","Name","Units","Source")
-  if ( ! is.logical(display) || display ) {
+  if (any( ! is.logical(display) | display )) {
     # Add Display Units if requested
     Units_df <- addDisplayUnits(Units_df,Param_ls=private$RunParam_ls)
     displayUnits <- !is.na(Units_df$DisplayUnits)
@@ -341,7 +341,7 @@ ve.results.extract <- function(
 ) {
   if ( ! self$valid() ) stop("Model State contains no results.")
   if ( is.null(select) ) select <- self$selection else self$selection <- select
-  if ( is.na(select$selection) || length(select$selection)<1 ) {
+  if (any( is.na(select$selection) | length(select$selection)<1 )) {
     stop("Nothing selected to extract.")
   }
 
@@ -472,7 +472,7 @@ ve.results.extract <- function(
         disp.fn <- sub(paste0(self$resultsPath,"/"),"",fn,fixed=TRUE)
         df2w <- Data_ls$Data[[table]]
         writeLog(paste("Extracting",sub("\\.[^.]*$","",disp.fn),paste0("(",nrow(df2w)," rows)")),Level="warn")
-        data <- ! is.logical(data) || data
+        data <- any(! is.logical(data) | data)
         if ( data ) {
           utils::write.csv(df2w,file=fn,row.names=FALSE)
         } 
@@ -485,7 +485,7 @@ ve.results.extract <- function(
     } else {
       # Otherwise, if not saving, accumulate the list of data.frames
       # (named as "group.table")
-      if ( ! is.logical(data) || data ) {
+      if (any( ! is.logical(data) | data )) {
         results[ newTableNames ] <- Data_ls$Data
       } else { # just the metadata
         results[ newTableNames ] <- Metadata_ls # use data name Group.Table
@@ -500,7 +500,7 @@ ve.results.select <- function(select=integer(0)) {  # integer(0) says select all
   # if is.null(select) do not change the current results selection
   # integer(0) says reset and select all
   # the is.environment test picks of an R6 VESelection object
-  if ( missing(select) || is.environment(select) || ( ! is.null(select) && ! is.na(select) ) ) {
+  if (any( missing(select) | is.environment(select) | ( ! is.null(select) && ! is.na(select) ) )) {
     self$selection <- VESelection$new(self,select=select)
   }
   invisible(self$selection)
@@ -611,13 +611,13 @@ ve.select.initialize <- function( results, select=integer(0) ) {
   self$results <- results
   if ( self$results$valid() ) {
     rows <- self$parse(select)
-    if ( is.null(rows) || any(is.na(rows)) ) {
+    if (any( is.null(rows) | any(is.na(rows)) )) {
       self$selection <- as.integer(NA) # no rows selected
-    } else if (
-      ! is.numeric(rows) ||
-      length(rows)==0 ||
-      ! min(rows)>0 ||
-      max(rows)>nrow(self$results$modelIndex) ) {
+    } else if (any(
+      ! is.numeric(rows) |
+      length(rows)==0 |
+      ! min(rows)>0 |
+      max(rows)>nrow(self$results$modelIndex) )) {
       self$selection <- 1:nrow(self$results$modelIndex)
     } else {
       self$selection <- rows
@@ -718,9 +718,9 @@ ve.select.parse <- function(select) {
     for ( s in select ) {
       t <- unlist(strsplit(s,"/"))
       name <- c( rep(NA,3-length(t)), t )
-      if ( is.na(name[3]) || ! nzchar(name[3]) ) next  else field=name[3]
-      if ( is.na(name[2]) || ! nzchar(name[2]) ) table <- NULL else table=name[2]
-      if ( is.na(name[1]) || ! nzchar(name[1]) ) group <- NULL else group=name[1]
+      if (any( is.na(name[3]) | ! nzchar(name[3]) )) next  else field=name[3]
+      if (any( is.na(name[2]) | ! nzchar(name[2]) )) table <- NULL else table=name[2]
+      if (any( is.na(name[1]) | ! nzchar(name[1]) )) group <- NULL else group=name[1]
       fld <- self$find(Name=field,Group=group,Table=table,as.object=FALSE)
       build <- union( build, fld )
     }
