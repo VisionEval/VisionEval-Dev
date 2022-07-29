@@ -408,7 +408,7 @@ isDatasetPresent <- function(Name, Table, Group, QueryPrep_ls) {
   for (loc in DstoreLocs) {
     query.env <- new.env()
     query.env$ModelState_ls <- MS_ls[[loc]]
-    DatasetPresent <- any(DatasetPresent | checkDataset(Name, Table, Group, envir=query.env))
+    DatasetPresent <- DatasetPresent | checkDataset(Name, Table, Group, envir=query.env)
   }
   return( DatasetPresent )
 }
@@ -879,7 +879,7 @@ function(
   )
 
   # Abort if the query cannot be interpreted
-  if (any( length(checkedSpec$Errors)>1 | any(nzchar(checkedSpec$Errors)) )) {
+  if (length(checkedSpec$Errors)>1 | any(nzchar(checkedSpec$Errors)) ) {
     writeLog( c(
       msg<-"Error(s) in Query Specification for SummarizeDatasets",
       checkedSpec$Errors), Level="error"
@@ -906,7 +906,7 @@ function(
 
   # Perform the query computations
   calcResults <- performQuery( CompiledSpec, Data_ls )
-  if (any( length(calcResults$Errors)>1 | any(nzchar(calcResults$Errors)) )) {
+  if ( length(calcResults$Errors)>1 | any(nzchar(calcResults$Errors)) ) {
     writeLog( c(
       msg<-"Error(s) performing SummarizeDatasets",
       calcResults$Errors), Level="error"

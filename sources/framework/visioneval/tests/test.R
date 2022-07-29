@@ -40,7 +40,7 @@ test_classic <- function(modelName="Classic",save=TRUE) {
     print(list.dirs(modelPath))
   }
 
-  if (any( !save | ! dir.exists(modelPath) )) {
+  if ( !save | ! dir.exists(modelPath) ) {
     testStep(paste("Copying CLASSIC model from package as",modelName))
     dir.create(modelPath)
     file.copy(dir(file.path(start.dir,"tests","models","TestModel"),full.names=TRUE),modelPath,recursive=TRUE)

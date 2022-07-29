@@ -229,7 +229,7 @@ cullInputPath <- function(InputPath,modelInputPath=NULL) {
 ## Helper function
 findModel <- function( modelDir, Param_ls=getSetup() ) {
 
-  if ( any(missing(modelDir) | ! is.character(modelDir)) ) {
+  if ( missing(modelDir) | ! is.character(modelDir) ) {
     writeLog("findModel: Must provide modelDir locator.",Level="warn")
     return( "" ) # An empty list...
   }
@@ -266,7 +266,7 @@ findModel <- function( modelDir, Param_ls=getSetup() ) {
 # configure installs the model parameters (initializing or re-initializing)
 ve.model.configure <- function(modelPath=NULL, fromFile=TRUE) {
 
-  if (any( missing(modelPath) | ! is.character(modelPath)) ) {
+  if ( missing(modelPath) | ! is.character(modelPath))  {
     modelPath <- self$modelPath
   }
   
@@ -274,7 +274,7 @@ ve.model.configure <- function(modelPath=NULL, fromFile=TRUE) {
 
   # Load any configuration available in modelPath (on top of ve.runtime base configuration)
   Param_ls <- getSetup() # runtime configuration
-  if ( any(fromFile | is.null(self$loadedParam_ls)) ) {
+  if ( fromFile | is.null(self$loadedParam_ls) ) {
     self$loadedParam_ls <- visioneval::loadConfiguration(ParamDir=modelPath)
   } # if NOT fromFile, use existing loadedParam_ls to rebuild (may have in-memory changes)
 
@@ -438,7 +438,7 @@ ve.model.configure <- function(modelPath=NULL, fromFile=TRUE) {
   writeLog(paste(names(self$RunParam_ls),collapse=", "),Level="info")
 
   # Locate model stages
-  if ( any(fromFile | is.null(self$modelStages[1])) ) {
+  if ( fromFile | is.null(self$modelStages[1]) ) {
     writeLog("Locating model stages",Level="info")
     self$modelStages <- NULL
     if ( ! "ModelStages" %in% names(self$RunParam_ls) ) {
@@ -596,7 +596,7 @@ ve.model.initstages <- function( modelStages ) {
   # Forget the modelStages that can't run
   modelStages <- runnableStages
   stageCount <- length(modelStages)
-  if (any( !is.list(modelStages) | stageCount == 0) ) {
+  if ( !is.list(modelStages) | stageCount == 0)  {
     writeLog("Model has no runnable stages!",Level="error")
     return(modelStages)
   }
@@ -770,7 +770,7 @@ ve.model.dir <- function( stage=NULL,shorten=TRUE, showRootDir=TRUE, all.files=F
     root <- results <- outputs <- inputs <- archive <- TRUE
   }
 
-  if (any( missing(shorten) | shorten) ) {
+  if ( missing(shorten) | shorten)  {
     shorten <- self$modelPath
   } else shorten <- ""
   if ( is.null(stage) ) {
@@ -860,7 +860,7 @@ ve.model.dir <- function( stage=NULL,shorten=TRUE, showRootDir=TRUE, all.files=F
   }
 
   ResultsInRoot <- ( root && baseResults==self$modelPath )
-  if ( any(results | ResultsInRoot  )) {
+  if ( results | ResultsInRoot  ) {
     # Handle the old-style case where ResultsDir==modelPath
     # ResultsDir is already normalized
     # We're only going to look for known result types ("artifacts")
@@ -947,7 +947,7 @@ ve.model.clear <- function(force=FALSE,outputOnly=NULL,archives=FALSE,stage=NULL
   to.delete <- self$dir(outputs=TRUE,stage=stage,showRootDir=FALSE)
   if ( missing( outputOnly ) ) {
     # Can't force delete of results without explicit outputOnly=FALSE
-    outputOnly <- ( any(length(to.delete)>0 | force) )
+    outputOnly <- ( length(to.delete)>0 | force )
   }
 
   if ( ! isTRUE(outputOnly) ) to.delete <- c(to.delete,self$dir(results=TRUE,stage=stage,showRootDir=FALSE))
@@ -1076,7 +1076,7 @@ ve.stage.init <- function(Name=NULL,Model=NULL,ScenarioDir=NULL,modelParam_ls=NU
     } else stop("No Name provided for model stage.")
   } else self$Name <- Name
 
-  if ( any(is.null(Model) | ! "VEModel" %in% class(Model)) ) {
+  if ( is.null(Model) | ! "VEModel" %in% class(Model) ) {
     stop("No VEModel provided to own model stage ",Name)
   } else self$Model <- Model
 
@@ -1098,7 +1098,7 @@ ve.stage.init <- function(Name=NULL,Model=NULL,ScenarioDir=NULL,modelParam_ls=NU
     if ( is.null(modelParam_ls) ) modelParam_ls <- list()
   }
   # Pull stageParam_ls from ModelStages in modelParam_ls (mostly, we'll send stageParam_ls in as a parameter)
-  if (any( ( !is.list(stageParam_ls) | length(stageParam_ls)==0 )) && "ModelStages" %in% names(modelParam_ls) ) {
+  if ( ( !is.list(stageParam_ls) | length(stageParam_ls)==0 ) && "ModelStages" %in% names(modelParam_ls) ) {
     msp <- modelParam_ls$ModelStages[[self$Name]]
     if ( ! is.null(msp) ) stageParam_ls <- msp
   }
@@ -1244,7 +1244,7 @@ ve.stage.init <- function(Name=NULL,Model=NULL,ScenarioDir=NULL,modelParam_ls=NU
     writeLog("Constructing stage InputPath",Level="debug")
     if ( is.character(self$Path) && dir.exists(self$Path) ) {
       stageInput <- file.path(self$Path,visioneval::getRunParameter("InputDir",self$RunParam_ls))
-      if (any( is.null(stageInput) | ! file.exists(stageInput) )) {
+      if ( is.null(stageInput) | ! file.exists(stageInput) ) {
         stageInput <- self$Path
       } else {
         stageInput <- c(stageInput,self$Path)
@@ -1697,7 +1697,7 @@ summarizeSpecs <- function(AllSpecs_ls,stage) {
         function(x) {
           # Set SPEC type and add other missing names as <NA>
           for ( f in 1:length(x) ) {
-            if (any( length(x[[f]])>1 | !is.character(x) )) {
+            if ( length(x[[f]])>1 | !is.character(x) ) {
               x[[f]] <- paste(x[[f]],collapse=", ")
             }
           }
@@ -1746,7 +1746,7 @@ ve.model.list <- function(inputs=FALSE,outputs=FALSE,details=NULL,stage=characte
   }
 
   # Update specSummary
-  if (any( reset | is.null(self$specSummary) )) {
+  if ( reset | is.null(self$specSummary) ) {
     writeLog("Loading model specifications (may take some time)...",Level="warn")
     self$load(onlyExisting=FALSE) # Create new model states if they are not present in the file system
     for ( stage in self$modelStages ) {
@@ -1815,7 +1815,7 @@ ve.model.print <- function(details=FALSE,configs=FALSE,scenarios=FALSE) {
       s$print(details,configs)
     }
     scenarioCount <- length(which(scenarioStages))
-    if (any( scenarioCount > 0 | ! is.null(self$modelScenarios) )) {
+    if ( scenarioCount > 0 | ! is.null(self$modelScenarios) ) {
       if ( ! details ) {
         cat(scenarioCount,"Scenario stages defined in",sub(self$modelPath,"",self$modelScenarios$scenarioPath),"\n")
       } else {
@@ -2012,7 +2012,7 @@ knownPlans <- c("inline", "sequential", "callr", "multisession")
 #' @import parallelly
 ve.model.plan <- function(plan="callr",workers=parallelly::availableCores(omit=1)) {
   # options for the plan are described in knownPlans
-  if (any( ! is.character(plan) | ! plan %in% knownPlans )) plan <- knownPlans[1]
+  if ( ! is.character(plan) | ! plan %in% knownPlans ) plan <- knownPlans[1]
   self$FuturePlan <- plan
   self$Workers <- workers
 }
@@ -2077,7 +2077,7 @@ ve.model.run <- function(run="continue",stage=NULL,watch=TRUE,dryrun=FALSE,log="
 
   # Save existing results if we're restarting or resetting
   SaveDatastore = NULL # ignore any pre-configured value for SaveDatastore
-  if (any( run == "restart" | run=="reset" )) {
+  if ( run == "restart" | run=="reset" ) {
     SaveDatastore <- FALSE
     writeLog(paste("Removing previous Results from",workingResultsDir),Level="warn")
     unlink(dir(workingResultsDir,full.names=TRUE),recursive=TRUE)
@@ -2203,7 +2203,7 @@ ve.model.run <- function(run="continue",stage=NULL,watch=TRUE,dryrun=FALSE,log="
           # Wait for a stage to finish so we can start another one
           writeLog("Waiting for free processor...",Level="warn")
           while ( all(sapply(runningList,function(stg) stg$running())) ) {
-            if (any( is.null(lastStatusReport) | tdiff(lastStatusReport,Sys.time(),units="secs") > statusDelay )) {
+            if ( is.null(lastStatusReport) | tdiff(lastStatusReport,Sys.time(),units="secs") > statusDelay ) {
               writeLog(paste(length(runningList),"processes are running"),Level="info")
               sapply(runningList,function(stg) {
                 writeLog( stg$processStatus(), Level="warn" )
@@ -2270,7 +2270,7 @@ ve.model.run <- function(run="continue",stage=NULL,watch=TRUE,dryrun=FALSE,log="
           if ( watchingLogs ) { # only one stage running - watch its logs
             runningList[[1]]$watchLogfile() # There's a delay built into watchLogFile
           } else {
-            if (any( is.null(lastStatusReport) | tdiff(lastStatusReport,Sys.time(),units="secs") > statusDelay )) {
+            if ( is.null(lastStatusReport) | tdiff(lastStatusReport,Sys.time(),units="secs") > statusDelay ) {
               writeLog(paste(length(runningList),"processes are running"),Level="info")
               sapply(runningList,function(stg) {
                 writeLog( stg$processStatus(), Level="warn" )
@@ -2325,7 +2325,7 @@ ve.stage.watchlog <- function(stop=FALSE,delay=2) {
 ################################################################################
 
 ve.model.scenarios <- function( fromFile=FALSE  ) {
-  if (any( is.null(self$modelScenarios) | fromFile )) {
+  if ( is.null(self$modelScenarios) | fromFile ) {
     self$modelScenarios <- VEModelScenarios$new(baseModel=self,fromFile=fromFile)
   }
   if ( is.null(self$modelScenarios) ) {
@@ -2585,7 +2585,7 @@ ve.model.query <- function(QueryName=NULL,FileName=NULL,load=TRUE) {
 #'   provided; see details and `vignette("VEModel")`
 #' @export
 openModel <- function(modelPath="",log="error") {
-  if (any( missing(modelPath) | !nzchar(modelPath) )) {
+  if ( missing(modelPath) | !nzchar(modelPath) ) {
     return(
       dir(
         file.path(
@@ -2704,7 +2704,7 @@ installStandardModel <- function( modelName, modelPath, confirm=TRUE, overwrite=
   # Set up destination modelPath (always create in the first defined root)
   root <- getModelRoots(1)
   writeLog(paste("Root:",root),Level="info")
-  if (any( missing(modelPath) | is.null(modelPath) )) modelPath <- paste(model$Name,variant,sep="-")
+  if ( missing(modelPath) | is.null(modelPath) ) modelPath <- paste(model$Name,variant,sep="-")
   if ( ! isAbsolutePath(modelPath) ) {
     newModelPath <- file.path(root,modelPath)
     writeLog(paste("Model path:",newModelPath),Level="info")
