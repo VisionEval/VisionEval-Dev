@@ -484,7 +484,7 @@ loadModel <- function(
   #       just by providing an alternate ModelScript runtime parameter (e.g. run_model_restart.R)
 
   # Load the previous model state, if we've asked for LoadDatastore or StartFrom
-  if (any( LoadDatastore | "StartFromModelState" %in% names(RunParam_ls) )) {
+  if ( LoadDatastore || "StartFromModelState" %in% names(RunParam_ls) ) {
     # In the file system, use the currently configured ModelStateFile
     #  if it's not right, that other model needs to be re-run in
     #  the current environment.
@@ -524,7 +524,7 @@ loadModel <- function(
   # TODO: rework use case for restarting from current Datastore (during debugging for example)
   SaveDatastore <- getRunParameter("SaveDatastore",Param_ls=RunParam_ls)
   if ( RunModel && file.exists(RunDstore$Name) ) {
-    if (any( ! ( LoadDatastore | SaveDatastore ) )) {
+    if ( ! ( LoadDatastore || SaveDatastore ) ) {
       DstoreConflicts <- c(DstoreConflicts,
         paste(
           "The existing datastore, ",RunDstore$Name," will NOT be overwritten.\n",
@@ -602,7 +602,7 @@ loadModel <- function(
       )
       BadBaseYear <- ! (envir$ModelState_ls$BaseYear == LoadDstore$ModelState_ls$BaseYear)
 
-      if (any( BadGeography | BadUnits | BadDeflators | BadBaseYear)) {
+      if ( BadGeography || BadUnits || BadDeflators || BadBaseYear) {
         elements <- paste(
           "Geography"[BadGeography],
           "Units"[BadUnits],
@@ -639,7 +639,7 @@ loadModel <- function(
   AlreadyInitialized <- character(0) # required (initialized packages) from loaded datastore
   RequiredPackages <- parsedScript$RequiredVEPackages;
 
-  if (any( LoadDatastore | "ModelState_ls" %in% names(LoadDstore) )) {
+  if ( LoadDatastore || "ModelState_ls" %in% names(LoadDstore) ) {
     # Copy over the required packages part of the loaded model state
     # That's all we need so we can parse the current module calls successfully
     if ( "RequiredVEPackages" %in% names(LoadDstore$ModelState_ls) ) {

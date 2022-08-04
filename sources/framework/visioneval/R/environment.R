@@ -103,7 +103,7 @@ getRunParameter <- function(Parameter,Param_ls=NULL,Default=NA) {
     }
   }
 
-  if (any( length(Param_ls)==0 | ! Parameter %in% names(Param_ls) )) {
+  if ( length(Param_ls)==0 || ! Parameter %in% names(Param_ls) ) {
     if ( defaultMissing && Parameter %in% names(defaultParams_ls) ) {
       Default <- defaultParams_ls[[Parameter]]
     }
@@ -369,17 +369,17 @@ addParameterSource <- function(Param_ls,Source="Manually added",onlyMissing=FALS
   if ( # Param_ls should be a named list of parameters in it
     is.list(Param_ls) && # must be a list
     (
-      any(length(Param_ls)==0 | # Okay for it to be an empty list
+      length(Param_ls)==0 || # Okay for it to be an empty list
       (
         !is.null(names(Param_ls)) && # But if not empty, everything needs a name
         all(nzchar(names(Param_ls)))
-      ))
+      )
     )
   ) {
     # Make sure every element of Param_ls has a Source
     Param_ls <- lapply( Param_ls,
       function(p) {
-        if (any( ! onlyMissing | is.null(attr(p,"source")) )) {
+        if ( ! onlyMissing || is.null(attr(p,"source")) ) {
           attr(p,"source") <- Source
         }
         return( p )
@@ -416,7 +416,7 @@ addParameterSource <- function(Param_ls,Source="Manually added",onlyMissing=FALS
 addRunParameter <- function(Param_ls=list(),Source=NULL,...) {
   newParams_ls <- list(...)
   # if source not supplied, check if first item in newParams_ls has a source and use that
-  if (any( missing(Source) | is.null(Source) )) {
+  if ( missing(Source) || is.null(Source) ) {
     item.source <- attr(newParams_ls[[1]],"source")
     if ( ! is.null(item.source) ) Source <- item.source
   }
@@ -458,9 +458,9 @@ mergeParameters <- function(Param_ls,Keep_ls) {
   } else if (
     length(Param_ls)>0 &&
     (
-      any(any( nullSources <- which(sapply(Param_ls,function(p) is.null(attr(p,"source")))) ) |
-      is.null(names(Param_ls)) |
-      any(is.na(names(Param_ls))))
+      any( nullSources <- which(sapply(Param_ls,function(p) is.null(attr(p,"source")))) ) ||
+      is.null(names(Param_ls)) ||
+      any(is.na(names(Param_ls)))
     )
   ) {
     error.reason <- paste(
@@ -476,9 +476,9 @@ mergeParameters <- function(Param_ls,Keep_ls) {
   } else if (
     length(Keep_ls)>0 &&
     (
-      any(any( nullSources <- which(sapply(Keep_ls,function(p) is.null(attr(p,"source")))) ) |
-      is.null(names(Keep_ls)) |
-      any(is.na(names(Keep_ls))))
+      any( nullSources <- which(sapply(Keep_ls,function(p) is.null(attr(p,"source")))) ) ||
+      is.null(names(Keep_ls)) ||
+      any(is.na(names(Keep_ls)))
     )
   ) {
     error.reason <- paste(
@@ -661,7 +661,7 @@ findRuntimeInputFile <- function(File,Dir="InputPath",Param_ls=NULL,StopOnError=
   inputPath <- getRunParameter(Dir,Param_ls=Param_ls)
   writeLog(paste("Input path raw:",inputPath,collapse=":"),Level="trace")
   candidates <- findFileOnPath( File=File, Dir=inputPath )
-  if ( StopOnError && any(( length(candidates)==0 | is.na(candidates) )) ) {
+  if ( StopOnError && ( length(candidates)==0 || is.na(candidates) ) ) {
     stop( writeLog(paste("Could not locate",File,"on",inputPath,collapse="; "),Level="error") )
   }
   return(candidates[1]) # if StopOnError==FALSE, return NA if no matching File was found
@@ -804,7 +804,7 @@ saveLog <- function(LogFile=NULL,envir=modelEnvironment()) {
 # futile.logger layout for visioneval (adjusted from futile.logger::layout.simple)
 
 prepare_arg <- function(x) {
-  if (any(is.null(x) | length(x) == 0)) return(deparse(x))
+  if (is.null(x) || length(x) == 0) return(deparse(x))
   return(x)
 }
 
@@ -872,7 +872,7 @@ log.function <- list(
 #' @return TRUE if the message is written to the log successfully ("as-is")
 #' @export
 writeLogMessage <- function(Msg = "", Logger="ve.logger", Level="") {
-  if (any( missing(Msg) | length(Msg)==0 | ! nzchar(Msg) )) {
+  if ( missing(Msg) || length(Msg)==0 || ! nzchar(Msg) ) {
     message(
       "writeLogMessage(Msg): No message supplied\n",
     )
@@ -915,9 +915,9 @@ writeLogMessage <- function(Msg = "", Logger="ve.logger", Level="") {
 #' It appends the time and the message text to the run log.
 #' @export
 writeLog <- function(Msg = "", Level="NONE", Logger="") {
-  noLevel <- (any( missing(Level) | ! (Level <- toupper(Level) ) %in% log.threshold ))
+  noLevel <- ( missing(Level) || ! (Level <- toupper(Level) ) %in% log.threshold )
   if ( noLevel ) Level <- "FATAL"
-  if (any( missing(Msg) | length(Msg)==0 | ! nzchar(Msg) )) {
+  if ( missing(Msg) || length(Msg)==0 || ! nzchar(Msg) ) {
     message(
       "writeLog(Msg,Level,Logger): No message supplied\n",
       "Available Log Levels:\n",
@@ -925,7 +925,7 @@ writeLog <- function(Msg = "", Level="NONE", Logger="") {
     )
   } else {
     # Pick the logger
-    if (any( ! is.character(Logger) | ! nzchar(Logger) )) {
+    if ( ! is.character(Logger) || ! nzchar(Logger) ) {
       Logger <- if ( which(log.threshold==Level) >= which(log.threshold=="WARN") ) "stderr" else "ve.logger"
     }
     # Pick the log format 
