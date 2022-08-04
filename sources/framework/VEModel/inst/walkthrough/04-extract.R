@@ -336,7 +336,7 @@ print(meta.df[[1]][1:10,])    # Rows are the individual data element names and t
 
 # Here's an example to load the Workers and Vehicle tables we extracted into a new Sqlite
 # database in a subdirectory of the VisionEval runtime.
-if ( ! require(DBI) | ! require(RSQLite))  {
+if ( any(! require(DBI) | ! require(RSQLite)) ) {
   message("Please install the DBI and SqliteR packages")
   stop("Stopping here - run package installation manually")
   install.into <- .libPaths()[1]     # Pick a better lib location if you have one

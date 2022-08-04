@@ -396,10 +396,10 @@ parseUnitsSpec <- function(Spec_ls, ComponentName) {
     #NA if none or not a correct year
     getYear <- function(String) {
       CurrentString <- unlist(strsplit(as.character(Sys.Date()), "-"))[1]
-      if (is.na(as.numeric(String)) | is.na(String)) {
+      if (any(is.na(as.numeric(String)) | is.na(String))) {
         Result <- NA
       } else {
-        if (as.numeric(String) < 1900 | as.numeric(String) > CurrentString) {
+        if (any(as.numeric(String) < 1900 | as.numeric(String) > CurrentString)) {
           Result <- NA
         } else {
           Result <- String
