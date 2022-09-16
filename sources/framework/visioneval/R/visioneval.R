@@ -1023,7 +1023,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, StopOnErr = TRUE
   #------------------------------
   ModuleFunction <- paste0(PackageName, "::", ModuleName)
   ModuleSpecs <- paste0(ModuleFunction, "Specifications")
-  Msg <- paste0("Start  module '", ModuleFunction, "' for year '", RunYear, "'. ",)
+  Msg <- paste0("Start  module '", ModuleFunction, "' for year '", RunYear, "'. ")
   writeLog(Msg,Level="warn")
   #Load the package and module
   #---------------------------
