@@ -175,9 +175,12 @@ getModelRoots <- function(get.root=0,Param_ls=NULL) {
   #    getwd()
   modelRoot <- file.path(roots,visioneval::getRunParameter("ModelRoot",Param_ls=Param_ls))
   if ( length(modelRoot)>0 ) {
+    # Keep any modelRoot which is an absolute path
     if ( isAbsolutePath(modelRoot[1]) ) {
-      modelRoot <- modelRoot[1]
-    } else { # happens if ve.runtime is defined but not an absolute pqth (unlikely)
+      
+      modelRoot = modelRoot[isAbsolutePath(modelRoot)]
+
+      } else { # happens if ve.runtime is defined but not an absolute pqth (unlikely)
       test.paths <- normalizePath(file.path(roots,modelRoot))
       modelRoot <- test.paths[dir.exists(test.paths)]
       if ( length(modelRoot[1])==0 || ! nzchar(modelRoot[1]) ) {
