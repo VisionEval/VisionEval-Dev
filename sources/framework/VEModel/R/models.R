@@ -770,7 +770,7 @@ ve.model.dir <- function( stage=NULL,shorten=TRUE, showRootDir=TRUE, all.files=F
     root <- results <- outputs <- inputs <- archive <- TRUE
   }
 
-  if ( missing(shorten[1]) || shorten[1] ) {
+  if ( missing(shorten) || shorten ) {
     shorten <- self$modelPath
   } else shorten <- ""
   if ( is.null(stage) ) {
@@ -1815,7 +1815,7 @@ ve.model.print <- function(details=FALSE,configs=FALSE,scenarios=FALSE) {
       s$print(details,configs)
     }
     scenarioCount <- length(which(scenarioStages))
-    if ( scenarioCount > 0 || ! is.null(self$modelScenarios[1]) ) {
+    if ( scenarioCount > 0 || ! is.null(self$modelScenarios) ) {
       if ( ! details ) {
         cat(scenarioCount,"Scenario stages defined in",sub(self$modelPath,"",self$modelScenarios$scenarioPath),"\n")
       } else {
@@ -2325,7 +2325,7 @@ ve.stage.watchlog <- function(stop=FALSE,delay=2) {
 ################################################################################
 
 ve.model.scenarios <- function( fromFile=FALSE  ) {
-  if ( is.null(self$modelScenarios[1]) || fromFile ) {
+  if ( is.null(self$modelScenarios) || fromFile ) {
     self$modelScenarios <- VEModelScenarios$new(baseModel=self,fromFile=fromFile)
   }
   if ( is.null(self$modelScenarios) ) {
