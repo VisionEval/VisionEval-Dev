@@ -300,7 +300,11 @@ evalq(
       # (Delete and Re-)Create an environment for the package tests ("test.VEPackage) on the search
       # path sys.source each of the test files into that environment
       if ( length(tests) > 0 ) {
-        test.env <- attach(NULL,name="test.VEPackage")
+        env.testPackage <- "test.VEPackage"
+        if ( env.testPackage %in% search() ) {
+          detach(env.testPackage,character.only=TRUE)
+        }
+        test.env <- attach(NULL,name=env.testPackage)
         for ( test in tests ) {
           # Set environment variable with path to test file.
           # Inside the test file that can be used to load auxiliary files
