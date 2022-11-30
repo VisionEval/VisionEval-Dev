@@ -9,7 +9,7 @@
 # Update the previous version to cran.microsoft.com, with the
 # snapshot date set to the date listed as the release of the new
 # version (see cran.r-project.org for the release date and new
-# version; see 
+# version; see
 
 3.6.0:
     BioC:      https://www.bioconductor.org/packages/3.9/bioc
@@ -57,5 +57,8 @@
     BioC:      https://www.bioconductor.org/packages/3.15/bioc
     CRAN:      https://cran.microsoft.com/snapshot/2022-05-10/
 4.2.1:
+    BioC:      https://www.bioconductor.org/packages/3.15/bioc
+    CRAN:      https://cran.microsoft.com/snapshot/2022-09-01/
+4.2.2:
     BioC:      https://www.bioconductor.org/packages/3.15/bioc
     CRAN:      https://cloud.r-project.org
