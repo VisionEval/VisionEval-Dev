@@ -449,12 +449,20 @@ for ( module in seq_along(package.names) ) {
   # Step 4: Run devtools::document() separately to rebuild the /data directory
   if ( ! package.built ) {
     cat("++++++++++ Pre-build / Document ",package.names[module],"\n",build.dir,"\n",sep="")
-    if ( ! ve.wantdocs ) {
-      # Skip building the .Rd documentation
-      withr::with_dir(build.dir,roxygen2::roxygenise(roclets=c("collate","namespace")))
+
+    # Build collate and namespace
+    if ( ve.wantdocs ) { # optionally build docs
+      te <- try( withr::with_dir(build.dir,roxygen2::roxygenise(roclets=c("collate","namespace","rd"))), silent=TRUE )
+      if ( class(te)=="try-error" ) {
+        stop(paste("Documentation error (full docs):\n",te))
+      }# ignore errors
     } else {
-      withr::with_dir(build.dir,roxygen2::roxygenise())
+      te <- try( withr::with_dir(build.dir,roxygen2::roxygenise(roclets=c("collate","namespace"))), silent=TRUE)
+      if ( class(te)=="try-error" ) {
+        stop(paste("Documentation error:\n",te))
+      }# ignore errors
     }
+
     if ( ve.test.chk ) {
       ve.testing <- NULL
       # ve.testing if ( ve.test.pkg ) ", testing" else NULL # no testing during build

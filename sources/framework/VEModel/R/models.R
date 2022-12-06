@@ -1575,6 +1575,7 @@ ve.stage.levels <- function(level) {
   return(character(0))
 }
 
+# Return process status
 ve.stage.pstatus <- function(start=FALSE) {
   paste0(
     paste(
@@ -2195,8 +2196,12 @@ ve.model.run <- function(run="continue",stage=NULL,watch=TRUE,dryrun=FALSE,log="
       for ( ms in rg ) { # iterate over names of stages to run
         stg <- self$modelStages[[ms]]
         stg$run(log=LogLevel,UseFuture=FALSE)
-        # inline execution will mark stage complete and reload the stage
         writeLog( stg$processStatus(), Level="warn")
+        if ( stg$RunStatus != codeStatus("Run Complete") ) {
+          stop (
+            writeLog("Run Failed.",Level="error")
+          )
+        }
       }
     } else {
       lastStatusReport <- NULL
