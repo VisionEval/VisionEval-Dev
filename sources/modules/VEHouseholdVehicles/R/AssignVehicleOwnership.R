@@ -443,6 +443,7 @@ visioneval::savePackageDataset(AssignVehicleOwnershipSpecifications, overwrite =
 #' specifications for the module.
 #' @name AssignVehicleOwnership
 #' @import visioneval ordinal
+#' @importFrom utils tail
 #' @export
 AssignVehicleOwnership <- function(L) {
   #Set up
@@ -542,7 +543,7 @@ AssignVehicleOwnership <- function(L) {
         NumToChg <- ChgVehByCategory_[Cat]
         ChgProb_ <- VehicleProb_HhNv[HhIdxToChg_, Cat]
       }
-      IdxToChg_ <- tail(HhIdxToChg_[order(ChgProb_)], abs(NumToChg))
+      IdxToChg_ <- utils::tail(HhIdxToChg_[order(ChgProb_)], abs(NumToChg))
       VehiclesChg_[IdxToChg_] <- sign(NumToChg)
     }
     #Calculate the adjusted number of vehicles
