@@ -512,7 +512,7 @@ loadModel <- function(
     }
   }
 
-  # Generate the model loading message
+  # Generate the model loading 
   writeLog(Message,Level="warn")
 
   #===============================================
@@ -948,7 +948,8 @@ getModuleL <- function(ModuleName, PackageName, RunYear, Instance=character(0), 
   #Load the package and module
   #---------------------------
   M <- list()
-  M$Specs <- processModuleSpecs(getModuleSpecs(ModuleName,PackageName))
+  M$Specs <- processModuleSpecs(getModuleSpecs(ModuleName,PackageName,Instance=Instance,envir=envir))
+
   #Get the ModelState_ls
   # the ModelState_ls in the "envir" parameter must already contain the parsed model script
   # (e.g. from visioneval::loadModel or from a VEModel stage)
@@ -986,11 +987,7 @@ getModuleL <- function(ModuleName, PackageName, RunYear, Instance=character(0), 
       #Called module specifications
       #Assign the function and specifications of called module to alias
       Call$Func[[Alias]] <- eval(parse(text = CallFunction))
-<<<<<<< HEAD
       Call$Specs[[Alias]] <- processModuleSpecs(getModuleSpecs(funcSplit["Module"],funcSplit["Package"],envir=envir))
-=======
-      Call$Specs[[Alias]] <- processModuleSpecs(getModuleSpecs(funcSplit["Module"],funcSplit["Package"]))
->>>>>>> 6979025e (Implementing Specifications function plus Snapshot module)
       Call$Specs[[Alias]]$RunBy <- M$Specs$RunBy
     }
   }
@@ -1064,10 +1061,6 @@ getModuleL <- function(ModuleName, PackageName, RunYear, Instance=character(0), 
 #'   attributes.
 #' @export
 runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=character(0), StopOnErr = TRUE, ...) {
-<<<<<<< HEAD
-=======
-  # TODO: add Instance to support Snapshot
->>>>>>> 6979025e (Implementing Specifications function plus Snapshot module)
   if ( ! modelRunning() ) invisible( list(Errors=character(0),Warnings="Model Not Running") )
   
   #Check whether the module should be run for the current run year
@@ -1082,25 +1075,15 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
   #Log and print starting message
   #------------------------------
   ModuleFunction <- paste0(PackageName, "::", ModuleName)
-<<<<<<< HEAD
   Msg <- paste0("Start  module '", ModuleFunction, "' for year '", RunYear, "'.")
-=======
-  Msg <- paste0("Start  module '", ModuleFunction, "' for year '", RunYear, "'. ",memory.size(),"Mb")
->>>>>>> 6979025e (Implementing Specifications function plus Snapshot module)
   writeLog(Msg,Level="warn")
   #Load the package and module
   #---------------------------
   M <- list()
   M$Func <- eval(parse(text = ModuleFunction))
-<<<<<<< HEAD
-
   # use Cache parameter to avoid regenerating function-based specifications - those were built and
   # cached during initialization
   M$Specs <- processModuleSpecs(getModuleSpecs(ModuleName,PackageName,Instance=Instance,Cache=TRUE))
-
-=======
-  M$Specs <- processModuleSpecs(getModuleSpecs(ModuleName,PackageName))
->>>>>>> 6979025e (Implementing Specifications function plus Snapshot module)
   #Load any modules identified by 'Call' spec if any
   if (is.list(M$Specs$Call)) {
     Call <- list(
@@ -1154,7 +1137,6 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
       }
     }
     #Run module
-<<<<<<< HEAD
     funcFormals <- names(formals(M$Func))
     funcArgs                         <- "L=L"
     if ("M"        %in% funcFormals && exists("Call"))     funcArgs <- c(funcArgs,"M=Call$Func")
@@ -1163,19 +1145,6 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
     funcCall <- paste0("M$Func(",paste(funcArgs,collapse=", "),")")
     R <- eval(parse(text=funcCall))
 
-#     if (exists("Call")) {             # Call functions do not get Instance or ... parameters
-#       R <- M$Func(L=L, M=Call$Func)
-#     } else {
-#       R <- M$Func(L=L)
-#     }
-
-=======
-    if (exists("Call")) {
-      R <- M$Func(L=L, M=Call$Func)
-    } else {
-      R <- M$Func(L=L)
-    }
->>>>>>> 6979025e (Implementing Specifications function plus Snapshot module)
     #Save results in datastore if no errors from module
     if (is.null(R$Errors) ) {
       setInDatastore(R, M$Specs, ModuleName, Year = RunYear, Geo = NULL)
@@ -1223,7 +1192,6 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
             getFromDatastore(Call$Specs[[Alias]], RunYear = RunYear, Geo, GeoIndex_ls = GeoIndex_ls[[Alias]])
         }
       }
-<<<<<<< HEAD
       #Run moduled for geographic area
       funcFormals <- names(formals(M$Func))
       funcArgs                         <- "L=L"
@@ -1233,14 +1201,6 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
       funcCall <- paste0("M$Func(",paste(funcArgs,collapse=", "),")")
       R <- eval(parse(text=funcCall))
 
-=======
-      #Run model for geographic area
-      if (exists("Call")) {
-        R <- if ( ...length() > 0 ) M$Func(L=L, M=Call$Func, ...) else M$Func(L=L, M=Call$Func)
-      } else {
-        R <- if ( ...length() > 0 ) M$Func(L=L,...) else M$Func(L)
-      }
->>>>>>> 6979025e (Implementing Specifications function plus Snapshot module)
       #Save results in datastore if no errors from module
       if (is.null(R$Errors)) {
         setInDatastore(R, M$Specs, ModuleName, RunYear, Geo, GeoIndex_ls)

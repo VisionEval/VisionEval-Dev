@@ -1,0 +1,12 @@
+# Variant is selected when installing
+# Sample data is also installed
+# Eventually need to document or provide helper function for reducing to template
+VESnap:
+  variants:
+    base:
+      # "description" is used to echo back what is being installed
+      description: VESnapshot Test Model
+      config: visioneval.cnf
+      scripts: scripts
+      inputs: inputs
+      defs: defs

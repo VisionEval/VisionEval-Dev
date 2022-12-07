@@ -288,7 +288,6 @@ ve.query.valid <- function(log="info") {
   writeLog(paste("CheckMessages length == 0",length(self$CheckMessages)==0),Level=log)
   if ( length(self$CheckMessages) > 0 ) writeLog(self$CheckMessages,Level=log)
   writeLog(paste("CheckMessages all empty:",all(!nzchar(self$CheckMessages))),Level=log)
-  
   return( length(self$CheckMessages)==0 || all(!nzchar(self$CheckMessages)) )
 }
 

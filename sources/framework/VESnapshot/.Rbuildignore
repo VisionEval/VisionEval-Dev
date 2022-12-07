@@ -1,0 +1,4 @@
+^\.Rproj\.user$
+runtime*
+.Renviron
+.Rhistory
