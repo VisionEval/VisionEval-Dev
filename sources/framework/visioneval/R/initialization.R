@@ -697,7 +697,7 @@ parseModuleCalls <- function( ModuleCalls_df, AlreadyInitialized=character(0), R
     Instance <- ModuleCalls_df$Instance[i]
     AllSpecs_ls[[i]]$Instance <- Instance
     AllSpecs_ls[[i]]$RunFor <- ModuleCalls_df$RunFor[i]
-    names(AllSpecs_ls)[i] <- paste0(PackageName,"::",ModuleName)
+    names(AllSpecs_ls)[i] <- paste0(PackageName,"::",ModuleName) # TODO: need to include non-NA Instance somehow?
     #Check module availability
     Err <- checkModuleExists(ModuleName, PackageName, InstalledPkgs_)
     if (length(Err) > 0) {

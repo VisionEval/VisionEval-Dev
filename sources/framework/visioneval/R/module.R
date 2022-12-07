@@ -903,6 +903,7 @@ applyLinearModel <- function(Model_ls,
 #' name registry.
 #' @export
 writeVENameRegistry <- function(ModuleName, PackageName, NameRegistryList = FALSE, NameRegistryDir = NULL) {
+    #TODO: add Instance to support Snapshot
     if ( ! NameRegistryList ) {
       #Check whether the name registry file exists
       if (is.null(NameRegistryDir)) {
