@@ -292,6 +292,15 @@ ve.query.valid <- function(log="info") {
   return( length(self$CheckMessages)==0 || all(!nzchar(self$CheckMessages)) )
 }
 
+verspm <- openModel("VERSPM",log="info")
+qr <- verspm$query( verspm$query()[1] )
+print(qr)
+print(qr$CheckMessages) # Says "NULL"
+# qr$run() # gives error
+length(NULL)        # should yield 0
+all(!nzchar(NULL))  # should yield TRUE
+
+
 ve.query.add <- function(obj,location=0,before=FALSE,after=TRUE) {
   # Really, add or update - if the name(s) of SpecListOrObject is/are already
   #   in QuerySpec, the existing value(s) will be over-written, regardless of location

@@ -113,7 +113,9 @@ default.parameters.table = list(
   QueryOutputTemplate = "Query_%queryname%.Rda",
   QueryExtractTemplate= "QueryExtract_%queryname%_%timestamp%",
   RunStatusDelay      = 60,               # seconds between status updates when multi-processing
-  RunPollDelay        = 2                 # seconds between status poll for multi-process completion
+  RunPollDelay        = 2,                # seconds between status poll for multi-process completion
+  SnapshotDir         = "snapshot",       # sought in ModelDir, then in ParamDir (see snapshot.r)
+  Snapshot            = NA                # see snapshot.r for structure - place in visioneval.cnf
 )
 
 #GET DEFAULT PARAMETERS
