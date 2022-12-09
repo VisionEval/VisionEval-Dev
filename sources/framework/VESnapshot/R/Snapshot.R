@@ -1,3 +1,4 @@
+#' @include parameters.R
 #==================
 #Snapshot.R
 #==================
@@ -69,43 +70,11 @@
 #SECTION 1: ESTIMATE AND SAVE MODEL PARAMETERS
 #=============================================
 
-#This module has no parameters. See the Snapshot documentation below for instructions on how to
-#configure it.
+#This module has no parameters to estimate.
 
 #================================================
 #SECTION 2: DEFINE THE MODULE DATA SPECIFICATIONS
 #================================================
-
-# Add default for the SnapshotDir
-default.parameters.table = list(
-  SnapshotDir         = "snapshot"
-)
-
-# Hook to present too getRunParameter (boilerplate)
-#' Hook to add default values for key parameters in the VEModel package
-#'
-#' \code{VEPackageRunParameters} extends \code{visioneval::defaultVERuntimeParameters} to provide
-#' additional Parameters and Defaults for VEModel functions that can be accessed seamlessly. You can
-#' call this function directly (e.g. to see what parameters are defined and defaulted in VEModel).
-#' Internally VEModel uses \code{visioneval::defaultVERuntimeParameters} to access these parameters,
-#' so it doesn't have to remember whether specific defaults are defined in visioneval itself or in
-#' VEModel (and one can transparently move the default definitions back and forth).
-#'
-#' @param Param_ls a list (possibly empty) of already-defined parameters
-#' @return a named list for parameters not present in Param_ls containing default values for those
-#'   parameters
-#' @import visioneval
-#' @export
-VEPackageRunParameters <- function(Param_ls=list()) {
-  defaultParams_ls <- default.parameters.table[
-    which( ! names(default.parameters.table) %in% names(Param_ls) )
-  ]
-  if ( length(defaultParams_ls)>0 ) {
-    defaultParams_ls <- visioneval::addParameterSource(defaultParams_ls,"Package VEModel Default")
-    Param_ls <- visioneval::mergeParameters(defaultParams_ls,Param_ls) # Param_ls will override
-  }
-  return(Param_ls)
-}
 
 # Snapshot builds its specifications dynamically by locating fields in the Datastore that
 # the model developer identifies in their visioneval.cnf and returning renamed copies of
@@ -124,7 +93,7 @@ SnapshotSpecifications <- list(
 #' Specifications list for the Snapshot module
 #'
 #' Snapshot illustrates dynamic model specification (through a function). See the Snapshot entry in
-#' VEModel/model_docs, or R help for \code{VEModel::Snapshot}
+#' VESnapshot/model_docs, or R help for \code{VESnapshot::Snapshot}
 #' @format a list with one or two elements (Function and Specs)
 #' @source Snapshot.R script
 #' @name SnapshotSpecifications
@@ -133,17 +102,18 @@ visioneval::savePackageDataset(SnapshotSpecifications, overwrite = TRUE)
 
 # Module Specification function, returning a list of "Get" and "Set" elements (and possibly "Inp") that will
 # be supplied to, and retrieved from, this module. This function is called internally and not
-# exported in the VEModel Namespace. The module function \code{Snapshot} is exported.
-#' Function to generate module specifications from visioneval.cnf
+# exported in the VESnapshot Namespace. The module function \code{Snapshot} is exported.
+#' Function to generate module specifications for Snapshot from visioneval.cnf
 #' @param AllSpecs_ls a list of specifications for all known packages and modules in the model run
 #' @param Instance is the name (possibly an empty character vector if there is just one Instance) of
 #'   the Snapshot instance, defined via Instance="SnapshotInstance" in the runModule("Snapshot",...)
 #'   instruction in the model script.
+#' @param Cache if TRUE, use the locally cached parameters rather than regenerating
 #' @return a list of specifications (Inp, Get and/or Set) descripbing fields to inject into the Datastore
 #' @export
-getSnapshotFields <- function(AllSpecs_ls=NA,Instance=character(0)) {
-  message("Getting snapshot fields")
+getSnapshotFields <- function(AllSpecs_ls=NA,Instance=character(0), Cache=FALSE) {
   Specs_ls <- list( RunBy = "Region" ) # Alternative is a geography like Azone or Bzone or Marea
+  # If you don't explicitly set "RunBy" the framework will inject "Region", so this just reiterate the default
 
   # General instructions for building a dynamic Specification function: 
   # In general, a specification function will take no parameters unless Specs is TRUE in the module specifications
@@ -255,9 +225,9 @@ getSnapshotFields <- function(AllSpecs_ls=NA,Instance=character(0)) {
 #' @param L A list following the getSpecification structure
 #' @param LoopIndex A numeric value to use in distinguishing Snapshot output field names within a model run script loop
 #' @param Instance A string value that identifies this instance of Snapshot in visioneval.cnf. Different Snapshot instances
-#' @return a list of data elements to be added to the Datastore (copies of the L parameter input
+#' @return a list of data elements to be added to the Datastore (copies of the L parameter inputs)
 #' @export
-Snapshot <- function( L, LoopIndex, Instance=character(0) ) {
+Snapshot <- function( L, LoopIndex=0, Instance=character(0) ) {
   # L will contain the data to snapshot
   # LoopIndex can be non-zero if specified in the runModule call, and will be compared to LoopIndex in the
   #  the Snapshot configuration (if present). If LoopIndex here matches the one in the configuration, or if no
@@ -265,8 +235,12 @@ Snapshot <- function( L, LoopIndex, Instance=character(0) ) {
   #  the Snapshot will be skipped.
   # Instance will default in runModule to character(0), so only the first defined Snapshot will be used.
   # Otherwise Instance is a character string that will match the "Instance" element value in the Snapshot configuration
-  # At runtime, the only use of LoopIndex and Instance will be to create 
-  NULL
+  # At runtime, the Snapshot configuration for the Instance will be loaded, and LoopIndex, if
+  # non-zero, will be compared to the configuration and used to determine if an output field will
+  # be generated. The default with LoopIndex==0 will be to overwrite the output field each time
+  # through the loop.
+  writeLog(paste("Snapshot Instance",Instance,"currently does literally nothing"),Level="warn")
+  list()
 }
 
 #===============================================================

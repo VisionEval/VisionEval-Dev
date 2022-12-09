@@ -19,3 +19,8 @@ LazyDataCompression: xz
 Encoding: UTF-8
 VignetteBuilder: knitr
 RoxygenNote: 7.2.2
+Collate:
+    parameters.R
+    Snapshot.R
+    Dynamic.R
+

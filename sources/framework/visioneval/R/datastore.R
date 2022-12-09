@@ -1545,7 +1545,7 @@ getFromDatastore <- function(ModuleSpec_ls, RunYear, Geo = NULL, GeoIndex_ls = N
       if ( ! is.numeric(Length) ) {
         msg <- writeLog(paste("getFromDatastore: Table length not available for",file.path(Group,Table)),Level="error")
         stop(msg)
-s      }
+      }
       attributes(L[[Group]][[Table]]) <- list(LENGTH = Length)
     }
     #Make an index to the data
