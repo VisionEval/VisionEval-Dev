@@ -93,12 +93,31 @@ dynamic.env <- new.env()
 #' Function to generate module specifications for Dynamic from visioneval.cnf
 #' @param AllSpecs_ls a list of specifications for all known packages and modules defined up to this point
 #'    in the model run. Furnished by the framework if "Specs" is true (see DynamicSpecifications above)
+#' @param Cache a logical provided by the framework. FALSE when first building the specification; TRUE when
+#'    the specification is accessed during a model run.
 #' @return a "Get" specification if there is valid "Field:" block in the Dynamic configuration, otherwise
 #'    just return an empty list.
 #' @export
 getDynamicField <- function(AllSpecs_ls=NA,Cache=FALSE) {
   # Used cached specification when calling from runModule
   if ( Cache && "Specs_ls" %in% names(dynamic.env) ) return( dynamic.env$Specs_ls )
+
+  # General instructions for building a dynamic Specification function:
+  
+  # In general, a specification function will take no parameters unless Specs is TRUE in the module specifications
+  # "list". If Specs IS TRUE, then AllSpecs_ls will be passed into the function so this module can see what other
+  # modules have specified. It is good practice to default AllSpecs_ls when defining the specification function so
+  # it can be called without AllSpecs_ls. If the function truly requires AllSpecs_ls (like this one), it needs to throw
+  # an error if AllSpecs_ls is not available.
+  # The Instance parameter can safely be ignored in most cases. It is there to support the Snapshot function
+  #   (allowing multiple calls to Snapshot in a single model run, with possibly different fields being snapshotted
+  #   each time. If you leave out "Specs" in the specification function description (see above in this file), you
+  #   won't get AllSpecs_ls passed at all. Likewise, if there is no explicit "Instance" in the runModule call (see
+  #   the VESnap sample model script) then Instance also won't be passed, so you could just define a function
+  #   without parameters.
+  # The Cache parameter is set by the framework: when the Specification is requested during model initialization
+  #   Cache is FALSE and the dynamic.env will be rebuilt; when the Specification is requested again as runModule
+  #   happens, Cache is TRUE. The specification function can ignore Cache (and just regenerate each time).
 
   # Look for the "Dynamic" specification
   config <- visioneval::getRunParameter("Dynamic") # looking in the RunParam_ls for the current model stage

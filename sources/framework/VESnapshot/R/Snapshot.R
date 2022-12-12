@@ -27,8 +27,10 @@
 #
 ### Configuring Snapshot
 #
-# The snapshot configuration is placed in visioneval.cnf, where it
-# will look like this in its fully developed form:
+# The snapshot configuration is placed in the main visioneval.cnf, or within SnapshotDir (system
+# parameter) which defaults to "snapshot" and which will be sought in the Model root directory, or
+# in the Parameer directory ('defs'). The Snapshot configuration will look like this in its fully
+# developed form:
 #
 # '''
 # Snapshot:
@@ -47,9 +49,10 @@
 #       #only snapshoot on this loop index.
 # '''
 #
-# A minimal Snapshot will look like the following (Instance is implicitly
-# `""`). Note the dash ahead of Group - Snapshot must define a list
-# of objects, even if there is only one.
+# The Instance is optional. If it is not specified, it will be ignored if it is passed from the
+# runModule instruction, and referred to as "NA" (literal character string, not an R NA value). A
+# minimal Snapshot will look like the following. Note the dash ahead of 'Group'. Snapshot must
+# define a list of objects, even if there is only one Snapshot
 #
 # '''
 # Snapshot:
@@ -60,9 +63,10 @@
 # '''
 #
 # Any Group/Table/Name object must already have been specified in an earlier module call in the
-# ModelScript (i.e. before the `runModule("Snapshot",...)` step).
+# ModelScript (i.e. before the `runModule("Snapshot",...)` step), and it will be looked up in the
+# AllSpecs_ls parameter for the properties required to construct a Get or Set specification.
 #
-# See the VESnap test model for a working example.
+# See the VESnap test model, variant snapshot, for a working example.
 #
 #</doc>
 
@@ -76,13 +80,17 @@
 #SECTION 2: DEFINE THE MODULE DATA SPECIFICATIONS
 #================================================
 
+# An environment constructed within the package that will hold the Snapshot configuration
+# loaded during the specification creation. Shows how to save "session" details during a model run.
+snapshot.env <- new.env()
+
 # Snapshot builds its specifications dynamically by locating fields in the Datastore that
 # the model developer identifies in their visioneval.cnf and returning renamed copies of
 # whatever is in those fields at runtime.
 SnapshotSpecifications <- list(
   Function="getSnapshotFields",
   Specs=TRUE # Specs is only needed if the specification Function wants to see AllSpecs_ls
-             # Snapshot doe need it (since we are copying a spec from another module)
+             # Snapshot does need it (since we are copying a spec from another module)
              # Other modules usually won't, and their Get or Set or Inp will be generated
              # internally); if it's not needed, you can leave it out entirely (default is FALSE)
 )
@@ -99,7 +107,6 @@ SnapshotSpecifications <- list(
 #' @name SnapshotSpecifications
 visioneval::savePackageDataset(SnapshotSpecifications, overwrite = TRUE)
 
-
 # Module Specification function, returning a list of "Get" and "Set" elements (and possibly "Inp") that will
 # be supplied to, and retrieved from, this module. This function is called internally and not
 # exported in the VESnapshot Namespace. The module function \code{Snapshot} is exported.
@@ -108,58 +115,147 @@ visioneval::savePackageDataset(SnapshotSpecifications, overwrite = TRUE)
 #' @param Instance is the name (possibly an empty character vector if there is just one Instance) of
 #'   the Snapshot instance, defined via Instance="SnapshotInstance" in the runModule("Snapshot",...)
 #'   instruction in the model script.
-#' @param Cache if TRUE, use the locally cached parameters rather than regenerating
+#' @param Cache if TRUE, use the locally cached parameters rather than regenerating (Cache=TRUE is
+#'   passed from the runModule command when the module is being run).
 #' @return a list of specifications (Inp, Get and/or Set) descripbing fields to inject into the Datastore
 #' @export
 getSnapshotFields <- function(AllSpecs_ls=NA,Instance=character(0), Cache=FALSE) {
-  Specs_ls <- list( RunBy = "Region" ) # Alternative is a geography like Azone or Bzone or Marea
-  # If you don't explicitly set "RunBy" the framework will inject "Region", so this just reiterate the default
 
-  # General instructions for building a dynamic Specification function: 
-  # In general, a specification function will take no parameters unless Specs is TRUE in the module specifications
-  # "list". If Specs IS TRUE, then AllSpecs_ls will be passed into the function so this module can see what other
-  # modules have specified. It is good practice to default AllSpecs_ls when defining the specification function so
-  # it can be called without AllSpecs_ls. If the function truly requires AllSpecs_ls (like this one), it needs to throw
-  # an error if AllSpecs_ls is not available.
-  # The Instance parameter can safely be ignored in most cases. It is there to support the Snapshot function
-  #   (allowing multiple calls to Snapshot in a single model run, with possibly different fields being snapshotted
-  #   each time. If you leave out "Specs" in the specification function description (see above in this file), you
-  #   won't get AllSpecs_ls passed at all. Likewise, if there is no explicit "Instance" in the runModule call (see
-  #   the VESnap sample model script) then Instance also won't be passed, so you could just define a function
-  #   without parameters.
-  
-  # Specific Snapshot implementation. Notice how it handles the directory search for an
-  #   independently defined Snapshot configuration.
-  snapConfig <- visioneval::getRunParameter("Snapshot") # Will search modelEnvironment()$RunParam_ls
-  if ( !is.list(snapConfig) ) {
-    # Conduct directory search
-    snapDir <- visioneval::getRunParameter("SnapshotDir")
-    # See if directory exists and contains a visioneval.cnf or equivalent
-    #   ModelDir/SnapshotDir/visioneval.cnf (Snapshot element only will be added to RunParam_ls in model Environment)
-    #   ModelDir/ParamDir/SnapshotDir/visioneval.cnf (Snapshot element only will be added to RunParam_ls)
+  # Check AllSpecs_ls
+  if ( ! is.list(AllSpecs_ls) || length(AllSpecs_ls)==0 ) {
+    stop(
+      writeLog( "Snapshot can only be run if items are created by other modules",Level="error")
+    )
   }
-  # If Snapshot is not found, write a warning to the Log and return an empty list
-  # Cache the Snapshot configuration within this package's environment so we won't call this function again
-  # Look up by Instance in the cache when the main module function is called.
 
-  # TODO: Parse the Snapshot element and look up the GTN in AllSpecs_ls
-  # Identify the Instance, check the Group/Table/Name can be found in some "Set" spec in AllSpecs_ls
-  # Check that Output name is not already found in some other "Set" specification (Snapshot can't overwrite
-  #   an existing Datastore field).
-  # Stop on error if GTN not found anywhere in AllSpecs_ls
+  # Make sure Instance can be used as a list element name
+  # Don't just want to default it - also want to head off "non-Instance"
+  if ( length(Instance)==0 || Instance=="" || is.na(Instance) ) Instance = "NA"
 
-  # TODO: create a visioneval function to efficiently search AllSpecs_ls and return a list of all matching GTN in order
-  #   they were defined (possibly filtering first for module calls prior to encountering this Snahpshot Instance). So
-  #   we could do a linear search-and-extract placing a limit on searching only up until we encounter this Module/Instance
+  # Returned cached specifications if they are available
+  if ( Cache ) {
+    return( snapshot.env$Spec_ls[[Instance]] )
+  }
 
-  # TODO: Build the Specification and return it.
-  # Use the source GTN we just found in the last step, and copy the "Get" spec to a "Set" spec with the new SnapshotName
-  # Load the constructed specification into the Snapshot environment under the Instance name, so we won't parse
-  #   again during the module Run - we'll use what was built here during model initialization
-  # Return the list of Get and Set for this instance.
-  # Error if we visit this function again (second Snapshot Instance) in the case that an earlier
-  #   Instance did not have an explicit name
-  return( Specs_ls )
+  # Set up configurations in instanceList in snapshot.env
+  if ( ! "instanceList" %in% names(snapshot.env) ) {
+
+    # Specific Snapshot implementation. Notice how it handles the directory search for an
+    #   independently defined Snapshot configuration.
+    snapConfig <- visioneval::getRunParameter("Snapshot") # Will search modelEnvironment()$RunParam_ls
+    if ( !is.list(snapConfig) ) {
+      # Conduct directory search
+      snapDir   <- visioneval::getRunParameter("SnapshotDir")
+      ModelDir  <- visioneval::getRunParameter("ModelDir")
+      ParamPath <- visioneval::getRunParameter("ParamPath") # already expanded from ParamDir to absolute path
+      configDir  <- findFileOnPath( snapDir, c(ModelDir,ParamPath) )
+      if ( !is.na(configDir) ) {
+        snapshotParam_ls <- readConfigurationFile(ParamDir=configDir) # look for visioneval.cnf or equivalent
+        snapConfig <- getRunParameter("Snapshot",Param_ls=snapshotParam_ls)
+        visioneval::writeLog( paste("Loaded Snapshot configuration:",configDir), Level="info" )
+      } else {
+        visioneval::writeLog( paste("Could not locate Snapshot configuration file"), Level="info" )
+      }
+    }
+    # If Snapshot is not found, write a warning to the Log and return an empty list
+    if ( ! is.list(snapConfig) ) {
+      # Not fatal to be unconfigured, but will generate a message
+      snapshot.env$Spec_ls <- list()
+      if ( length(Instance) == 0 ) {
+        Instance <- "NA"
+        visioneval::writeLog(
+          c (
+            "No configuration found for default Snapshot",
+            "No Snapshot taken."
+          ) , Level="error"
+        )
+      } else {
+        visioneval::writeLog(
+          c (
+            paste("No configuration found for Snapshot Instance",Instance[1]),
+            "No Snapshot taken."
+          ) , Level="error"
+        )
+      }
+      snapshot.env$Spec_ls[Instance] <- list( RunBy = "Region") # could just return empty; framework will provide
+      return( snapshot.env$Spec_ls[[Instance]] )
+    }
+
+    # Set up list of snapshot instance configurations
+    # The actual spec will be built below Instance-by-Instance while initializing the model
+    # script. Specs will only be built for Instances that appear in runModule, but the
+    # configuration can include lots more Instances (it's no problem to define them and not
+    # use them.
+    snapshotEnv$instanceList <- list()
+
+    # Now dig into the configuration and pull out the Instances (we'll process the requested one
+    # below)
+    if ( length(snapConfig)==1 && ! "Instance" %in% names(snapConfig[[1]]) ) {
+      # Add dummy name for Instance if there is only one and "Instance" element is missing
+      snapConfig[[1]]$Instance <- "NA"
+    }
+    for ( instance in snapConfig ) {
+      if ( ! "Instance" %in% names(instance) ) {
+        # Snapshot and model will die if we have an Instance without a name
+        stop (
+          writeLog("More than one instance configured, but Instance name is missing",Level="error")
+        )
+      }
+      # Move "Instance" from being a list element to name of the list of other elements
+      snapshotEnv$instanceList[[instance$Instance]] <- instance[ ! names(Instance) %in% "Instance" ]
+    }
+  }
+  # Arrive here with snapshotEnv$instanceList containing all the Instance specifications
+
+  # Now build the specification for this specific Instance
+  if ( ! "Spec_ls" %in% names(snapshot.env) ) snapshot.env$Spec_ls <- list()
+
+  # Create (and cache) just the snapshot specifications for the current instance
+  instance <- snapshotEnv$instanceList[[Instance]]
+
+  Group <- instance$Group
+  Table <- instance$Table
+  Name  <- instance$Name
+  SnapshotName <- if ( "SnapshotName" %in% names(instance) ) {
+    instance$SnapshotName
+  } else if ( Instance != "NA" ) {
+    paste0(Instance,"Snapshot")
+  } else {
+    paste0(instance$Name,"Snapshot")
+  }
+
+  # Find where the field was originally Set
+  if ( any(is.na(c(Group,Table,Name))) || ! all(nzchar(c(Group,Table,Name))) ) {
+    stop( visioneval::writeLog("Missing Group, Table or Name from Snapshot Specification",Level="error") )
+  } else {
+    # Find the first occurrence of Group/Table/Name in AllSpecs_ls
+    # Pull out the TYPE, UNITS, PROHIBIT, ISELEMENTOF fron its attributes
+    setSpec <- NA
+    for ( p in AllSpecs_ls ) {
+      for ( spec in p$Specs$Set ) {
+        if ( all(spec$GROUP==Group && spec$TABLE==Table && spec$NAME==Name) ) {
+          setSpec <- spec
+          break
+        }
+      }
+      if ( is.list(setSpec) ) break
+    }
+    if ( !is.list(setSpec) ) {
+      stop( visioneval::writeLog( paste("No existing field spec found for",file.path(Group,Table,Name)), Level="error") )
+    }
+  }
+
+  # Construct the getSpec, which will just be the setSpec with the new SnapshotName
+  getSpec <- setSpec
+  getSpec$NAME <- SnapshotName
+
+  snapshot.env$Spec_ls[[Instance]] <- list(
+    RunBy = "Region",
+    Get = getSpec, # presuming we can just ignore Set-only parameters like SIZE
+    Set = setSpec
+  )
+  
+  return( snapshot.env$Spec_ls[[Instance]] )
 }
 
 #=======================================================
@@ -239,13 +335,22 @@ Snapshot <- function( L, LoopIndex=0, Instance=character(0) ) {
   # non-zero, will be compared to the configuration and used to determine if an output field will
   # be generated. The default with LoopIndex==0 will be to overwrite the output field each time
   # through the loop.
-  writeLog(paste("Snapshot Instance",Instance,"currently does literally nothing"),Level="warn")
-  list()
+
+  # Look up the Instance specification so we know what to pull out of L
+  instance <- snapshot.env$instanceList[[Instance]]
+  if ( ! is.list(instance) ) {
+    stop( visioneval::writeLog(paste("No Snapshot defined for",Instance),Level="error") )
+  }
+
+  # Copy the input field data to the output
+  # I always marvel at how much work must be done just to run one trivial line of code!
+  Out_ls[[instance$Group]][[instance$Table]][[instance$SnapshotName]] <- L[[instance$Group]][[instance$Table]][[instance$Name]]
+  return( Out_ls )
 }
 
-#===============================================================
-#SECTION 4: MODULE DOCUMENTATION AND AUXILLIARY DEVELOPMENT CODE
-#===============================================================
+#==============================================================
+#SECTION 4: MODULE DOCUMENTATION AND AUXILIARY DEVELOPMENT CODE
+#==============================================================
 #Run module automatic documentation
 #----------------------------------
 #' @importFrom visioneval documentModule

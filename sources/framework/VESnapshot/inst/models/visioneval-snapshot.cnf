@@ -19,13 +19,11 @@ Region      : RVMPO
 State       : OR
 
 # Scenario description
-ModelScript    : run_snap.R
+ModelScript    : run_snapshot.R
 Scenario       : VESnap Demo model
 Description    : Runs a few modules and does a few snapshots
 BaseYear       : 2010
 Years          : [ 2010 ]
 
 # Dynamic configuration
-DynamicDir     : snap-dynamic # uncomment to look in this folder for visioneval.cnf for Dynamic 
-# Dynamic:    # uncomment this and the following and comment DynamicDir to use local configuration
-#   Message : Message for Dynamic from VESnap model root configuration; no field configured
+SnapshotDir    : snap-snapshot # uncomment to look in this folder for visioneval.cnf for Dynamic 
