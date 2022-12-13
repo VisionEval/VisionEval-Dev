@@ -164,6 +164,7 @@ confirmDialog <- function(msg) {
 #  Generate a list of directories that might contain models
 #  referring to getwd() and <ModelRoot>
 getModelRoots <- function(get.root=0,Param_ls=NULL) {
+  browser()
   roots <- c( getwd() )
   # Hierarchy of roots:
   #    getwd()/<ModelRoot> (if exists)

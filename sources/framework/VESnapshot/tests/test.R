@@ -4,14 +4,8 @@ if ( ! requireNamespace("visioneval",quietly=TRUE) ) {
   stop("Missing required package: 'visioneval'")
 }
 
-if ( ! requireNamespace("VEModel",quietly=TRUE) ) {
-  stop("Missing required package: 'VEModel'")
-}
-
-if ( ! "package:Snapshot" %in% search() ) {
-  message("Loading built VEModel package")
-  require("VEModel",quietly=TRUE)
-}
+message("Loading built VEModel package")
+suppressPackageStartupMessages(require("VEModel",quietly=TRUE))
 
 logLevel <- function(log="info") {
   visioneval::initLog(Save=FALSE,Threshold=log)
@@ -36,16 +30,28 @@ test_dynamic <- function(log="warn") {
   # install the basic model, then copy it and fiddle with its configuration
   # using inline editing (see VEModel walkthrough 09-run-parameters.R)
 
+  # Need to require inside function if running via pkgloadd
   testStep("Clean up previous...")
   # Clean up prior VESnap models
-  for ( snapmodel %in% grep("^VESnap-",dir("models",full.names=TRUE) ) {
+  for ( snapmodel in grep("^VESnap-",dir("models",full.names=TRUE) ) ) {
     unlink(snapmodel,recursive=TRUE)
   }
 
   # 1. standard installation uses Dynamic inline message
   testStep("Dynamic inline")
+  # Need VEModel namespace resolution to work with pkgload, otherwise function
+  # environment does not start with .Globalenv (it is nailed to the search()
+  # that is in place when it is defined)
   dyn.1 <- installModel("VESnap",var="dynamic",confirm=FALSE)
-  dyn.1$run(log=log)
+  if ( is.data.frame(dyn.1) ) { # No model/variant found
+    print(dyn.1)
+    stopTest("Dynamic model not found")
+  }
+  # dyn.1$run(log=log)
+  print(ve.runtime)
+  print(dyn.1)
+  print(getwd())
+  stopTest("Just installing")
 
   # make a new version using pre-packaged configuration in "dynamic" dir
   # which in the sample model is located in the model root. It can also be
@@ -53,20 +59,23 @@ test_dynamic <- function(log="warn") {
   testStep("Dynamic configuration file")
   dyn.2 <- dyn.1$copy("VESnap-dynamic-cfgfile",copyResults=FALSE)
   # adjust its configuration
-  updateSetup(dyn.2,drop="Dynamic",DynamicDir="dynamic")
+  updateSetup(dyn.2,drop="Dynamic",DynamicDir="dynamic",inFile=TRUE)
+  viewSetup(dyn.2)
   dyn.2$configure(fromFile=FALSE)
   dyn.2$run(log=log)
 
+  stopTest("After trying to change the configuration")
+
   # run with Dynamic requested but no configuration at all
   # should warn but continue
-  testStep("Dynamic with no configuration"
+  testStep("Dynamic with no configuration")
   dyn.3 <- dyn.2$copy("VESnap-dynamic-noconfig",copyResults=FALSE)
   updateSetup(dyn.3,drop=c("Dynamic","DynamicDir"))
   dyn.3$configure(fromFile=FALSE)
   dyn.3$run()
 
   # run with Dynamic requested, but bad configuration
-  testStep("Dynamic mis-configured"
+  testStep("Dynamic mis-configured")
   dyn.fail <- dyn.3$copy("VESnap-dynamic-error",copyResults=FALSE)
   updateSetup(dyn.3,Dynamic="Failure")
   dyn.fail$configure(fromFile=FALSE)

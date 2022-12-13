@@ -136,10 +136,7 @@ getDynamicField <- function(AllSpecs_ls=NA,Cache=FALSE) {
       paste("Could not open Dynamic configuration file in",configDir)
     }
   } else {
-    c(
-      "Loaded from model configuration",
-      if ( "Message" %in% names(config) ) config$Message else "No message supplied"
-    )
+    if ( "Message" %in% names(config) ) config$Message else "No message supplied"
   }
 
   # If still no configuration specified, do a default configuration
@@ -183,10 +180,9 @@ getDynamicField <- function(AllSpecs_ls=NA,Cache=FALSE) {
       }
     }
   } else {
-    c(Message,"No field specified")
     list()
   }
-  Specs_ls$RunBy <- if ( "RunBy" %in% names(config) ) config$RunBy else "RunBy"
+  Specs_ls$RunBy <- if ( "RunBy" %in% names(config) ) config$RunBy else "Region"
   Specs_ls$Inp <- NULL
   Specs_ls$Set <- NULL
 
@@ -225,7 +221,7 @@ Dynamic <- function( L ) {
     } else {
       "Field requested for Dynamic, but no Specification"
     }
-  } else "No Field specified"
+  } else "No Field to summarize"
 
   Message <- if ( "Message" %in% names(dynamic.env) ) {
     dynamic.env$Message

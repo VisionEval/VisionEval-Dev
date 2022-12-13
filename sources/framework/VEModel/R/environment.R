@@ -257,7 +257,10 @@ updateSetup <- function(object=NULL,inFile=FALSE,Source="interactive",Param_ls=l
 
   # Names to drop from Param_ls
   if ( length(drop)>0 ) {
+    cat("Fields in object config:\n"); print(c(param.name,names(object[[param.name]])))
+    cat("Dropping:\n"); print(drop)
     for ( nm in drop ) object[[param.name]][[nm]] <- NULL
+    cat("Fields after drop:\n"); print(c(param.name,names(object[[param.name]])))
   }
   # Add in other parameters
   object[[param.name]] <- visioneval::mergeParameters(object[[param.name]],Param_ls)

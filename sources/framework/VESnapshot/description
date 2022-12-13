@@ -13,7 +13,8 @@ Depends: R (>= 3.6.0)
 Imports:
     visioneval
 Suggests:
-    knitr
+    knitr,
+    VEModel
 LazyData: TRUE
 LazyDataCompression: xz
 Encoding: UTF-8
