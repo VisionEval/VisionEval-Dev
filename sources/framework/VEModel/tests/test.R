@@ -45,6 +45,7 @@ test_classic <- function(modelName="VERSPM-classic",clear=TRUE,log="info") {
 
   modelPath <- file.path("models",modelName)
   owd <- getwd()
+  testStep(paste("Runtime is",owd))
   on.exit(setwd(owd))
 
   if ( dir.exists(modelPath) && clear ) {
@@ -61,7 +62,7 @@ test_classic <- function(modelName="VERSPM-classic",clear=TRUE,log="info") {
     rm(rs)  # Don't keep the VEModel around
   }
 
-  testStep(paste("Running",modelName,"by sourcing scripts/run_model.R"))
+  testStep(paste("Running",modelName,"by sourcing scripts/run_model.R in",modelPath))
 
   setwd(modelPath)
   require(visioneval) # Put it on the search path for GetYears, RunModule, etc

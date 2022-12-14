@@ -118,7 +118,7 @@ ve.query.init <- function(
 
   # if "load==TRUE" and null QuerySpec/FileName, build the output name and
   #   see if it already exists
-  if ( !is.null(QuerySpec[1]) || !is.null(FileName) || load ) {
+  if ( !is.null(QuerySpec) || !is.null(FileName) || load ) {
     writeLogMessage("Loading Query...",Level="info")
     self$load(FileName=FileName,QuerySpec=QuerySpec,ModelPath=ModelPath,QueryDir=QueryDir)
   }
@@ -283,6 +283,10 @@ ve.query.check <- function(verbose=FALSE) {
 
 ve.query.valid <- function() {
   # summarize outcome of last check (as a logical)
+  cat("CheckMessages length:",length(self$CheckMessages),"\n")
+  print(self$CheckMessages)
+  cat("CheckMessages all empty:",all(!nzchar(self$CheckMessages)),"\n")
+  
   return( length(self$CheckMessages)==0 || all(!nzchar(self$CheckMessages)) )
 }
 
@@ -988,7 +992,7 @@ ve.query.results <- function(Results=NULL, Reload=FALSE) {
     # Handle pathological case of only one stage with Results
     Results <- list(Results)
   }
-  if ( Reload || is.null(self$QueryResults[1]) || length(self$QueryResults) < length(Results) ) {
+  if ( Reload || is.null(self$QueryResults) || length(self$QueryResults) < length(Results) ) {
     private$reload( Results ) # pulls up available query results
     if ( length(self$QueryResults) == 0 ) self$QueryResults <- NULL # No valid results
   }
@@ -1114,8 +1118,8 @@ ve.query.run <- function(
         Timestamp <- tempEnv$Timestamp # Timestamp when query results were generated
         outOfDate <- ( 
           is.null(Timestamp) ||
-          is.null(r$Source$ModelState()$LastChanged[1]) ||
-          Timestamp < r$Source$ModelState()$LastChanged[1]
+          is.null(r$Source$ModelState()$LastChanged) ||
+          Timestamp < r$Source$ModelState()$LastChanged
         )
         return( ! outOfDate )
       }
@@ -1216,7 +1220,7 @@ VEQuery <- R6::R6Class(
 ve.queryresults.init <- function(Query=NULL,VEResults=NULL) {
   # expect VEResuls$resultsPath to be normalized path
   self$Source <- VEResults # "Source" is a VEResults object
-  if ( is.null(Query) || is.null(self$Source) || is.null(self$Source$resultsPath[1]) ) return()
+  if ( is.null(Query) || is.null(self$Source) || is.null(self$Source$resultsPath) ) return()
 
   self$Path <- file.path(self$Source$resultsPath,Query$QueryResultsFile)
   self$Results <- if ( file.exists(self$Path) ) {
@@ -1314,7 +1318,7 @@ ve.spec.init <- function(other=NULL) {
 }
 
 deepPrint <- function(ell,join=" = ",suffix="",newline=TRUE) { # x may be a list
-  result <- if ( is.list(ell) || ( ! is.null(names(ell[1])) && length(ell)>1 ) ) {
+  result <- if ( is.list(ell) || ( ! is.null(names(ell)) && length(ell)>1 ) ) {
     index <- if ( !is.null(names(ell)) ) names(ell) else 1:length(ell)
     if ( newline ) {
       inner <- "\n"
@@ -1464,7 +1468,7 @@ ve.spec.check <- function(Names=character(0), Clean=TRUE) {
       }
     } else if ( "Function" %in% names(self$QuerySpec) ) {
       checkSymbols <- evaluateFunctionSpec(self$Name, self$QuerySpec, measureEnv=Names)
-      if ( ! is.character(checkSymbols[1]) || length(checkSymbols)>0 ) {
+      if ( ! is.character(checkSymbols) || length(checkSymbols)>0 ) {
         checkSymbols <- as.character(checkSymbols) # could be some other kind of error
         self$CheckMessages <- c(
           self$CheckMessages,
@@ -1795,7 +1799,7 @@ evaluateFunctionSpec <- function(measureName, measureSpec, measureEnv=NULL) {
 
   # TODO: verify that GeoType and GeoValues are the same for all "Symbols"
 
-  if ( is.null(GeoType[1]) || is.null(GeoValues[1]) ) {
+  if ( is.null(GeoType) || is.null(GeoValues) ) {
     writeLogMessage(paste("Cannot diagnose GeoType for Function",measureName),Level="error")
   }
 
@@ -1873,7 +1877,7 @@ makeMeasure <- function(measureSpec,thisYear,QPrep_ls,measureEnv) {
         QueryPrep_ls = QPrep_ls
       )
     # Create attribute for geographies present in this measure
-    if ( length(measure) == 1 || ( usingBreaks && ! is.array(measure[1]) ) ) {
+    if ( length(measure) == 1 || ( usingBreaks && ! is.array(measure) ) ) {
       GeoValues <- "Region"
       GeoType <- "Region"
       geoDim <- 0 # no geography breaks
@@ -1938,7 +1942,7 @@ makeMeasure <- function(measureSpec,thisYear,QPrep_ls,measureEnv) {
       }
       if ( GeoType == "Region" ) {
         # measure should be a standard vector of values for the break groups
-        if ( ! is.vector(measure[1]) || length(measure) == 1 ) {
+        if ( ! is.vector(measure) || length(measure) == 1 ) {
           stop(
             writeLogMessage(
               paste0(measureName,": ",
