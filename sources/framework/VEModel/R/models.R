@@ -164,7 +164,6 @@ confirmDialog <- function(msg) {
 #  Generate a list of directories that might contain models
 #  referring to getwd() and <ModelRoot>
 getModelRoots <- function(get.root=0,Param_ls=NULL) {
-  browser()
   roots <- c( getwd() )
   # Hierarchy of roots:
   #    getwd()/<ModelRoot> (if exists)
@@ -1252,7 +1251,7 @@ ve.stage.init <- function(Name=NULL,Model=NULL,ScenarioDir=NULL,modelParam_ls=NU
 
   # Identify "startFrom" stage (VEModelStage$runnable will complete setup)
   # Can find StartFrom through ModelStages or from the stage configuration file/parameters
-  if ( !is.character(self$StartFrom) || length(self$StartFrom)==0 || ! nzchar(self$StartFrom) ) {
+  if ( !is.character(self$StartFrom) || length(self$StartFrom)!=0 || ! nzchar(self$StartFrom) ) {
     # StartFrom was not set previously from stageParam_ls
     if ( "StartFrom" %in% names(self$RunParam_ls) ) {
       self$StartFrom <- self$RunParam_ls$StartFrom
@@ -2270,7 +2269,6 @@ ve.model.run <- function(run="continue",stage=character(0),watch=TRUE,dryrun=FAL
         # inline execution will mark stage complete and reload the stage
         writeLog( stg$processStatus(), Level="warn")
         if ( stg$RunStatus != codeStatus("Run Complete") ) {
-          browser() # examine attribute of model state run status
           stop (
             writeLog(c("Run Failed.",stg$RunStatus),Level="error")
           )
