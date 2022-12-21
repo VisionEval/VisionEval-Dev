@@ -2,3 +2,5 @@
 runtime*
 .Renviron
 .Rhistory
+tests/
+launch.bat
