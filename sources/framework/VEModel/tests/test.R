@@ -1125,7 +1125,7 @@ test_query <- function(log="info",Force=TRUE,runModel=FALSE) {
 
 # Test query dimensions and filtering
 qrydir <- Sys.getenv("VE_test_source",unset=getwd())
-qryfile <- normalizePath(file.path(qrydir,"Filter-Query.VEqry"),winslash="/")
+qryfile <- normalizePath(file.path(qrydir,"Filter-Query.VEqry"),winslash="/",mustWork=FALSE)
 
 # Test query filter mechanism (and basic query processing)
 test_queryfilter <- function(runModel=FALSE,log="info") {

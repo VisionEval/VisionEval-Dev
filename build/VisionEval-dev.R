@@ -94,9 +94,14 @@ evalq(
     }
 
     get.ve.runtime <- function(use.git=FALSE,use.env=TRUE) {
+      # Locate the working directory in which to look for the VisionEval.R initialization. Options are:
+      #   1. current ve.runtime in "ve.env" environment, if present
+      #   2. "runtime" directory within the "built" tree (use.git controls how that tree was built)
+      #   3. VE_RUNTIME environment variable (if set and use.env is TRUE)
       # use.git will use git branch name if TRUE, otherwise "visioneval" for branch
       #   (must be consistent with ve.build(use.git=...)
-      # use.env if TRUE will use system environment VE_RUNTIME (otherwise VE_RUNTIME is ignored)
+      # use.env if TRUE will use system environment VE_RUNTIME
+      # (otherwise VE_RUNTIME is ignored)
       env.builder <- grep("^ve.bld$",search(),value=TRUE)
       if ( length(env.builder)==0 ) {
         env.builder <- attach(NULL,name="ve.bld")
@@ -113,6 +118,7 @@ evalq(
         message("Could not locate built runtime for R-",this.r," in ",build.file,"\n",sep="")
         return(NA)
       }
+      # env.builder$ve.runtime is the built runtime folder (for loading VisionEval.R and r.version)
       ve.runtime <- if ( exists("ve.runtime",envir=env.builder) ) {
         if ( ! dir.exists(env.builder$ve.runtime) ) {
           message("Runtime directory for ",ve.branch," is missing.")
@@ -121,39 +127,51 @@ evalq(
       }
 
       # Now replace the built runtime with VE_RUNTIME if requested to do so and if it is present
-      if ( ! is.na(ve.runtime) && use.env ) {
-        ve.runtime <- Sys.getenv("VE_RUNTIME",env.builder$ve.runtime)
-      }
-      return(structure(ve.runtime,raw.runtime=env.builder$ve.runtime))
+      if ( use.env ) {
+        env.runtime <- Sys.getenv("VE_RUNTIME",ve.runtime)
+        ve.runtime <- if ( dir.exists(env.runtime) ) env.runtime else env.builder$ve.runtime
+      } 
+      return(structure(ve.runtime,load.runtime=env.builder$ve.runtime))
     }
 
-    ve.run <- function(use.git=FALSE,use.env=TRUE) {
+    ve.run <- function(use.git=FALSE,use.env=TRUE,changeDir=TRUE) {
       ve.runtime <- get.ve.runtime(use.git=use.git,use.env=use.env)
-      if ( ! is.na(ve.runtime) && dir.exists(ve.runtime) ) {
+      if ( is.na(ve.runtime) ) stop("No runtime available. Have you run ve.build()")
+      load.runtime <- attr(ve.runtime,"load.runtime")
+
+      if ( changeDir && ! is.na(ve.runtime) && dir.exists(ve.runtime) ) {
         owd <- setwd(ve.runtime)
         message("setwd('",owd,"') to return to previous directory")
-        # Read the VisionEval.R startup from the built runtime location even if not running there
-        raw.runtime <- attr(ve.runtime,"raw.runtime")
-        if ( is.null(raw.runtime) ) raw.runtime <- ve.runtime
-        startup.file <- file.path(raw.runtime,"VisionEval.R")
-        if ( file.exists(startup.file) ) {
-          message("setwd(ve.root) to return to Git root directory")
-          message("startup file: ",startup.file)
-          source(startup.file) # Will report directory in which we are running
-        }
       } else {
+        owd <- ve.runtime <- getwd()
+      }
+
+      # Read the VisionEval.R startup from the built runtime location even if not running there
+      startup.file <- file.path(load.runtime,"VisionEval.R")
+      if ( file.exists(startup.file) ) {
+        if ( ve.root != owd ) message("setwd(ve.root) to return to Git root directory")
+
+        env.loc <- if ( ! "ve.env" %in% search() ) {
+          attach(NULL,name="ve.env")
+        } else {
+          as.environment("ve.env")
+        }
+        env.loc$ve.runtime <- ve.runtime
+        message("startup file: ",startup.file)
+        source(startup.file,chdir=TRUE) # Will report directory in which we are running
+      } else {
+        message("No startup file in ",ve.load.dir)
         message("Have you run ve.build()?")
-        owd <- getwd()
       }
       return( invisible(owd) )
     }
 
     ve.test <- function(VEPackage,tests="test.R",changeRuntime=TRUE,usePkgload=NULL,...) {
       # ... parameters are passed to ve.run when changeRuntime is TRUE (use.git or use.env)
+      # Run with the walkthrough if no package provided (or "walkthrough")
       walkthroughScripts = character(0)
       if ( missing(VEPackage) || tolower(VEPackage)=="walkthrough" ) { # load the walkthrough
         if ( changeRuntime ) {
-          ve.run(...)
           setwd("walkthrough")
         } else {
           message("Running in VEModel source (for developing walkthrough)")
@@ -183,7 +201,7 @@ evalq(
           return(invisible(walkthroughScripts))
         }
       } else {
-        ve.runtime <- get.ve.runtime(...) # use standard runtime due to changeRuntime=FALSE
+        ve.runtime <- get.ve.runtime(...) # use standard runtime for other testing another package
       }
 
       if ( ! requireNamespace("pkgload",quietly=TRUE) ) {

@@ -1028,7 +1028,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
   #Log and print starting message
   #------------------------------
   ModuleFunction <- paste0(PackageName, "::", ModuleName)
-  Msg <- paste0("Start  module '", ModuleFunction, "' for year '", RunYear, "'. ",memory.size(),"Mb")
+  Msg <- paste0("Start  module '", ModuleFunction, "' for year '", RunYear, "'.")
   writeLog(Msg,Level="warn")
   #Load the package and module
   #---------------------------
@@ -1188,7 +1188,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
   }
   #Log and print ending message
   #----------------------------
-  Msg <- paste0("Finish module '", ModuleFunction, "' for year '", RunYear, "'. ",memory.size(),"Mb")
+  Msg <- paste0("Finish module '", ModuleFunction, "' for year '", RunYear, "'.")
   writeLog(Msg,Level="warn")
   gc()
 

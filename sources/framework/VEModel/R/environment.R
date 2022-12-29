@@ -336,8 +336,7 @@ writeSetup <- function(object=NULL,filename=NULL,overwrite=FALSE) {
 #' \code{setRuntimeDirectory(getRuntimeEnvironment()$start.dir)}
 #'
 #' When that line runs, start.dir will again be reset, so running that line repeatedly will toggle
-#' between two directories (e.g. the one from which \code{R} was started and the one defined in the
-#' VE_RUNTIME environment variable...)
+#' between two directories.
 #'
 #' @param Directory a specific directory (absolute or relative to getwd()) to use as the runtime. If
 #' Directory is not provided, looks for a system environment variable VE_RUNTIME, and if that is not
@@ -346,9 +345,7 @@ writeSetup <- function(object=NULL,filename=NULL,overwrite=FALSE) {
 #' @export
 setRuntimeDirectory <- function(Directory=NULL) {
   if ( is.null(Directory) ) {
-    Directory <- if ( ! exists("ve.runtime",envir=ve.env,inherits=FALSE) ) {
-      Sys.getenv("VE_RUNTIME",unset=getwd())
-    } else ve.env$ve.runtime
+    Directory <- if ( ! exists("ve.runtime",envir=ve.env,inherits=FALSE) ) getwd() else ve.env$ve.runtime
   } else {
     Directory <- normalizePath(Directory,winslash="/",mustWork=FALSE)
     if ( ! dir.exists(Directory) ) {
