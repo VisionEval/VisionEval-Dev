@@ -755,7 +755,7 @@ ve.model.dir <- function( stage=NULL,shorten=TRUE, showRootDir=TRUE, all.files=F
   #     Subdirectories will be the stage/scenario, files will be specific extracts
   # If none of root/results/outputs/inputs is TRUE, then all are TRUE
   #   Otherwise, only report the ones actually asked for
-  validDir <- dir.exists(self$modelPath)
+  validDir <- if ( is.character(self$modelPath) ) dir.exists(self$modelPath) else FALSE
   if ( ! private$p.valid || ! validDir ) {
     return("No model found.")
     private$p.valid <- FALSE

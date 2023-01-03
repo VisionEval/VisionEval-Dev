@@ -816,7 +816,7 @@ PredictHousing <- function(L) {
         writeLog(Msg,Level="warn")
         rm(Msg)
       } else if ( Ipf_ls$RmseErr > 1e-5 ) {
-        writeLog(paste("Undesirable RmseErr:",Ipf_ls$RmseErr,"after",Ipf_ls$MaxIter,"iterations in Azone",az),Level="warn")
+        writeLog(paste("Undesirable RmseErr:",Ipf_ls$RmseErr,"after",Ipf_ls$MaxIter,"iterations in Azone",az),Level="info")
       } else {
         writeLog(paste("Total Iterations:",Ipf_ls$NumIter),Level="info")
       }

@@ -29,5 +29,6 @@ mod.pop <- openModel("VERSPM-pop")
 
 mod.pop$run() # just run it - one stage at a time
 
+# Continue with 03-structure.R to learn about the parts of a VisionEval model
 # See model-stages.R for more information on model stages
 # See scenarios.R for more information on scenarios

@@ -341,7 +341,7 @@ ve.results.extract <- function(
 ) {
   if ( ! self$valid() ) stop("Model State contains no results.")
   if ( is.null(select) ) select <- self$selection else self$selection <- select
-  if ( is.na(select$selection) || length(select$selection)<1 ) {
+  if ( any(is.na(select$selection)) || length(select$selection)<1 ) {
     stop("Nothing selected to extract.")
   }
 

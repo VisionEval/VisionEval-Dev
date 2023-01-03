@@ -81,3 +81,5 @@ vrb <- openModel("VERSPM-base")
 print(vrb) # Initialized
 mwr <- model.with.results <- openModel("VERSPM-run")
 print(mwr)  # Run Complete (has results from being run above, or in an earlier session)
+
+# Please proceed to walkthrough/02-running.R to learn about running models
