@@ -1071,12 +1071,12 @@ ve.query.run <- function(
     }
   } else if ( "VEResultsList" %in% class(Model) ) {
     Results <- Model$results() # Downshift to plain list of VEResults
-    if ( class(Results) != "list" || class(Results[[1]])!="VEResults" ) {
+    if ( ! ("list" %in% class(Results)) || class(Results[[1]])!="VEResults" ) {
       stop( writeLogMessage("Program error: VEResultsList won't convert to list of VEResults",Level="error") )
     }
   } else if ( "VEResults" %in% class(Model) ) {
     Results <- list(Model) # Upshift a single VEResults object to a list of one
-    if ( class(Results) != "list" || class(Results[[1]])!="VEResults" ) {
+    if ( ! ( "list" %in% class(Results) ) || class(Results[[1]])!="VEResults" ) {
       stop( writeLogMessage("Program error: VEResultsList won't convert to list of VEResults",Level="error") )
     }
   } else {
