@@ -283,9 +283,9 @@ ve.query.check <- function(verbose=FALSE) {
 
 ve.query.valid <- function() {
   # summarize outcome of last check (as a logical)
-  cat("CheckMessages length:",length(self$CheckMessages),"\n")
-  print(self$CheckMessages)
-  cat("CheckMessages all empty:",all(!nzchar(self$CheckMessages)),"\n")
+  writeLog(paste("CheckMessages length:",length(self$CheckMessages)),Level="info")
+  if ( length(self$CheckMessages) > 0 ) writeLog(self$CheckMessages,Level="info")
+  writeLog(paste("CheckMessages all empty:",all(!nzchar(self$CheckMessages))),Level="info")
   
   return( length(self$CheckMessages)==0 || all(!nzchar(self$CheckMessages)) )
 }
@@ -905,9 +905,6 @@ ve.query.outputconfig <- function() {
 # don't consider "Reportable").
 ve.query.export <- function(format="csv",OutputDir=NULL,SaveTo=NULL,Results=NULL,Years=NULL,GeoType=NULL,GeoValues=NULL) {
   needOutputDir <- missing(OutputDir) || ! is.null(OutputDir)
-  # TODO: Query extract template should be called QueryExportTemplate
-  # TODO: The template should probably belong to the ViEIO export format
-  # 
   if ( ! is.null(self$Model) ) {
     OutputPath <- self$Model$modelResults # Absolute path to ResultsDir for model
     if ( needOutputDir ) OutputDir <- self$Model$setting("OutputDir")
@@ -978,6 +975,7 @@ ve.query.results <- function(Results=NULL, Reload=FALSE) {
       Results <- self$Model$results()
       # Output file was set when Model was attached
     } else {
+      writeLog("No model from which to retrieve results",Level="info")
       return( list() ) # empty list if query has not been attached to a model
     }
   } else {
@@ -1042,7 +1040,7 @@ ve.query.outputfile <- function(OutputFile=NULL) {
 
 ve.query.run <- function(
   Model      = NULL,  # Attached model on whose results to run (or a VEResultsList)
-  Force      = FALSE   # If true, re-run the query for all results even if they are up to date
+  Force      = FALSE  # If true, re-run the query for all results even if they are up to date
   )
 {
   if ( ! self$valid() || length(private$QuerySpec)==0 ) {
@@ -1071,12 +1069,12 @@ ve.query.run <- function(
     }
   } else if ( "VEResultsList" %in% class(Model) ) {
     Results <- Model$results() # Downshift to plain list of VEResults
-    if ( ! ("list" %in% class(Results)) || class(Results[[1]])!="VEResults" ) {
+    if ( ! ("list" %in% class(Results)) || ! ("VEResults" %in% class(Results[[1]])) ) {
       stop( writeLogMessage("Program error: VEResultsList won't convert to list of VEResults",Level="error") )
     }
   } else if ( "VEResults" %in% class(Model) ) {
     Results <- list(Model) # Upshift a single VEResults object to a list of one
-    if ( ! ( "list" %in% class(Results) ) || class(Results[[1]])!="VEResults" ) {
+    if ( ! ("list" %in% class(Results)) || ! ("VEResults" %in% class(Results[[1]])) ) {
       stop( writeLogMessage("Program error: VEResultsList won't convert to list of VEResults",Level="error") )
     }
   } else {
