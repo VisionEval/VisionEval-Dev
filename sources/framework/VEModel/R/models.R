@@ -2531,11 +2531,7 @@ ve.model.query <- function(QueryName=NULL,FileName=NULL,load=TRUE) {
   if ( all(is.null(c(QueryName,FileName))) ) {
     QueryPath <- file.path(self$modelPath,QueryDir)
     if ( ! dir.exists(QueryPath) ) QueryPath <- self$modelPath;
-#     cat("QueryDir:"); print(QueryDir)
-#     cat("Query Directory:"); print(QueryPath)
-#     cat("Query Directory Exists:"); print(dir.exists(QueryPath))
-#     cat("Available Queries:\n")
-    queries <- dir(QueryPath,pattern="\\.VEqry|R)$",ignore.case=TRUE)
+    queries <- dir(QueryPath,pattern="\\.(VEqry|R)$",ignore.case=TRUE)
     if ( length(queries)==0 ) queries <- "No queries defined"
     return(queries)
   }
