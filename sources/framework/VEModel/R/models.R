@@ -826,15 +826,14 @@ ve.model.dir <- function( stage=NULL,shorten=TRUE, showRootDir=TRUE, all.files=F
   stagePaths <- sapply(stages,function(s) s$RunPath)
   stagePaths <- stagePaths[ !is.na(stagePaths) ]
 
-  # Do the outputs before the results (makes it easier to handle
-  #  results in root)
-  # TODO: verify where the "outputs" are. OutputDir needs to be relative to ModelDir/ResultsDir...
-  # TODO: if extracting a stage, outputdir is relative to ModelDir/ResultsDir/StageDir
+  # Do the outputs before the results (makes it easier to handle results in root)
   # "OutputDir" is used in VEModel$extract and VEModel$query...
   # Query OutputDir is relative to ModelDir/ResultsDir...
   if ( outputs ) {
-    outputPath <- dir(stagePaths,pattern=self$setting("OutputDir"),full.names=TRUE)
+    resultPaths <- c(baseResults,stagePaths)
+    outputPath <- dir(resultPaths,pattern=self$setting("OutputDir"),full.names=TRUE)
     outputFiles <- dir(outputPath,full.names=TRUE,recursive=all.files)
+    outputFiles <- unique(c(outputPath,outputFiles))
     outputDirs <- dir.exists(outputFiles)
     if ( all.files ) {
       outputFiles <- outputFiles[ ! outputDirs ]
@@ -940,7 +939,7 @@ ve.model.clear <- function(force=FALSE,outputOnly=NULL,archives=FALSE,stage=NULL
     return( invisible(FALSE) )
   }
   
-  to.delete <- self$dir(outputs=TRUE,stage=stage,showRootDir=FALSE)
+  to.delete <- self$dir(outputs=TRUE,all.files=TRUE,stage=stage,showRootDir=FALSE)
   if ( missing( outputOnly ) ) {
     # Can't force delete of results without explicit outputOnly=FALSE
     outputOnly <- ( length(to.delete)>0 || force )
@@ -1007,7 +1006,7 @@ ve.model.clear <- function(force=FALSE,outputOnly=NULL,archives=FALSE,stage=NULL
             unlink(candidates[response],recursive=TRUE)
             cat("Deleted:\n",paste(candidates[response],collapse="\n"),"\n")
           }
-          to.delete <- self$dir(outputs=TRUE,showRootDir=FALSE)
+          to.delete <- self$dir(outputs=TRUE,all.files=TRUE,showRootDir=FALSE)
           if ( ! isTRUE(outputOnly) ) to.delete <- c(to.delete,self$dir(results=TRUE,showRootDir=FALSE))
           if ( length(to.delete) > 0 ) {
             start = 1
@@ -2447,6 +2446,7 @@ ve.model.findstages <- function(stage=character(0),Reportable=TRUE) {
 # create a VEResults object or list of VEResults objects (possibly invalid/empty) from the model's
 # Reportable stages. Provide a vector of stage names or indices to filter the list.
 ve.model.results <- function(stage=character(0)) {
+
   if ( ! private$p.valid ) {
     writeLog(paste0("Invalid model: ",self$printStatus()),Level="error")
     return( NULL )
