@@ -268,24 +268,26 @@ ve.query.check <- function(verbose=FALSE) {
       )
       next
     }
-    message("Spec name:",spec$Name)
+    if ( verbose ) msg <- paste("Checking Spec name:",spec$Name)
     spec$check( Names=query.names ) # names list for validating functions
     query.names <- c( query.names,spec$Name )
     if ( ! spec$valid() ) {
+      if ( verbose ) msg <- paste(msg,"(INVALID)")
       self$CheckMessages <- c(
         self$CheckMessages,
         paste0("Error checking specification '",spec$Name,"'"),
         spec$CheckMessages )
-    }
+    } else if ( verbose ) msg <- paste(msg,"(valid)")
+
   }
   return(self)
 }
 
-ve.query.valid <- function() {
+ve.query.valid <- function(log="info") {
   # summarize outcome of last check (as a logical)
-  writeLog(paste("CheckMessages length:",length(self$CheckMessages)),Level="info")
-  if ( length(self$CheckMessages) > 0 ) writeLog(self$CheckMessages,Level="info")
-  writeLog(paste("CheckMessages all empty:",all(!nzchar(self$CheckMessages))),Level="info")
+  writeLog(paste("CheckMessages length == 0",length(self$CheckMessages)==0),Level=log)
+  if ( length(self$CheckMessages) > 0 ) writeLog(self$CheckMessages,Level=log)
+  writeLog(paste("CheckMessages all empty:",all(!nzchar(self$CheckMessages))),Level=log)
   
   return( length(self$CheckMessages)==0 || all(!nzchar(self$CheckMessages)) )
 }
@@ -618,9 +620,8 @@ ve.query.extract <- function(Results=NULL, Measures=NULL, Years=NULL, metadata=T
 
   Results <- self$results(Results) # generate list of valid VEQueryResults
   if ( length(Results)==0 ) {
-    stop(
-      writeLogMessage("No query results available; run the query first",Level="error")
-    )
+    writeLogMessage("No query results available; run the query first",Level="error")
+    return( data.frame() )
   }
 
   valueList <- lapply(Results,function(r) r$values() )
@@ -667,35 +668,6 @@ ve.query.extract <- function(Results=NULL, Measures=NULL, Years=NULL, metadata=T
     )
   }
 
-  # Filter list of measures to only those with GeoType attribute
-  # TODO: need to distinguish generated "seek measure" from original spec measure
-  # Probably want to attach an attribute for the original spec name to use in filtering
-#   if ( is.character(GeoType) && GeoType %in% c("Marea","Azone","Bzone") ) {
-#     whichGeoMeasures <- which(
-#       sapply(
-#         private$QuerySpec[seekMeasures],
-#         function(m) return( GeoType=="Region" || GeoType %in% m$By )
-#       )
-#     )
-#     if ( length(whichGeoMeasures)==0 ) {
-#       stop(
-#         writeLogMessage(paste("Requested GeoType is not found in requested Measures:",GeoType),Level="error")
-#       )
-#     }
-#     seekMeasures <- seekMeasures[ whichGeoMeasures ]
-#   }
-
-
-  # TODO: work differently on how to seek measures (see geomeasures above)
-#   if ( exportOnly ) {
-#     whichExport <- sapply( private$QuerySpec[seekMeasures],
-#       function(m) {
-#         return( "Export" %in% names(m$QuerySpec) )
-#       }
-#     )
-#     seekMeasures <- seekMeasures[ whichExport ]
-#   }
-    
   # Keep only measures that are being sought
   # Filter the measures using for loops rather than lapply to ensure names stay up to date
   for ( scenario in seq(valueList) ) {
@@ -981,6 +953,10 @@ ve.query.results <- function(Results=NULL, Reload=FALSE) {
   } else {
     self$outputfile() # will use self$Model output file if model is available, or global
   }
+  if ( length(self$getlist())==0 ) {
+    writeLog("Query specification is empty: no query results available",Level="error")
+    return( list() )
+  }
 
   if ( "VEResultsList" %in% class(Results) ) {
     # downshift to list of VEResults
@@ -1043,12 +1019,15 @@ ve.query.run <- function(
   Force      = FALSE  # If true, re-run the query for all results even if they are up to date
   )
 {
-  if ( ! self$valid() || length(private$QuerySpec)==0 ) {
-    stop(
-      writeLogMessage("Query specifications are not valid",Level="error")
-    )
+  if ( ! self$valid() ) {
+    msg <- writeLogMessage("Query specification is invalid",Level="error")
+    self$valid(log="error")
+    stop(msg)
   }
-  writeLogMessage(paste("Running query:",self$Name),Level="warn")
+  if ( length(private$QuerySpec)==0 ) {
+    writeLog(paste("No specifications defined for",self$QueryName),Level="error")
+  }
+  writeLogMessage(paste("Running query:",self$QueryName),Level="warn")
   if ( missing(Model) || is.null(Model) ) {
     Model <- self$Model # Use attached model if available
     if ( is.null(Model) ) stop( writeLogMessage("No model results available to run query",Level="error") )
@@ -1103,7 +1082,7 @@ ve.query.run <- function(
   # Check and compile the specifications; abort if not valid
   self$check()
 
-  if ( ! Force && length(Results)>0 ) {
+  if ( ! Force && length(Results)>0 && length(private$QuerySpec)>0 ) {
     # Reload cached results (updates self$QueryResults and check for validity)
     # private$reload returns all the Results, whether or not they
     # have query results
@@ -1128,6 +1107,9 @@ ve.query.run <- function(
     } else {
       writeLogMessage(paste("Query results for",length(ResultsToUpdate),"model results out of",length(Results),"will be updated."),Level="info")
     }
+  } else if ( length(private$QuerySpec)==0 ) {
+    writeLogMessage("Query contains no valid specifications.",Level="error")
+    return(list())
   } else {
     # update everything
     ResultsToUpdate <- Results
