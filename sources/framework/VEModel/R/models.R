@@ -259,8 +259,60 @@ findModel <- function( modelDir, Param_ls=getSetup() ) {
   return(modelPath)
 }
 
+ve.model.torun <- function( reset="continue", details=FALSE ) {
+  # Grand steps:
+  #    "open" will be TRUE if length(reset)
+  #    "open" will be FALSE (i.e. run it) if length(reset)>1 (by convention, second element will be "run")
+  #    If open:
+  #       reset is "save", COPY all the results to an archive and proceed to further checks below
+  #       reset is "reset", do all the checks, and destroy invalid stages
+  #       reset is "continue", do all checks, and mark invalid stages in Run Status ("Not Run" or "Out of Date")
+  #    If not open
+  #       reset is "save", MOVE all the results to an archive and report "Not Run" status for all stages  
+  #       reset is "reset", blow away all the model results and return "Not Run" status
+  #       reset is "continue", do all checks and blow away only "Out of Date" stages
+  #    Do all checks:
+  #       See below about what to check for each stage, return an list of stage statuses
+  #       Once a stage is "Out of Date" or "Not Run", any stage starting from it inherits that status
+
+  #    Once done with all checks
+  #       if details==FALSE, just list the newer visioneval.cnf files and structural files by stage.
+  #       if details==TRUE, report the parameters that have changed.
+
+  # TODO: one day also be able to do this check on two pairs of results (ignoring file dates and
+  #    just checking the run parameters - in that case will also report on different ModelStages)
+  #    Probably want a different function/utility for that.
+  
+  # Return:
+  #    Identify the stages that need to be run (and perhaps also "Run Complete" on those that are good)
+  #    Later when running:
+  #    User can ask for certain stages to run (by name or absolute position), which will back up
+  #       from that stage through its Startfrom chain. If StartFrom is not Run Complete, check its
+  #       StartFrom and if its status is not Run Complete, keep backing up. If no StartFrom, start
+  #       from that first stage. If the StartFrom stage is Run Complete, then its child that we were
+  #       just looking at is the place to start.
+  #    Plus use structure function to attach attributes about what was wrong
+  #       (no results, out of date parameters or files)
+
+  # Things we need to consider for each stage with results:
+  #    Load the stage's ModelState_ls and separately build the run parameters from the
+  #    configuration. Walk through the elements in each and compare them (present in both,
+  #    file date for that parameter in loaded configuration older than ModelState run.
+  #    Also check the structural files
+  #    Any visioneval.cnf elements with new elements (but be gentle with ModelStages - new ones
+  #       of those are fine (as are dropped ones - those will be blown away if not "open")
+  #    Any modelScript files in ScriptsDir
+  #    Any of the files in ParamDir
+  #    Any of the input files for each stage (walk the stage's InputPath)
+  #    All of those comparisons done stage-by-stage using its CompleteDate if RunStatus is Run Complete
+}
+
 # configure installs the model parameters (initializing or re-initializing)
-ve.model.configure <- function(modelPath=NULL, fromFile=TRUE) {
+# `fromFile` says to reload self$loadParam_ls, otherwise use self$runParam_ls; it is rarely desirable
+#   to change the default, which supports in-memory modifications.
+# `reset` says what to do when configuring a model that already has results (at the bottom, do model$torun)
+# `open` if TRUE says be minimally invasive on cleanup; if FALSE says do the cleanup now (passed to model$torun)
+ve.model.configure <- function(modelPath=NULL, fromFile=TRUE, reset="continue", open=TRUE) {
 
   if ( missing(modelPath) || ! is.character(modelPath) ) {
     modelPath <- self$modelPath
@@ -560,6 +612,8 @@ ve.model.configure <- function(modelPath=NULL, fromFile=TRUE) {
 #     browser()
 #   }
 
+  # self$torun(reset=reset
+
   # Update the model status
   self$specSummary <- NULL # regenerate when ve.model.list is next called
   self$updateStatus()
@@ -639,7 +693,8 @@ ve.model.initstages <- function( modelStages ) {
 # Initialize a VEModel from modelPath
 # modelPath may be a full path, and will be expanded into known model directories
 #  if it is a relative path.
-ve.model.init <- function(modelPath) {
+# "reset" parameter says what to do if the opened model contains results
+ve.model.init <- function(modelPath, reset="continue") {
 
   # Opportunity to override names of ModelState, run_model.R, Datastore, etc.
   # Also to establish standard model directory structure (inputs, results)
@@ -649,7 +704,7 @@ ve.model.init <- function(modelPath) {
   writeLog(paste("Finding",modelPath),Level="info")
   modelPath <- findModel(modelPath) # expand to disk location
   if ( nzchar(modelPath) ) {
-    self$configure(modelPath)
+    self$configure(modelPath, reset=reset)
   } else {
     self$updateStatus() # deliver the bad news on no model path
   }
@@ -1280,7 +1335,7 @@ ve.stage.init <- function(Name=NULL,Model=NULL,ScenarioDir=NULL,modelParam_ls=NU
 
   # Identify "startFrom" stage (VEModelStage$runnable will complete setup)
   # Can find StartFrom through ModelStages or from the stage configuration file/parameters
-  if ( !is.character(self$StartFrom) || length(self$StartFrom)!=0 || ! nzchar(self$StartFrom) ) {
+  if ( !is.character(self$StartFrom) || length(self$StartFrom)==0 || ! nzchar(self$StartFrom) ) {
     # StartFrom was not set previously from stageParam_ls
     if ( "StartFrom" %in% names(self$RunParam_ls) ) {
       self$StartFrom <- self$RunParam_ls$StartFrom
@@ -1653,12 +1708,12 @@ ve.stage.completed <- function( runStatus=NULL ) {
 
 # Print a model stage summary
 ve.stage.print <- function(details=FALSE,configs=FALSE) {
-  cat(if(!is.null(self$IsScenario)) "Scenario" else "Stage",": ",self$Name,sep="")
+  cat(if(self$IsScenario) "Scenario" else "Stage",": ",self$Name,sep="")
   if ( details ) {
     startFrom <- if ( length(self$StartFrom)==1 && nzchar(self$StartFrom) ) paste0("StartFrom: ",self$StartFrom)
   } else startFrom <- NULL
   statusText <- printStatus(self$RunStatus)
-  reportable <- if ( self$Reportable ) "Reportable" else NULL
+  reportable <- if ( !is.null(self$Reportable) && self$Reportable ) "Reportable" else NULL
   cat(" (",paste( c(statusText, reportable, startFrom),collapse=", " ),")\n",sep="" )
   if ( configs ) {
     cat("   Configurations:\n")
@@ -2591,7 +2646,7 @@ ve.model.query <- function(QueryName=NULL,FileName=NULL,load=TRUE) {
 #' @return A VEModel object or a VEModelList of available models if no modelPath or modelName is
 #'   provided; see details and `vignette("VEModel")`
 #' @export
-openModel <- function(modelPath="",log="error") {
+openModel <- function(modelPath="",reset="continue",log="error") {
   if ( missing(modelPath) || !nzchar(modelPath) ) {
     return(
       dir(
@@ -2603,7 +2658,7 @@ openModel <- function(modelPath="",log="error") {
     )
   } else {
     if ( !is.null(log) ) initLog(Save=FALSE,Threshold=log, envir=new.env())
-    return( VEModel$new(modelPath = modelPath) )
+    return( VEModel$new(modelPath = modelPath, reset=reset) )
   }
 }
 

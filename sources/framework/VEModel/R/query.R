@@ -873,8 +873,6 @@ ve.query.outputconfig <- function() {
 # Option to save the data.frame in some tabular output format (data.frame, csv, sql)
 # Export should be able to filter by Measure name, Year of Data (some scenarios will have more than
 # one year), and specific ModelStage name (for Results).
-# TODO: "query" function on VEModel should be able to limit to certain ModelStages (in which case
-# don't consider "Reportable").
 ve.query.export <- function(format="csv",OutputDir=NULL,SaveTo=NULL,Results=NULL,Years=NULL,GeoType=NULL,GeoValues=NULL) {
   needOutputDir <- missing(OutputDir) || ! is.null(OutputDir)
   if ( ! is.null(self$Model) ) {
@@ -1156,10 +1154,8 @@ VEQuery <- R6::R6Class(
     Model = NULL,                   # Attached model on which to run query
 
     # Methods
-    # TODO: rethink using "attached model" or "attached ResultsList" variation
     # Running the query will create a data file for each ModelStage/VEResults
-    # So it really just works on a list of VEResults in all cases (we can get such a list from the
-    # VEModel)
+    # So it really just works on a list of VEResults in all cases (we can get such a list from the VEModel)
     initialize=ve.query.init,           # initialize a new VEQuery object
     save=ve.query.save,                 # With optional file name prefix (this does an R 'dump' to source)
     attach=ve.query.attach,             # Install consistent QueryName, QueryDir from request
