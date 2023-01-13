@@ -1,0 +1,53 @@
+## QUERY FILTERS
+
+Query tests work. Question now is whether queries are doing what we want.
+Review Full-Query and related.
+Look at breakpoints and function computations on breakpoints.
+Look at Function unit output (and conversions)
+Apply filters to extraction of results - only show results for certain
+geographies (e.g. level of output geography, specific geography names)
+
+Allow specification of filters within the actual queries (and add the ability to create those
+programmatically, or to add them to specific measures): in that case, only those are returned from
+being generated (and save), versus just picking out a subset of what is available in the results.
+
+Add option to filter geographies within the query definition.
+That gives us a different approach to breaks, which will reduce
+the number of rows in the finished matrix of query results.
+
+## IMPORT/EXPORT FORMATS in VEIEIO
+
+Define datsources and standard connection information.
+
+Add the VEIEIO module (VisionEval Import/Export Input/Output) module.
+Adds tabular format mapping onto external tables (SQL, Access, Excel, ODF, Apache Arrow, Parquet, CSV, JSON, YAML).
+VEIEIO does basic tabular writing.
+
+VEArrow Package adds Arrow and Parquet Output formats plus direct-to-Datastore for Arrow (See Below)
+
+Need a table reader/writer function (takes and returns a data.frame)
+Also a way to locate a table (via DBI spec, or otherwise for specific formats)
+Also a way to specify connection, table, etc. in visioneval.cnf for a specific model (default
+exctraction) and a way to supply those on the fly at runtime - create a connection object).
+Should interpret a DBI object as well as a VEIEIO format object.
+
+Also map input files (via a visioneval.cnf global or model setting that uses table and field
+map structure - possibly stored in the very output format we're hoping to use). Have standard
+default mappings, so all the user has to specify is InputFormat (with "csv" the default). Then all
+the .csv openings used for input files etc. are mapped through the formatter, translating the
+inbuilt CSV file names to their database equivalent. The mappings file should be simple tabular with
+a series of configuration records. So we define the format datasource, then specify that format for
+use in input. We might want different format datasources for input and output, so we should have a
+way to define and index more than one of them.
+
+Nice to have some simplified DBI connection specificaton for use within visioneval.cnf (perhaps as
+additional sub-tags under the IOFormat specification.
+
+## DIRECT TO DATASTORE FUNCTIONS
+
+Also create a VEArrow module to support direct-to-datastore operations. So we can leave
+Arrow/Parquet out of VEIEIO, and provide an example of how to add a module for a new Datastore or
+I/O format if someone wants to implement additional ones.
+
+Let visioneval.cnf explain what to do with it (DatastoreType).
+
