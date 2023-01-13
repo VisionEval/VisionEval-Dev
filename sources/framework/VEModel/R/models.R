@@ -917,7 +917,8 @@ ve.model.dir <- function( stage=NULL,shorten=TRUE, showRootDir=TRUE, all.files=F
     mstates <- dir(stagePaths,pattern="^ModelState(_[[:digit:]]{4}-.*)*\\.Rda$",full.names=TRUE)
     dstores <- dir(stagePaths,pattern="^Datastore(_[[:digit:]]{4}-.*)*$",full.names=TRUE)
     logs    <- dir(stagePaths,pattern="Log(_[[:digit:]]{4}-.*)+\\.txt",full.names=TRUE)
-    resultFiles <- c(mstates,dstores,logs)
+    qresults<- dir(stagePaths,pattern="^Query_.*.Rda$",full.names=TRUE)
+    resultFiles <- c(mstates,dstores,logs,qresults)
   } else resultFiles <- character(0)
 
   if ( root ) {
@@ -2588,7 +2589,7 @@ ve.model.query <- function(QueryName=NULL,FileName=NULL,load=TRUE) {
     if ( ! dir.exists(QueryPath) ) QueryPath <- self$modelPath;
     queries <- dir(QueryPath,pattern="\\.(VEqry|R)$",ignore.case=TRUE)
     if ( length(queries)==0 ) queries <- "No queries defined"
-    return(queries)
+    return(structure(queries,QueryPath=QueryPath))
   }
   # Let VEquery find the query...
   return(

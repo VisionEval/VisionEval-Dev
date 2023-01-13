@@ -868,12 +868,10 @@ ve.query.outputconfig <- function() {
   )
 }
 
-# Put the results of the query into a csv by default (or a data.frame, or sql, or other
-#  tabular receptacle.)
-# Option to save the data.frame in some tabular output format (data.frame, csv, sql)
+# Put the results of the query into a data.frame or csv (or eventually sql or another tabular receptacle.)
 # Export should be able to filter by Measure name, Year of Data (some scenarios will have more than
 # one year), and specific ModelStage name (for Results).
-ve.query.export <- function(format="csv",OutputDir=NULL,SaveTo=NULL,Results=NULL,Years=NULL,GeoType=NULL,GeoValues=NULL) {
+ve.query.export <- function(format="csv",OutputDir=NULL,SaveTo=NULL,Results=NULL,Years=NULL) {
   needOutputDir <- missing(OutputDir) || ! is.null(OutputDir)
   if ( ! is.null(self$Model) ) {
     OutputPath <- self$Model$modelResults # Absolute path to ResultsDir for model
@@ -905,7 +903,7 @@ ve.query.export <- function(format="csv",OutputDir=NULL,SaveTo=NULL,Results=NULL
   Results_df <- self$extract(Results=Results,Years)
 
   # Then write the data.frame
-  # TODO: this code gets pushed down into the output format specifier
+  # TODO: this code will be pushed down into the output format processor
   if ( ! is.character(SaveTo) ) {
     ExtractFile <- QueryExtractFile
     ExtractFile <- stringr::str_replace(ExtractFile,"%queryname%",self$QueryName)

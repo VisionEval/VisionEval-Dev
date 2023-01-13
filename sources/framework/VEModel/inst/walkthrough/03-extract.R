@@ -235,29 +235,33 @@ print(meta.df[[1]][1:10,])    # Rows are the individual data element names and t
 # documentation and the package docs for your particular database). You may have to tinker
 # with Excel to get the Workbook/Worksheets to come out right...
 
-require(DBI)      # you may need to install these packages
-require(RSQLite)  # you may need to install these packages
+require(RSQLite)  # you may need to install RSQLite and its dependencies
+# There are also R packages to write Excel, Access, or whatever
+# You can use any of them that can write a data.frame
 
 # Make a temporary SQLite database
 # Use the "setting" function to locate the "outputs" directory
 db.connection <- file.path(results$resultsPath,mwr$setting("OutputDir"),"my-db.sqlite")
 
-# Avoid problems with blocked overwrite (delete it)
+# You can choose to overwrite either by deleting the database like this...
 # if ( file.exists(db.connection) ) unlink(db.connection)
 
-# Alternatively, add overwrite=TRUE to dbWriteTable below
+# Or you can open the database with overwrite=TRUE
 # db.connection <- file.path(results$resultsPath,mwr$setting("OutputDir"),"my-db.sqlite",overwrite=TRUE)
 
 mydb <- DBI::dbConnect(RSQLite::SQLite(), db.connection)
 
-# Put the extracted data into the new database
+# Put the extracted data into tables in the new database
+# Each table has the same name as the extracted data.frame
+# If the table already exists, overwrite=TRUE says to overwrite it, otherwise an error
 for ( ve.table in names(extracted.df) ) {
-  # Write the results to the table (same name as the data.frame)
   dbWriteTable( mydb, ve.table, extracted.df[[ve.table]], overwrite=TRUE )
 }
 
-# See the tables in the database (or visit it outside R)
+# See the tables in the database
 DBI::dbListTables(mydb)
+
+# Or you can visit the database with an outside utility (e.g. HeidiSQL)
 
 # It's good practice to close the database when you're done with it
 DBI::dbDisconnect(mydb)
