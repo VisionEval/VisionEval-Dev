@@ -891,7 +891,9 @@ ve.query.export <- function(format="csv",OutputDir=NULL,SaveTo=NULL,Results=NULL
   OutputPath <- file.path(OutputPath,OutputDir)
   if ( ! dir.exists(OutputPath) ) dir.create(OutputPath)
 
-  if ( format != "csv" ) stop( writeLogMessage("Currently only supporting .csv export",Level="error") )
+  if ( format != "csv" ) {
+    stop( writeLogMessage("Currently only supporting .csv export",Level="error") )
+  }
 
   if ( missing(Results) || is.null(Results) ) {
     if ( ! is.null(self$Model) ) Results <- self$Model$results()
@@ -903,6 +905,7 @@ ve.query.export <- function(format="csv",OutputDir=NULL,SaveTo=NULL,Results=NULL
   Results_df <- self$extract(Results=Results,Years)
 
   # Then write the data.frame
+  # TODO: this code gets pushed down into the output format specifier
   if ( ! is.character(SaveTo) ) {
     ExtractFile <- QueryExtractFile
     ExtractFile <- stringr::str_replace(ExtractFile,"%queryname%",self$QueryName)
@@ -1575,6 +1578,7 @@ ve.spec.update <- function(
 # data helper
 ve.small.geo <- c("Marea","Azone","Bzone")
 
+# TODO: It may be simpler just to make people do these changes manually.
 # TODO: In addition to the robustness elements, this function should just adjust the "By" dimension
 # associated with Geography. Region has no geographic "By", otherwise we generate summaries for
 # Marea, Azone or Bzone. We need to make sure the geographic breakdown happens appropriately with
