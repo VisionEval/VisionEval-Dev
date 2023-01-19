@@ -306,6 +306,48 @@ Calculate4DMeasuresSpecifications <- list(
 visioneval::savePackageDataset(Calculate4DMeasuresSpecifications, overwrite = TRUE)
 
 
+#Define a Validation Function for some of the input files
+#--------------------------------------------------------
+#' Validation function for checking input files (optional)
+#'
+#' Validation function takes a data.frame and a file name from which the data.frame was
+#' loaded and does basic sanity checks, returning a (possibly empty) report. see
+#' \code{visioneval::processModuleInputs}. The file name should be one listed in the
+#' "Inp" section of the module Specifications
+#'
+#' The specific check for Calculate4DMeasures will warn if there are zones with zero
+#' developable area. That's possibly recoverable, so it's a Warning not an Error, but
+#' such zones should be merged with other zones that "have something in them".
+#'
+#' @param File The name of the file from which Data_df was loaded (to select the test)
+#' @param Data_df A data.frame loaded from the named file
+#' @return A list of two lists, Errors and Warnings, which will be empty if no errors
+#    were encountered, and will have messages if there were problems.
+#' @export
+Calculate4DMeasuresValidateInputFile <- function( File, Data_df ) {
+  FileValidation_ls <- list(Errors=list(),Warnings=list())
+  if ( inherits(Data_df,"data.frame") && is.character(File) && nzchar(File[1]) ) {
+    if ( File == "bzone_unprotected_area.csv" ) {
+      visioneval::writeLog(paste("Performing Validation on",File),Level="info")
+      missingValues <- which(
+        {
+          TotalArea <- with( Data_df, UrbanArea + TownArea + RuralArea )
+          is.na(TotalArea) | TotalArea == 0
+        }
+      )
+      if ( any(missingValues) ) {
+        Msg <- paste(
+          "These BZones have no developable land area:",
+          paste(paste0(Data_df$Geo[missingValues],"(",Data_df$Year[missingValues],")"),collapse=", ")
+        )
+        visioneval::writeLog(Msg,Level="warn")
+        FileValidation_ls$Warnings <- c(FileValidation_ls$Warnings,Msg)
+      }
+    }
+  }
+  return(FileValidation_ls)
+}
+
 #=======================================================
 #SECTION 3: DEFINE FUNCTIONS THAT IMPLEMENT THE SUBMODEL
 #=======================================================

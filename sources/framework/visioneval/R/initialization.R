@@ -2025,7 +2025,7 @@ processInputFiles <- function(AllSpecs_ls) {
     ModuleSpecs_ls <- (Spec$Specs)
     #If there are inputs, process them
     if (!is.null(ModuleSpecs_ls$Inp)) {
-      ProcessedInputs_ls[[EntryName]] <- processModuleInputs(ModuleSpecs_ls, Module)
+      ProcessedInputs_ls[[EntryName]] <- processModuleInputs(ModuleSpecs_ls, Module, Package)
       # Process inputs with Initialize function
       if (Module == "Initialize") {
         if (length(ProcessedInputs_ls[[EntryName]]$Errors) == 0) {
@@ -2047,7 +2047,7 @@ processInputFiles <- function(AllSpecs_ls) {
   }))
   HasErrors <- length(InpErrors_ != 0)
   if (HasErrors) {
-    writeLog(InpErrors_,Level="errors")
+    writeLog(InpErrors_,Level="error")
     stop("Input files have errors. Check the log for details.")
   }
   rm(InpErrors_)

@@ -508,6 +508,12 @@ PredictHousingSpecifications <- list(
 visioneval::savePackageDataset(PredictHousingSpecifications, overwrite = TRUE)
 
 
+# TODO: Add validation function for these two files:
+# sources\modules\VELandUse\r\PredictHousing.R:       FILE = "bzone_dwelling_units.csv",
+# sources\modules\VELandUse\r\PredictHousing.R:       FILE = "bzone_hh_inc_qrtl_prop.csv",
+# -- Bzone_hhincquartile.csv:  that add up to more than 100%
+# -- Bzone_dwelling_units.csv: SFDU & MFDU & GQDU all = 0
+
 #=======================================================
 #SECTION 3: DEFINE FUNCTIONS THAT IMPLEMENT THE SUBMODEL
 #=======================================================

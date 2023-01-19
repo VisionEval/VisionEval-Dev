@@ -227,7 +227,7 @@ function(ModuleName,Param_ls=NULL,...) {
   #--------------------------------------
   if (is.null(Specs_ls$Inp)) {
     writeLog("No inputs to process.", Level="warn")
-    # If no inputs and is Initialize module return
+    # If no inputs and the module is "Initialize", we're done
     # i.e. all inputs are optional and none are provided
     if (ModuleName == "Initialize") return()
   } else {

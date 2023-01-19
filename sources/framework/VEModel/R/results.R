@@ -481,7 +481,10 @@ ve.results.extract <- function(
 
       # Write the files (data = .csv) and a metadata file (meta = .metadata.csv)
       for ( table in dataNames ) {
-        fn <- file.path(outputPath,paste(prefix,Files[table],sep="_"))
+        prefix.files <- if ( !is.null(prefix) && !is.na(prefix) && nzchar(prefix[1]) ) {
+          paste(prefix,Files[table],sep="_")
+        } else Files[table]
+        fn <- file.path(outputPath,prefix.files)
         disp.fn <- sub(paste0(self$resultsPath,"/"),"",fn,fixed=TRUE)
         df2w <- Data_ls$Data[[table]]
         writeLog(paste("Extracting",sub("\\.[^.]*$","",disp.fn),paste0("(",nrow(df2w)," rows)")),Level="warn")

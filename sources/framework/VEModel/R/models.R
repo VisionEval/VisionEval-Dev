@@ -1562,21 +1562,20 @@ ve.stage.runnable <- function(priorStages) {
 
 # Load the model state for the stage
 # Create it if onlyExisting=FALSE (that's a time-consuming operation)
-# if reset==TRUE, force reload/rebuild of ModelState
-# TODO: Reconsider what exactly needs to be done here: this is where we should check for "Out of
-# Date" or force the stage to be marked "out of date" and rebuild the model state...
+# if reset==TRUE, force reload/rebuild of ModelState when model runs
 ve.stage.load <- function(onlyExisting=TRUE,reset=FALSE) {
+  # TODO: handle reset below. Should always loadModel, but not necessarily save what we found
   if ( reset ) self$ModelState_ls <- NULL
   if ( is.null(self$ModelState_ls) ) {
     envir = visioneval::modelEnvironment(Clear="ve.stage.load")
     envir$RunModel <- FALSE
-    # We're expecting not to write anything, but we'll set useful
-    #  directories anyway.
+    # We're expecting not to write anything, but we'll set useful directories anyway.
     owd <- if ( dir.exists(self$RunPath) ) {
       setwd(self$RunPath)
     } else setwd(self$RunParam_ls$ModelDir)
     on.exit(setwd(owd))
     ms <- visioneval::loadModel(self$RunParam_ls,onlyExisting=onlyExisting,Message=paste("Loading Model",self$modelName))
+    # visioneval::loadModelIncludes a check for existing but out-of-date results
     if ( is.list(ms) && length(ms)>0 ) { # Stash the ModelState if created successfully
       self$ModelState_ls <- ms
       if ( ! "RunStatus" %in% names(self$ModelState_ls) ) {

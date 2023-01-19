@@ -143,7 +143,7 @@ Initialize <- function(L) {
       Marea <- L$Data$Global$Marea$Geo[i]
       HasUzaName <- !(UzaNames_[i] %in% c(NA, ""))
       HasAllVals <- all(!(unlist(Values_df[i,]) %in% c(NA, "")))
-      Complete <- HasUzaName | HasAllVals
+      Complete <- HasUzaName || HasAllVals
       if (!Complete) {
         Msg <- paste0(
           "The 'marea_dvmt_split_by_road_class.csv' file has errors for ",
