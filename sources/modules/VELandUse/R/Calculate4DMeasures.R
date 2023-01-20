@@ -325,12 +325,13 @@ visioneval::savePackageDataset(Calculate4DMeasuresSpecifications, overwrite = TR
 #    were encountered, and will have messages if there were problems.
 #' @export
 Calculate4DMeasuresValidateInputFile <- function( File, Data_df ) {
-  FileValidation_ls <- list(Errors=list(),Warnings=list())
+  FileValidation_ls <- list(Errors=character(0),Warnings=character(0))
   if ( inherits(Data_df,"data.frame") && is.character(File) && nzchar(File[1]) ) {
     if ( File == "bzone_unprotected_area.csv" ) {
       visioneval::writeLog(paste("Performing Validation on",File),Level="info")
       missingValues <- which(
         {
+          # Error if Total area not specified or zero
           TotalArea <- with( Data_df, UrbanArea + TownArea + RuralArea )
           is.na(TotalArea) | TotalArea == 0
         }
@@ -340,8 +341,8 @@ Calculate4DMeasuresValidateInputFile <- function( File, Data_df ) {
           "These BZones have no developable land area:",
           paste(paste0(Data_df$Geo[missingValues],"(",Data_df$Year[missingValues],")"),collapse=", ")
         )
-        visioneval::writeLog(Msg,Level="warn")
-        FileValidation_ls$Warnings <- c(FileValidation_ls$Warnings,Msg)
+        visioneval::writeLog(Msg,Level="error")
+        FileValidation_ls$Errors <- c(FileValidation_ls$Errors,Msg)
       }
     }
   }

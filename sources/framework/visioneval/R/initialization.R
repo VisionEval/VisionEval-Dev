@@ -2018,6 +2018,7 @@ processInputFiles <- function(AllSpecs_ls) {
   #         }
   #       }
   #     }
+  InpErrors_ <- character(0)
   for (Spec in AllSpecs_ls) {
     Module <- Spec$ModuleName
     Package <- Spec$PackageName
@@ -2027,8 +2028,8 @@ processInputFiles <- function(AllSpecs_ls) {
     if (!is.null(ModuleSpecs_ls$Inp)) {
       ProcessedInputs_ls[[EntryName]] <- processModuleInputs(ModuleSpecs_ls, Module, Package)
       # Process inputs with Initialize function
-      if (Module == "Initialize") {
-        if (length(ProcessedInputs_ls[[EntryName]]$Errors) == 0) {
+      if (length(ProcessedInputs_ls[[EntryName]]$Errors) == 0) {
+        if (Module == "Initialize") {
           initFunc <- eval(parse(text = paste(Package, Module, sep = "::")))
           InitData_ls <- ProcessedInputs_ls[[EntryName]]
           InitializedInputs_ls <- initFunc(InitData_ls)
@@ -2038,13 +2039,13 @@ processInputFiles <- function(AllSpecs_ls) {
             writeLog(InitializedInputs_ls$Warnings,Level="warn")
           }
         }
+      } else {
+        writeLog(paste0("Logging some errors for ",EntryName),Level="error")
+        InpErrors_ <- c( InpErrors_, ProcessedInputs_ls[[EntryName]]$Errors )
       }
     }
   }
   #Check whether there are any input errors
-  InpErrors_ <- unlist(lapply(ProcessedInputs_ls, function (x) {
-    x$Errors
-  }))
   HasErrors <- length(InpErrors_ != 0)
   if (HasErrors) {
     writeLog(InpErrors_,Level="error")
