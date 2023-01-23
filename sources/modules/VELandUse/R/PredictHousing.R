@@ -532,7 +532,6 @@ visioneval::savePackageDataset(PredictHousingSpecifications, overwrite = TRUE)
 PredictHousingValidateInputFile <- function( File, Data_df ) {
   FileValidation_ls <- list(Errors=character(0),Warnings=character(0))
   if ( inherits(Data_df,"data.frame") && is.character(File) && nzchar(File[1]) ) {
-    visioneval::writeLog(paste("Performing Validation on",File),Level="info")
     if ( File == "bzone_hh_inc_qrtl_prop.csv" ) {
       badPercent <- which(
         {
@@ -543,10 +542,11 @@ PredictHousingValidateInputFile <- function( File, Data_df ) {
       )
       if ( any(badPercent) ) {
         Msg <- paste(
-          "These BZones have income quartiles summing to more than 100%:",
-          paste(paste0(Data_df$Geo[badPercent],"(",Data_df$Year[badPercent],")"),collapse=", ")
+          c(
+            "These BZones have income quartiles summing to more than 100%:",
+            paste0(Data_df$Geo[badPercent],"(",Data_df$Year[badPercent],")")
+          )
         )
-        visioneval::writeLog(Msg,Level="error")
         FileValidation_ls$Errors <- c(FileValidation_ls$Errors,Msg)
         # NOTE: this is reported as an error so the model will crash if there are any failed Bzones.
         # Should it just be a warning? Should we create a VE run parameter to control behavior?
@@ -561,10 +561,11 @@ PredictHousingValidateInputFile <- function( File, Data_df ) {
       )
       if ( any(noHousing) ) {
         Msg <- paste(
-          "These BZones have no housing units:",
-          paste(paste0(Data_df$Geo[noHousing],"(",Data_df$Year[noHousing],")"),collapse=", ")
+          c(
+            "These BZones have no housing units:",
+            paste0(Data_df$Geo[noHousing],"(",Data_df$Year[noHousing],")")
+          )
         )
-        visioneval::writeLog(Msg,Level="error")
         FileValidation_ls$Errors <- c(FileValidation_ls$Errors,Msg)
       }
     }

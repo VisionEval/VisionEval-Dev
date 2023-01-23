@@ -116,7 +116,7 @@ initModelState <- function(Save=TRUE,Param_ls=NULL,RunPath=NULL,envir=modelEnvir
   Messages_ <- CheckResults_ls$Messages
   if (length(Messages_) > 0) {
     writeLog(Messages_,Level="error")
-    stop(paste0("One or more errors in ", GeoFilePath, ". See log for details."))
+    stop(paste0("Errors found in ", GeoFilePath, ". See log for details."))
   } else {
     writeLog("Geographical indices successfully read.",Level="info")
   }
@@ -795,9 +795,9 @@ parseModuleCalls <- function( ModuleCalls_df, AlreadyInitialized=character(0), R
     #If any errors, print to log and stop execution
     if (length(Errors_) > 0) {
       Msg <-
-      paste0("There are one or more errors in the module calls:\n",
+      paste0("There are errors in the module calls:\n",
         "package not installed, or module not present in package, ",
-        "or errors in module specifications.")
+        "or invalid module specifications.")
       writeLog(c(Msg,Errors_),Level="error")
       stop(Msg," Check log for details")
     }
@@ -1443,7 +1443,7 @@ readGeography <- function(Save=TRUE,Param_ls=NULL) {
   Messages_ <- CheckResults_ls$Messages
   if (length(Messages_) > 0) {
     writeLog(Messages_,Level="error")
-    stop(paste0("One or more errors in ", GeoFilePath, ". See log for details."))
+    stop(paste0("Errors in ", GeoFilePath, ". See log for details."))
   } else {
     writeLog("Geographical indices successfully read.",Level="info")
   }
@@ -2040,7 +2040,7 @@ processInputFiles <- function(AllSpecs_ls) {
           }
         }
       } else {
-        writeLog(paste0("Logging some errors for ",EntryName),Level="error")
+        writeLog(paste0("Error in inputs for ",EntryName),Level="info")
         InpErrors_ <- c( InpErrors_, ProcessedInputs_ls[[EntryName]]$Errors )
       }
     }

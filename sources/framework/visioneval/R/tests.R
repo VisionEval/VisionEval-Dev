@@ -199,7 +199,7 @@ function(ModuleName,Param_ls=NULL,...) {
     writeLog(Msg,Level="error")
     writeLog(Errors_,Level="error")
     Msg <- paste0("Specifications for module '", ModuleName,
-      "' have one or more errors. Check the log for details.")
+      "' have errors. Check the log for details.")
     stop(Msg)
     rm(Msg)
   }
@@ -216,8 +216,8 @@ function(ModuleName,Param_ls=NULL,...) {
   if (length(DeveloperWarnings_) != 0) {
     writeLog(DeveloperWarnings_,Level="warn")
     Msg <- paste0(
-      "Specifications check for module '", ModuleName, "' generated one or ",
-      "more warnings. Check log for details."
+      "Specifications check for module '", ModuleName,
+      "' generated warnings. Check log for details."
     )
     warning(Msg)
     rm(DeveloperWarnings_ls, DeveloperWarnings_, Msg)

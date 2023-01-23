@@ -1087,8 +1087,8 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
     if (length(Err_) != 0) {
       Msg <-
         paste0(
-          "'RunFor' specification for module '", ModuleName,
-          "' has one or more errors as follows.")
+          "'RunFor' specification for module '", ModuleName,"' has errors."
+        )
       Errors_ <- c(Errors_, Msg, Err_)
     }
   }
@@ -1098,8 +1098,8 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
   if (length(Err_) != 0) {
     Msg <-
       paste0(
-        "'RunBy' specification for module '", ModuleName,
-        "' has one or more errors as follows.")
+        "'RunBy' specification for module '", ModuleName,"' has  errors"
+      )
     Errors_ <- c(Errors_, Msg, Err_)
   }
   rm(Err_)
@@ -1115,7 +1115,7 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
       Msg <-
         paste0(
           "'NewInpTable' specification for module '", ModuleName,
-          "' has one or more errors as follows.")
+          "' has errors as follows.")
       Errors_ <- c(Errors_, Msg, Err_)
     }
     rm(Err_)
@@ -1131,8 +1131,8 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
     if (length(Err_) != 0) {
       Msg <-
         paste0(
-          "'NewSetTable' specification for module '", ModuleName,
-          "' has one or more errors as follows.")
+          "'NewSetTable' specification for module '", ModuleName,"' has errors."
+        )
       Errors_ <- c(Errors_, Msg, Err_)
     }
     rm(Err_)
@@ -1149,7 +1149,7 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
       Msg <-
         paste0(
           "'Inp' specification for module '", ModuleName,
-          "' has one or more errors as follows.")
+          "' has errors as follows.")
       Errors_ <- c(Errors_, Msg, Err_)
     }
     rm(Err_)
@@ -1165,8 +1165,8 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
     if (length(Err_) != 0) {
       Msg <-
         paste0(
-          "'Get' specification for module '", ModuleName,
-          "' has one or more errors as follows.")
+          "'Get' specification for module '", ModuleName,"' has errors."
+        )
       Errors_<- c(Errors_, Msg, Err_)
     }
     rm(Err_)
@@ -1183,7 +1183,7 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
       Msg <-
         paste0(
           "'Set' specification for module '", ModuleName,
-          "' has one or more errors as follows.")
+          "' has errors as follows.")
       Errors_<- c(Errors_, Msg, Err_)
     }
     rm(Err_)
@@ -1224,7 +1224,7 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
           Msg <-
             paste0(
               "'Call' specification for module '", ModuleName,
-              "' is incorrect. The value for '", name, "' is not a string."
+              "': The value for '", name, "' is not a string."
             )
           Errors_ <- c(Errors_, Msg)
         }
@@ -1236,7 +1236,7 @@ checkModuleSpecs <- function(Specs_ls, ModuleName) {
   #-------------
   if (length(Errors_) != 0) {
     Msg <- paste0(
-      "Module ", ModuleName, " has one or more errors as follow:"
+      "Module ", ModuleName, " has errors."
     )
     Errors_ <- c(Msg, Errors_)
   }
@@ -1631,6 +1631,9 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
   }
 
   #IDENTIFY MODULE-SPECIFIC VALIDATION FUNCTIONS (Applied Below)
+  # These functions are intended to do row-level validation on the input data
+  # Versus column-level validation which is controlled by the data item spec
+  # Archetypal application is making sure that each Bzone has at least one dwelling unit of any type
   ValidationFunctionName <- paste0(PackageName, "::", ModuleName, "ValidateInputFile")
   ValidationFunction <- try( eval(parse(text = ValidationFunctionName)), silent=TRUE ) # Should produce a "function"
   if ( ! is.function(ValidationFunction) ) {
@@ -1932,39 +1935,34 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
       }
     }
 
-    # Set up to identify and report validation errors on data columns
+    # Set up to identify and report validation errors on data rows and columns
 
     DataErr_ls <- list(Errors = character(0), Warnings = character(0))
 
+    #Row validation is performed by Module-Specific validation functions
+    #   <ModuleName>ValidateInputFile
+    # Define that function in the Module .R file
+
     #Perform Module-Specific validation function, if there is one
     # ValidationFunction was created above
-    # Find the validation function - no problem if there isn't one
     # If the function does exist, pass it these parameters:
     #    File (name of current .csv file)
     #    Data_df (the rectified data.frame with the input file contents)
-    # The function should do "cross-column" checking (proportions < 1, areas > 0, etc.)
-    # The function should return a list with character vectors of errors and warnings
+    # The function should do row checking (proportions < 1, areas > 0, etc.)
+    # The function should return a named list with character vectors "Errors" and "Warnings"
     if ( is.function(ValidationFunction) ) {
       FileValidation_ls <- ValidationFunction(File,Data_df)
-      message("File validation results")
-      print(FileValidation_ls)
-      if (length(FileValidation_ls$Errors) != 0) {
-        DataErr_ls$Errors <-
-        c(DataErr_ls$Errors, FileValidation_ls$Errors)
+      if (length(FileValidation_ls$Errors) > 0) {
+        DataErr_ls$Errors   <- c(DataErr_ls$Errors, FileValidation_ls$Errors)
       }
-      if (length(FileValidation_ls$Warnings) != 0) {
-        DataErr_ls$Warnings <-
-        c(DataErr_ls$Warnings, FileValidation_ls$Warnings)
+      if (length(FileValidation_ls$Warnings) > 0) {
+        DataErr_ls$Warnings <- c(DataErr_ls$Warnings, FileValidation_ls$Warnings)
       }
-      if ( length(DataErr_ls$Errors)>0 || length(DataErr_ls$Warnings)>0 ) {
-        writeLog("Errors reported by ValidationFunctions",Level="info")
-      }
-      print(DataErr_ls)
     }
 
     #Check and load data into list
     #-----------------------------
-    # These checks are based on individual data columns
+    # These checks examine individual data columns based on column Inp Specification
     for (Name in names(Spec_ls)) {
       ThisSpec_ls <- Spec_ls[[Name]]
       Data_ <- Data_df[[Name]]
@@ -2013,39 +2011,31 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
       Data_ls[[Group]][[Table]][[Name]] <- Data_
     }
 
-    message(PackageName,"::",ModuleName," consolidating warnings and errors")
-    print(DataErr_ls)
-
     # Accumualte sum of errors and warnings
     if (length(DataErr_ls$Errors) != 0) {
       Msg <-
       paste0(
-        "Input file error for module '", PackageName,"::",ModuleName,
-        "' for input file '", File, "'. ",
-        "Has one or more errors in the data inputs as follows:"
+        "Input file errors for module '", PackageName,"::",ModuleName,
+        "' in file '", File, "':"
       )
       FileErr_ <- c(FileErr_, Msg, DataErr_ls$Errors)
-      writeLog(FileErr_,Level="error")
+#      writeLog(FileErr_,Level="error")
     }
     FileErr_ls <- c(FileErr_ls, FileErr_)
     if (length(DataErr_ls$Warnings) != 0) {
       Msg <-
       paste0(
         "Input file warnings for module '", PackageName,"::",ModuleName,
-        "' for input file '", File, "'. ",
-        "Has one or more warnings for the data inputs as follows:"
+        "' in file '", File, "':"
       )
       FileWarn_ <- c(FileWarn_, Msg, DataErr_ls$Warnings)
-      writeLog(FileWarn_,Level="warn")
+#      writeLog(FileWarn_,Level="warn")
     }
     FileWarn_ls <- c(FileWarn_ls, FileWarn_)
   } #End loop through input files
 
-  message("FileErr_ls and FileWarn_ls for module ",PackageName,"::",ModuleName)
-  print(FileErr_ls)
-  print(FileWarn_ls)
-
   #RETURN THE RESULTS
+  # Success (No Errors) will allow Data to be added to Datastore
   list(
     Errors = unlist(FileErr_ls),
     Warnings = unlist(FileWarn_ls),

@@ -1126,7 +1126,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
     if (!is.null(R$Errors)) {
       writeLog(Errors_,Level="error")
       Msg <-
-        paste0("Module ", ModuleFunction, " has reported one or more errors. ",
+        paste0("Module ", ModuleFunction, " has errors. ",
                "Check log for details.")
       stop(Msg)
     }
@@ -1134,7 +1134,7 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
     if (!is.null(R$Warnings)) {
       writeLog(Warnings_,Level="error")
       Msg <-
-        paste0("Module ", ModuleFunction, " has reported one or more warnings. ",
+        paste0("Module ", ModuleFunction, " has warnings. ",
                "Check log for details.")
       warning(Msg)
       rm(Msg)
@@ -1182,14 +1182,14 @@ runModule <- function(ModuleName, PackageName, RunFor, RunYear, Instance=charact
       if (!is.null(R$Errors)) {
         writeLog(Errors_,Level="error")
         Msg <-
-          paste0("Module ", ModuleFunction, " has reported one or more errors. ",
+          paste0("Module ", ModuleFunction, " has errors. ",
                  "Check log for details.")
         stop(Msg)
       }
       #Handle warnings
       if (!is.null(R$Warnings)) {
         Msg <-
-          paste0("Module ", ModuleFunction, " has reported one or more warnings. ",
+          paste0("Module ", ModuleFunction, " has warnings. ",
                  "Check log for details.")
         writeLog(c(Msg,Warnings_),Level="warn")
       }
@@ -1384,14 +1384,14 @@ runScript <- function(Module, Specification=NULL, RunFor, RunYear, writeDatastor
     #Handle errors
     if (!is.null(R$Errors)) {
       Msg <-
-        paste0("Module ", ModuleName, " has reported one or more errors. ",
+        paste0("Module ", ModuleName, " has errors. ",
                "Check log for details.")
       writeLog(c(Msg,Errors_),Level="errors")
     }
     #Handle warnings
     if (!is.null(R$Warnings)) {
       Msg <-
-        paste0("Module ", ModuleName, " has reported one or more warnings. ",
+        paste0("Module ", ModuleName, " has warnings. ",
                "Check log for details.")
       writeLog(c(Msg,Warnings_),Level="warn")
     }
@@ -1434,14 +1434,14 @@ runScript <- function(Module, Specification=NULL, RunFor, RunYear, writeDatastor
       #Handle errors
       if (!is.null(R$Errors)) {
         Msg <-
-          paste0("Module ", ModuleName, " has reported one or more errors. ",
+          paste0("Module ", ModuleName, " has errors. ",
                  "Check log for details.")
         writeLog(c(Msg,Errors_),Level="error")
       }
       #Handle warnings
       if (!is.null(R$Warnings)) {
         Msg <-
-          paste0("Module ", ModuleName, " has reported one or more warnings. ",
+          paste0("Module ", ModuleName, " has warnings. ",
                  "Check log for details.")
         writeLog(c(Msg,Warnings_),Level="warn")
       }
