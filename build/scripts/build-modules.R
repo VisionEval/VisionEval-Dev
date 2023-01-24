@@ -232,12 +232,10 @@ for ( module in seq_along(package.names) ) {
   src.module <- source.modules[package.names[module]]
 
   # Step 1: picky message to see if we're updating or creating the module fresh
-  if ( ! (me <- moduleExists(package.names[module], built.path.src)) ) {
-    if ( me ) { # module exists
-      cat("++++++++++ UPDATING package",package.names[module],"\nfrom",package.paths[module],"(Exists: ",me,")\n")
-    } else {
-      cat("++++++++++ CREATING package",package.names[module],"\nfrom",package.paths[module],"(Exists:",me,")\n")
-    }
+  if ( moduleExists(package.names[module], built.path.src) ) {
+    cat("\n++++++++++ UPDATING package",package.names[module],"\nfrom",package.paths[module],"\n")
+  } else {
+    cat("\n++++++++++ CREATING package",package.names[module],"\nfrom",package.paths[module],"\n")
   }
 
   # Step 2: Determine package status (built, installed)
