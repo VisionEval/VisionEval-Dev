@@ -355,7 +355,7 @@ ve.results.extract <- function(
     stop("Nothing selected to extract.")
   }
 
-  saving <- !is.missing(saveTo) && is.character(saveTo) && nzchar(saveTo)[1]
+  saving <- !missing(saveTo) && is.character(saveTo) && nzchar(saveTo)[1]
   if ( saving ) {
     saveTo <- saveTo[1]
     outputPath <- if ( isAbsolutePath(saveTo) ) saveTo else file.path(self$resultsPath,saveTo)

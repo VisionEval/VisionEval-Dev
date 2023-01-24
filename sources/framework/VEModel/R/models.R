@@ -351,13 +351,8 @@ ve.model.torun <- function( reset="continue", details=FALSE ) {
 # configure installs the model parameters (initializing or re-initializing)
 # `fromFile` says to reload self$loadParam_ls, otherwise use self$runParam_ls; it is rarely desirable
 #   to change the default, which supports in-memory modifications.
-# `reset` says what to do when configuring a model that already has results (see ve.model.check)
 # 
-ve.model.configure <- function(modelPath=NULL, fromFile=TRUE, reset="continue") {
-
-  # TODO: need to comprehensively find most recent date (or perhaps eventually a checksum)
-  # on each file used to construct the model configuration. Need to be able to identify
-  # interactive changes...
+ve.model.configure <- function(modelPath=NULL, fromFile=TRUE) {
 
   if ( missing(modelPath) || ! is.character(modelPath) ) {
     modelPath <- self$modelPath
@@ -735,15 +730,12 @@ ve.model.initstages <- function( modelStages ) {
 # Initialize a VEModel from modelPath
 # modelPath may be a full path, and will be expanded into known model directories
 #  if it is a relative path.
-# "reset" parameter says what to do if the opened model contains out-of-date results.
-# In general "continue" is appropriate; an instruction will be issued to the log if
-# model is out of date, in which case the user will need to specify "save" or "reset".
 
-ve.model.init <- function(modelPath, reset="continue") {
+ve.model.init <- function(modelPath) {
   writeLog(paste("Finding",modelPath),Level="info") # for debugging point of failure
   modelPath <- findModel(modelPath) # expand to disk location
   if ( nzchar(modelPath) ) {
-    self$configure(modelPath, reset=reset) # actually do the initialization
+    self$configure(modelPath) # actually do the initialization
   } else {
     self$updateStatus() # deliver the bad news on no model path
   }
@@ -2735,13 +2727,11 @@ ve.model.query <- function(QueryName=NULL,FileName=NULL,load=TRUE) {
 #'
 #' @param modelPath Directory containing a VisionEval model; if an empty character string is
 #'     provided, prints a list of available models (see details)
-#' @param reset is one of "save", "reset", "continue" and explains how to handle models that
-#'     have results from previous runs. See details.
 #' @param log a character string identifying the log level to be displayed
 #' @return A VEModel object or a VEModelList of available models if no modelPath or modelName is
 #'     provided; see details and `vignette("VEModel")`
 #' @export
-openModel <- function(modelPath="",reset="continue",log="error") {
+openModel <- function(modelPath="",log="error") {
   if ( missing(modelPath) || !nzchar(modelPath) ) {
     return(
       dir(
@@ -2753,7 +2743,7 @@ openModel <- function(modelPath="",reset="continue",log="error") {
     )
   } else {
     if ( !is.null(log) ) initLog(Save=FALSE,Threshold=log, envir=new.env())
-    return( VEModel$new(modelPath = modelPath, reset=reset) )
+    return( VEModel$new(modelPath = modelPath) )
   }
 }
 
