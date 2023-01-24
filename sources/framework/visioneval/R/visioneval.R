@@ -301,6 +301,7 @@ getModelParameters <- function(DotParam_ls=list(),DatastoreName=NULL,LoadDatasto
 #' @param onlyExisting a logical - if TRUE and not modelRunning(), simply load an existing model state.
 #'   if FALSE, create a new model state in memory if there is not one already
 #' existing model state. Ignored if modelRunning().
+#' @param updateCheck if FALSE, skip the upToDate check for existing results
 #' @param RunDir the directory in which to seek/create the model run
 #' @param envir The environment into which to load the ModelState
 #' @return The ModelState_ls that was constructed (or NULL if only loading a non-existent one)
@@ -309,6 +310,7 @@ loadModel <- function(
   RunParam_ls,
   Message = "Initializing Model. This may take some time...",
   onlyExisting = FALSE,
+  updateCheck = TRUE, # but will only run if onlyExisting is also TRUE
   RunDir = getwd(),
   envir = modelEnvironment()
 ) {
@@ -348,40 +350,77 @@ loadModel <- function(
     )
   }
 
+  #========================================================
+  # MAKE SURE Years AND BaseYear ARE CHARACTERS NOT NUMBERS
+  #========================================================
+
+  # Reformat BaseYear and Years if they were entered as numbers
+  # Classically, they went in as strings. Numbers are more natural to
+  # write.
+
+  if ( is.numeric(RunParam_ls$BaseYear) ) {
+    existing <- getRunParameter("BaseYear",Param_ls=RunParam_ls)
+    source <- attr(existing,"source")
+    RunParam_ls <- addRunParameter(RunParam_ls,BaseYear=as.character(existing),Source=source)
+  }
+  if ( is.numeric(RunParam_ls$Years) ) {
+    # Copy the source from RunParam_ls
+    existing <- getRunParameter("Years",Param_ls=RunParam_ls)
+    source <- attr(existing,"source")
+    RunParam_ls <- addRunParameter(RunParam_ls,Years=as.character(existing),Source=source)
+  }
+
   #================================
   # ESTABLISH MODEL STATE IN MEMORY
   #================================
 
-  # In memory only for now: We'll start saving the model state later
-  if ( ! RunModel ) {
+  # Initialize a fresh model state
+  # With Save=FALSE, will construct in memory and not touch the file system
+  # ModelState gets written as we get deeper into the run
+
+  # If only loading (not Running and wanting existing ModelState_ls)
+  if ( ! RunModel && onlyExisting ) {
     if ( file.exists(envir$ModelStatePath) ) {
-      newRunParam_ls <- loadModelState(envir$ModelStatePath,envir=envir)
+      oldRunParam_ls <- loadModelState(envir$ModelStatePath,envir=envir)
       ms <- envir$ModelState_ls
-      if ( is.null(ms) ) ms <- list() # file may have nothing in it, yielding a failure
+      if ( !is.list(ms) ) ms <- list() # file may have nothing in it, yielding a failure
     } else {
       ms <- list()
     }
-    if ( length(ms) > 0 ) {
-      # TODO: compare the RunParam_ls returned from loadModelState with RunParam_ls passed as a parameter
-      # If existing model state, change RunStatus to "Out of Date" in saved ModelState
+    # Opening existing model results rather than building a new ModelState_ls
+    if ( length(ms)>0 ) {
+      if ( updateCheck ) {
+        # Finish building ModelState_ls from current RunParam_ls and compare to previous result
+        writeLog("Checking updated RunParam_ls against previous ModelState_ls",Level="info")
+        testRunParam_ls <- initModelState(Save=FALSE,Param_ls=RunParam_ls,envir=new.env()) # transient environment
+
+        # Set OutOfDate flag if RunParam_ls does not sufficiently match what is in the ModelState_
+        upToDate <- checkUpToDate( testRunParam_ls, oldRunParam_ls, ms$LastChanged )
+        if ( ! upToDate$Status ) {
+          outOfDateMsg <- "(Out of Date)"
+          writeLog(paste("Opened existing ModelState_ls ",outOfDateMsg),Level="warning")
+          writeLog(upToDate$Changed,Level="warning")
+        } else {
+          outOfDateMsg <- paste0("(Up to date with ",length(ms)," elements)")
+          writeLog("Opened existing ModelState_ls",Level="info")
+          if ( length(upToDate$Changed)>0 ) writeLog(upToDate$Changed,Level="info")
+        }
+        # Shorthand to relay out of date status to caller
+        ms$UpToDate <- upToDate$Status
+      } else ms$UpToDate <- TRUE
+    } else {
+      writeLog("No existing ModelState_ls",Level="info")
+      ms$UpToDate <- FALSE
     }
-    if ( onlyExisting ) {
-      # Stop here if we don't want to build a new model state (used in VEModel findModel)
-      if ( length(ms)>0 ) {
-        writeLog(paste("Opened existing ModelState_ls",length(ms)),Level="info")
-      } else {
-        writeLog("No existing ModelState_ls",Level="info")
-      }
-      return(ms) # Returns empty list if no ModelState_ls
-    } 
+    return(ms) # Returns empty list if no ModelState_ls
   }
+
   # If we get here we might be running the model, or building an in-memory ModelState_ls
   #   for use (e.g.) in reporting the module specifications (prior to any run).
   #   Any existing ModelState_ls will be erased and rebuilt. If running with VEModel, the run
   #   wrapper there will already have made sure the past ModelState is out of the way.
 
-  # Initialize a fresh model state, replacing any that might already exist
-  # Update later if loading existing datastore
+  # Finish constructing the ModelState_ls
   writeLog("Initializing new ModelState_ls",Level="info")
   newRunParam_ls <- initModelState(Save=FALSE,Param_ls=RunParam_ls,envir=envir)
 
@@ -438,7 +477,6 @@ loadModel <- function(
   RunDstore$Name <- getRunParameter("DatastoreName",Param_ls=newRunParam_ls)
   RunDstore$Name <- normalizePath(RunDstore$Name, winslash = "/", mustWork = FALSE)
   RunDstore$Dir  <- dirname(RunDstore$Name)
-  newRunParam_ls$RunDstore <- RunDstore # TODO: check that this structure still has a purpose
   setModelState(list(RunDstore=RunDstore),Save=FALSE,envir=envir) # for use in this model run
 
   # Allow explicit function parameter to be overridden from newRunParam_ls if defined there
@@ -674,7 +712,7 @@ loadModel <- function(
   #==============================
 
   envir$RunParam_ls <- newRunParam_ls
-  setModelState(list(RunParam_ls=newRunParam_ls),Save=FALSE,envir=envir)
+  setModelState(list(RunParam_ls=newRunParam_ls,UpToDate=TRUE),Save=FALSE,envir=envir)
 
   # If not running model, we've done everything needed from initializeModel. Additional setup
   # operations (parsing model script, examining StartFrom, loading module specifications

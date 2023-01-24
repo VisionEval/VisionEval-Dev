@@ -58,11 +58,6 @@ initModelState <- function(Save=TRUE,Param_ls=NULL,RunPath=NULL,envir=modelEnvir
     stop( writeLog(Message,Level="error") )
   }
 
-  # Reformat BaseYear and Years if they were entered as numbers
-  # Classically, they went in as strings. Numbers are more natural to write.
-  if ( is.numeric(Param_ls$BaseYear) ) Param_ls$BaseYear <- as.character(Param_ls$BaseYear)
-  if ( is.numeric(Param_ls$Years) ) Param_ls$Years <- as.character(Param_ls$Years)
-
   # Install the parameters that do exist - the required parameters become the foundation for
   # ModelState_ls. Other parameters are placed in newModelState_ls$RunParameters,
   # (including things like ParamDir, UnitsFile, etc.)
@@ -147,8 +142,6 @@ initModelState <- function(Save=TRUE,Param_ls=NULL,RunPath=NULL,envir=modelEnvir
   #   ModelState.Rda is the model description for this run
   #   Datastore are the model results for this run
   if ( Save) save("ModelState_ls", envir=model.env, file = file.path(RunPath,getModelStateFileName(model.env$RunParam_ls)))
-
-  writeLog(paste0("Parameter Names from initModelState:\n",paste(names(model.env$RunParam_ls),collapse=",")),Level="info")
 
   return(Param_ls) 
 }
@@ -388,8 +381,10 @@ loadModelState <- function(FileName=getModelStateFileName(),envir=NULL) {
   }
   ModelState_ls <- get0( "ModelState_ls", envir=envir, ifnotfound=list() )
   if ( length(ModelState_ls) > 0 ) {
+    writeLog("Saved RunParam_ls from ModelState_ls",Level="info")
     Param_ls <- ModelState_ls$RunParam_ls
   } else {
+    writeLog("RunParam_ls from environmentment",Level="info")
     Param_ls <- get0( "RunParam_ls", envir=envir, ifnotfound=list() )
   }
   return ( Param_ls )

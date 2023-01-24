@@ -1526,7 +1526,7 @@ ve.stage.runnable <- function(priorStages) {
   }
   writeLog(paste("DatastoreType:",self$RunParam_ls$DatastoreType),Level="info")
 
-  # Check if stage can run (enough parameters to run visioneval::loadModel and visioneval::prepareModelRun)
+  # Check if stage can run (enough parameters)
   missingParameters <- visioneval::verifyModelParameters(self$RunParam_ls)
   private$complete <- length(missingParameters) == 0
   if ( ! private$complete ) {
@@ -1555,7 +1555,7 @@ ve.stage.runnable <- function(priorStages) {
 # Load the model state for the stage
 # Create it if onlyExisting=FALSE (that's a time-consuming operation)
 # if reset==TRUE, force reload/rebuild of ModelState when model runs
-ve.stage.load <- function(onlyExisting=TRUE,reset=FALSE) {
+ve.stage.load <- function(onlyExisting=TRUE,reset=FALSE, updateCheck=TRUE) {
   # TODO: handle reset below. Should always loadModel, but not necessarily save what we found
   if ( reset ) self$ModelState_ls <- NULL
   if ( is.null(self$ModelState_ls) ) {
@@ -1566,8 +1566,12 @@ ve.stage.load <- function(onlyExisting=TRUE,reset=FALSE) {
       setwd(self$RunPath)
     } else setwd(self$RunParam_ls$ModelDir)
     on.exit(setwd(owd))
-    ms <- visioneval::loadModel(self$RunParam_ls,onlyExisting=onlyExisting,Message=paste("Loading Model",self$modelName))
-    # visioneval::loadModelIncludes a check for existing but out-of-date results
+    ms <- visioneval::loadModel(
+      self$RunParam_ls,
+      onlyExisting=onlyExisting,
+      updateCheck=updateCheck,
+      Message=paste("Loading Model",self$modelName)
+    )
     if ( is.list(ms) && length(ms)>0 ) { # Stash the ModelState if created successfully
       self$ModelState_ls <- ms
       if ( ! "RunStatus" %in% names(self$ModelState_ls) ) {
@@ -1611,9 +1615,9 @@ run.function <- function() {
       # Initialize Log, create new ModelState
       ve.model$RunModel <- TRUE
       visioneval::initLog(Threshold=log,Save=TRUE,envir=ve.model) # Log stage
-      visioneval::loadModel(RunParam_ls)
-      visioneval::setModelState()                       # Save ModelState.Rda
-      visioneval::prepareModelRun()                     # Initialize Datastore
+      visioneval::loadModel(RunParam_ls) # Rebuild the ModelState_ls
+      visioneval::setModelState()        # Save ModelState.Rda
+      visioneval::prepareModelRun()      # Initialize Datastore
 
       # Run the model script
       sys.source(RunParam_ls$ModelScriptPath,envir=new.env())
@@ -1742,7 +1746,7 @@ ve.stage.completed <- function( runStatus=NULL ) {
     }
   }
   self$RunStatus <- runStatus
-  self$load(onlyExisting=TRUE)
+  self$load(onlyExisting=TRUE,updateCheck=FALSE) # Don't need to check since we just ran it
 }
 
 # Print a model stage summary
