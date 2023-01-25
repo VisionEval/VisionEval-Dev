@@ -2135,7 +2135,7 @@ ve.model.run <- function(run="continue",stage=character(0),watch=TRUE,dryrun=FAL
     }
 
     # Recreate the results directory in case it is not there after archiving or on first run
-    if ( ! dir.exists(workingResultsDir) ) {
+    if ( ! dir.exists(workingResultsDir) ) {      
       dir.create(workingResultsDir,showWarnings=FALSE)
       # Later create sub-directories for the stages as necessary
     }
@@ -2333,7 +2333,7 @@ ve.model.run <- function(run="continue",stage=character(0),watch=TRUE,dryrun=FAL
 
   # Update overall model status if we did something that might have changed it
   if ( ! dryrun ) {
-    self$updateStatus() # "Worst"/Lowest RunStatus for the overall model
+    self$load(onlyExisting=TRUE) # revisit all the run results and update the statuses
   }
   return(invisible(self$overallStatus))
 }
