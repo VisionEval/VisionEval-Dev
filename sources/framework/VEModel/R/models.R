@@ -592,7 +592,7 @@ ve.model.initstages <- function( modelStages ) {
         modelStages[reportable],
         function(s) {
           if ( ! s$IsScenario ) { # reportable stage is not associated with Scenarios
-            # Probably the StartFrom stage
+            # Probably the StartFrom stage / Base scenario
             elementNames <- names(scenarios$Elements) # may be NULL
             s$ScenarioElements <- rep("0",length(elementNames))
             names(s$ScenarioElements) <- elementNames
@@ -604,6 +604,19 @@ ve.model.initstages <- function( modelStages ) {
     for ( r in seq_along(stageNames) ) {
       modelStages[[r]]$Reportable <- reportable[r]
     }
+
+    # Propagate Out of Date status from StartFrom to descendents
+    sapply( modelStages,
+      function(s) {
+        if (
+          s$RunStatus == codeStatus("Run Complete") && nzchar(s$StartFrom) &&
+          modelStages[[s$StartFrom]]$RunStatus != codeStatus("Run Complete")
+        ) {
+          s$RunStatus <- codeStatus("Out of Date")
+        }
+        s$RunStatus
+      }
+    )
   }
 
   return( modelStages )
@@ -1451,11 +1464,11 @@ ve.stage.load <- function(onlyExisting=TRUE,reset=FALSE, updateCheck=TRUE) {
     )
     if ( is.list(ms) && length(ms)>0 ) { # Stash the ModelState if created successfully
       self$ModelState_ls <- ms
-      if ( "UpToDate" %in% names(self$ModelState_ls) ) {
-        self$ModelState_ls$RunStatus <- if ( ! self$ModelState_ls$UpToDate ) codeStatus("Out of Date")
-      }
       if ( ! "RunStatus" %in% names(self$ModelState_ls) ) {
         self$ModelState_ls$RunStatus <- codeStatus("Loaded")
+      }
+      if ( isFALSE(self$ModelState_ls$UpToDate) && self$ModelState_ls$RunStatus == codeStatus("Run Complete") ) {
+        self$ModelState_ls$RunStatus <- codeStatus("Out of Date")
       }
       self$RunStatus <- self$ModelState_ls$RunStatus
       return(TRUE)
@@ -2192,8 +2205,9 @@ ve.model.run <- function(run="continue",stage=NULL,watch=TRUE,dryrun=FALSE,limit
         # inline execution will mark stage complete and reload the stage
         writeLog( stg$processStatus(), Level="warn")
         if ( stg$RunStatus != codeStatus("Run Complete") ) {
+          browser() # examine attribute of model state run status
           stop (
-            writeLog("Run Failed.",Level="error")
+            writeLog(c("Run Failed.",stg$RunStatus),Level="error")
           )
         }
       }
