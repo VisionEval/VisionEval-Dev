@@ -398,12 +398,12 @@ loadModel <- function(
         upToDate <- checkUpToDate( testRunParam_ls, oldRunParam_ls, ms$LastChanged )
         if ( ! upToDate$Status ) {
           outOfDateMsg <- "(Out of Date)"
-          writeLog(paste("Opened existing ModelState_ls ",outOfDateMsg),Level="warning")
-          writeLog(upToDate$Changed,Level="warning")
+          writeLog(paste("Opened existing ModelState_ls",outOfDateMsg),Level="warning")
+          writeLog(upToDate$Changes,Level="warning")
         } else {
           outOfDateMsg <- paste0("(Up to date with ",length(ms)," elements)")
           writeLog("Opened existing ModelState_ls",Level="info")
-          if ( length(upToDate$Changed)>0 ) writeLog(upToDate$Changed,Level="info")
+          if ( length(upToDate$Changes)>0 ) writeLog(upToDate$Changes,Level="info")
         }
         # Shorthand to relay out of date status to caller
         ms$UpToDate <- upToDate$Status

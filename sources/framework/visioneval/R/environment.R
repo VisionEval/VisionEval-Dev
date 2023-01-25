@@ -659,18 +659,18 @@ loadConfiguration <- function( # if all arguments are defaulted, return an empty
 #' @param newRP RunParam_ls (intended to be built from scratch from configuration files)
 #' @param lastRun is either a date object (as would appear in ModelState_ls$LastChanged) or NULL.
 #'   If not null, triggers examination of key file dates to see if results are up to date.
-#' @return a list with two elements: $Status, which will be TRUE if no significant differences,
-#'    and $Changed which is a character vector of messages describing what is different. $Changed
-#'    will exist if there are any changes, even if they are not significant.
+#' @return a list with two elements: $Status, which will be TRUE if no significant differences, and
+#'    $Changes which is a character vector of messages describing what is different. $Changes will
+#'    exist if there are any changes, even if they are not significant.
 #' @export
 checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
   if ( ! is.list(baseRP) || ! is.list(newRP) ) {
     return( list(Changed="Missing RunParam_ls for UpToDate check",Status=FALSE) )
   }
   # Function to set parameter name
-  augment <- function(within,nm) {
+  augment <- function(inScope,nm) {
     return (
-      if ( nzchar(within) ) paste0(within,"::",nm) else nm
+      if ( nzchar(inScope) ) paste0(inScope,"::",nm) else nm
     )
   }
 
@@ -701,7 +701,7 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
     Within    =character(0)
   )
   # Function to recurse into a list comparing names:
-  checkList <- function( changed, baseRP, newRP, within="" ) {
+  checkList <- function( changed, baseRP, newRP, inScope="" ) {
     baseNames <- names(baseRP)
     newNames <- names(newRP)
     # names in base but not existing
@@ -709,13 +709,10 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
       Names = (chgNames <- setdiff(baseNames,newNames)),
       Important = important(chgNames),
       Change = rep("Added",length(chgNames)),
-      Within = rep(within,length(chgNames))
+      Within = rep(inScope,length(chgNames))
     )
 
     if ( nrow(changedBase) > 0 ){
-      message("Added to ",within)
-      print(changedBase)
-      message("--- changedBase")
       changed <- rbind(changed,changedBase)
     }
     
@@ -724,27 +721,24 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
       Names = (chgNames <- setdiff(newNames,baseNames)),
       Important = important(chgNames),
       Change = rep("Removed",length(chgNames)),
-      Within = rep(within,length(chgNames))
+      Within = rep(inScope,length(chgNames))
     )
 
     if ( nrow(changedNew) > 0 ) {
-      message("Removed from ",within)
-      print(changedNew)
-      message("--- changedNew")
       changed <- rbind(changed,changedNew)
     }
 
     inBoth = intersect(baseNames,newNames)
     for ( nm in inBoth ) {
       if ( is.list(baseRP[[nm]]) && is.list(newRP[[nm]]) ) {
-        changed <- checkList(changed, baseRP[[nm]],newRP[[nm]],within=augment(within,nm))
+        changed <- checkList(changed, baseRP[[nm]],newRP[[nm]],inScope=augment(inScope,nm))
       } else if ( ! identical(baseRP[[nm]],newRP[[nm]]) ) {
         changed <- rbind( changed,
           oneChange <- data.frame(
             Names = nm,
             Important = important(nm),
             Change = paste("Changed",baseRP[[nm]],"to",newRP[[nm]],collapse=","),
-            Within = within
+            Within = inScope
           )
         )
       }
@@ -759,6 +753,12 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
     # Model Script is obviously very important!
     changedFile <- function(changed,parameter,filepath) {
       if ( file.mtime(filepath) > lastRun ) {
+        writeLog(
+          c(
+            paste("Changed file:",basename(filepath)),
+            paste("File:",file.mtime(filepath)," vs. ModelState:",lastRun)
+          ), Level="info"
+        )
         changed <- rbind( changed,
           data.frame(
             Names = parameter,
@@ -767,9 +767,16 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
               "Changed:",
               gsub(newRP$ModelDir,"",filepath)
             ),
-            Within = within
+            Within = ""
           )
         )
+      } else {
+#         writeLog(
+#           c(
+#             paste("Unchanged:",basename(filepath)),
+#             paste("File:",file.mtime(filepath)," vs. ModelState:",lastRun)
+#           ), Level="trace"
+#         )
       }
       return(changed)
     }
@@ -786,10 +793,11 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
   # Convert "changed" data.frame to a list of descriptive strings and
   #   set the status based on whether there are important
   #   differences.
-  if ( nrow(changed)>1 ) {
+  if ( nrow(changed) > 0 ) {
+    writeLog("Changes detected in model configuration.",Level="info")
     result <- list(
       Status = ! any(changed$Important), # Status is TRUE (up to date) if nothing Important changed
-      Changes <- gsub(" +$","",
+      Changes = gsub(" +$","",
         with(changed,
           paste(
             ifelse(nzchar(Within),paste0(,"::",Names),Names),
@@ -800,7 +808,9 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
         )
       )
     )
-  } else list(Status=TRUE,Changed=character(0)) # All is well
+    if ( length(result$Changes)>0 ) writeLog(result$Changes,Level="trace") else writeLog("result$Changes empty despite changes",Level="trace")
+  } else result <- list(Status=TRUE,Changed=character(0)) # All is well
+  return(result)
 }
 
 # FIND FILE ON PATH
