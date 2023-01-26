@@ -221,6 +221,7 @@ AssignVehicleOwnershipSpecifications <- list(
       GROUP = "Year",
       TYPE = "compound",
       UNITS = "VEH/DRV",
+      SIZE = 0,
       NAVALUE = -1,
       PROHIBIT = c("NA", "< 0"),
       ISELEMENTOF = "",
