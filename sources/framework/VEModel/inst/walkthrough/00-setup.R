@@ -47,4 +47,10 @@ local( {  # Wrapping in "local" will leave no new names in the user's environmen
   message(walkthrough.action," walkthrough runtime directory:")
   setwd(walkthroughRuntime)
   message(getwd())
+  # Make sure there is a "Models" directory in the actual runtime folder
+  modelRoot <- file.path(
+    walkthroughRuntime,
+    visioneval::getRunParameter("ModelRoot") # Uses runtime configuration or default value "models"
+  )
+  if ( ! dir.exists(modelRoot) ) dir.create(modelRoot,recursive=TRUE,showWarnings=FALSE)
 } )
