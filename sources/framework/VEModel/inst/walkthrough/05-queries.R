@@ -1,6 +1,9 @@
+# 05-queries.R
+# More detailed walkthrough of using queries to summarize scenarios
+
 require(VEModel)
 
-# Analyzing multiple scenarios is usually easier to perform if you run queries - extracting results
+# Analyzing multiple scenarios is usually easiest to perform if you run queries - extracting results
 # directly is designed to do just one scenario at a time, so you'll have to loop manually (or in
 # your own script) over all the scenarios (queries do that automatically). Plus, extracting a large
 # model's results will generate hundreds of megabytes of output data (perhaps even gigabytes...). A
@@ -9,6 +12,7 @@ require(VEModel)
 # queries is available at https://visioneval.org/docs.
 
 # Make sure the scenario model is installed and run
+# These first steps just 
 mod.scenarios <- if ( "VERSPM-scenarios" %in% dir("models") ) {
   openModel("VERSPM-scenarios")
 } else {

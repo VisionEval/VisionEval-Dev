@@ -1,5 +1,6 @@
-# scenarios.R -- tour the scenario sample models and explain how to
-# set up scenarios.
+# 04-scenarios.R
+# Tour the scenario sample models and explain how to set up scenarios
+#   and query the scenario results
 
 require(VEModel)
 
@@ -32,3 +33,7 @@ print(mod.scenarios)
 
 # Details can be interesting
 print(mod.scenarios,details=TRUE)
+
+# Once the mod.scenarios model is run, move on to the 05-queries
+# walkthrough to find out how to use queries and extract scenario
+# results.
