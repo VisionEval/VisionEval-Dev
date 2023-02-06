@@ -161,8 +161,7 @@ getSnapshotFields <- function(AllSpecs_ls=NA,Instance=character(0)) {
 
 #' Main Module function that copies datastore fields to new fields with a different name
 #' \code{Snapshot} takes a snapshot of Datastore fields. Use it as runModuleInstruction. See the
-#' VESnap sample model in VEModel for detailed instructions on setup and use. @param L A list
-#' containing the components listed in the Get specifications for the module.
+#' VESnap sample model in VEModel for detailed instructions on setup and use.
 #'
 #' Using LoopIndex and Instance in the runModule instruction (they are optional and may be left
 #' out) will append those to the output field names so multiple snapshots of the same value can be
@@ -234,4 +233,4 @@ Snapshot <- function( L, LoopIndex, Instance=character(0) ) {
 #===============================================================
 #Run module automatic documentation
 #----------------------------------
-documentModule("Snapshot")
+# visioneval::documentModule("Snapshot")
