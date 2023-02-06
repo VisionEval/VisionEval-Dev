@@ -73,7 +73,6 @@ cat("Script sources",test.msg,"...\n",sep="")
 
 copy.paths <- file.path(copy.scripts$Root, copy.scripts$Path, copy.scripts$Package)
 if ( length(copy.paths) > 0 ) {
-  print( copy.paths )
   for ( f in seq_along(copy.paths) ) {
     if ( nzchar(copy.scripts$Target[f]) ) {
       out.dir <- file.path(ve.runtime,copy.scripts$Target[f])
