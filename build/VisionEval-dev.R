@@ -144,15 +144,28 @@ evalq(
 
       # Now replace the built runtime with runtime parameter or VE_RUNTIME if requested to do so and if it is present
       ve.runtime <- if ( is.character(runtime) ) {
+        # message("Runtime override: ",runtime)
         runtime
       } else if ( use.env ) {
         env.runtime <- Sys.getenv("VE_RUNTIME",ve.runtime)
-        if ( dir.exists(env.runtime) ) env.runtime else load.runtime
+        if ( dir.exists(env.runtime) ) {
+          # message("Explicit VE_RUNTIME exists: ",env.runtime)
+          env.runtime
+        } else {
+          # message("Explicit VE_RUNTIME missing: ",env.runtime)
+          load.runtime
+        }
       } else {
         # "runtime.test" is created as a default "live" runtime by ve.run(0
         # if there is not better choice.
         runtime.test <- file.path(dirname(load.runtime),"runtime.test")
-        if ( dir.exists(runtime.test) ) runtime.test else load.runtime
+        if ( dir.exists(runtime.test) ) {
+          # message("Using existing runtime.test: ",runtime.test)
+          runtime.test
+        } else {
+          # message("Runtime.test not created yet: ",runtime.test)
+          load.runtime
+        }
       }
       
       return(structure(ve.runtime,load.runtime=load.runtime))
@@ -167,6 +180,7 @@ evalq(
     #   (e.g. "walkthrough")
     ve.run <- function(runtime=NULL, use.git=FALSE,use.env=TRUE,changeDir=TRUE,copyFiles=FALSE) {
       ve.runtime <- get.ve.runtime(runtime, use.git=use.git,use.env=use.env)
+      message("get.ve.runtime returned ",ve.runtime,": use.env ",use.env)
       if ( is.na(ve.runtime) ) stop("No runtime available. Have you run ve.build()")
       load.runtime <- attr(ve.runtime,"load.runtime")
       useWorkingDir <- ! changeDir
@@ -240,7 +254,11 @@ evalq(
       walkthroughScripts = character(0)
       if ( missing(VEPackage) || tolower(VEPackage)=="walkthrough" ) { # load the walkthrough
         if ( changeRuntime ) {
-          ve.runtime <- ve.run(changeDir=FALSE,copyFiles="walkthrough",use.git=use.git,use.env=use.env) # Head for the user's runtime directory
+          # If ve.runtime has not moved away from ve.root (i.e. ve.run() was not yet called)
+          # then do the default ve.run first. Otherwise, we'll place the walkthrough in ve.runtime.
+          changeDir <- getwd()==ve.root
+          # Do walkthrough below current runtime directory
+          ve.runtime <- ve.run(changeDir=changeDir,copyFiles="walkthrough",use.git=use.git,use.env=use.env)
           setwd(file.path(ve.runtime,"walkthrough"))
         } else {
           message("Running in VEModel source (for developing walkthrough)")
