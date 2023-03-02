@@ -1,0 +1,37 @@
+Package: VEFHWAAV
+Type: Package
+Title: Simulate Autonomous Vehicles
+Version: 2.0.0
+Date: 2022-01-05
+Authors@R: person("Gore", "Aditya", role=c("aut", "cre"), email="aditya.gore@rsginc.com")
+Maintainer: Gore Aditya <aditya.gore@rsginc.com>
+Copyright: RSG Inc.
+Description: This package contains a module for the VisionEval framework that simulates 
+     autonomous vehicles.
+License: file LICENSE
+LazyData: TRUE
+Encoding: UTF-8
+Depends: R (>= 3.6.0)
+Imports:
+    visioneval,
+    dplyr,
+    tidyr,
+    ordinal
+Suggests:
+    knitr
+VignetteBuilder: knitr
+Roxygen: list(load="pkgload")
+RoxygenNote: 7.1.2
+Remotes:
+Collate: 
+	'AdjustVehicleOwnership.R'
+	'AssignCarSvcAvailability.R'
+    'AssignVehicleAge.R'
+    'AssignVehicleOwnership.R'
+    'BudgetHouseholdDvmt.R'
+    'CVAVOrientation.R'
+    'CalculateRoadDvmt.R'
+    'CalculateRoadPerformance.R'
+    'CalculateVehicleOperatingCost.R'
+    'CreateVehicleTable.R'
+	'CalculateMpgMpkwhAdjustments.R'

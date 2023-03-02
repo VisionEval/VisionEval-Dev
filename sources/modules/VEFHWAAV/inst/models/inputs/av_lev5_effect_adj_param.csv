@@ -1,0 +1,7 @@
+Measure,Beta
+FwyRcrDelay,8
+ArtRcrDelay,10
+FwyNonRcrDelay,3
+ArtNonRcrDelay,3
+FwySmooth,5
+ArtSmooth,7
