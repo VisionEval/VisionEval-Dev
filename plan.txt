@@ -1,10 +1,6 @@
 =======================================================
 
-TODO: Add a test for dynamic specification (in addition to, or using,the test model in VESnapshot)
-
-=======================================================
-
-Merge in DynSpec and finish coding out VESnapshot with documentation and examples.
+Build and test VESnapshot.
 
 ===============================================
 
