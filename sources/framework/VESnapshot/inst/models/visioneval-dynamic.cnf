@@ -26,8 +26,6 @@ BaseYear       : 2010
 Years          : [ 2010 ]
 
 # Dynamic configuration
-# DynamicDir     : snap-dynamic # uncomment to look in this folder for visioneval.cnf for Dynamic 
-                              # sample model places it in the model "inputs" directory
-                              # Can be in model root, or in "defs"
+# DynamicDir     : dynamic # uncomment to look in this folder for visioneval.cnf for Dynamic 
 Dynamic:    # uncomment this and the following and comment DynamicDir to use inline configuration
   Message : Message for Dynamic from model root configuration; no field configured

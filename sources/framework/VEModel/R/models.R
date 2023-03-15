@@ -456,8 +456,11 @@ ve.model.configure <- function(modelPath=NULL, reloadFile=FALSE, updateCheck=TRU
         self$setting("InputDir"),
         self$setting("ParamDir"),
         self$setting("ScenarioDir"),
-        self$setting("ResultsDir")
+        self$setting("ResultsDir"),
+        self$setting("DynamicDir"), # technically, these should be loaded up from VESnapshot..
+        self$setting("SnapshotDir")
       )
+      # TODO: allow other packages to extend structuralDirs
       stages <- stages[ ! stages %in% structuralDirs ]
       stages <- stages[ grep(paste0("^",self$setting("ArchiveResultsName")),stages,invert=TRUE) ]
       stages <- c(".",stages) # Add model root directory
@@ -2764,19 +2767,22 @@ findStandardModel <- function( model, variant="", private=FALSE ) {
   model_ls$Variant <- variant
   variantConfig <- modelIndex[[model]][[variant]]
 
-  browser(expr=variant=="dynamic")
-
   # Get config file and description
   model_ls$ModelDir <- variantConfig$ModelDir
   model_ls$Description <- variantConfig$description
-  if ( "config" %in% names(variantConfig) ) {
+  configNames <- names(variantConfig)
+  if ( "config" %in% configNames ) {
     model_ls$Config <- normalizePath(file.path(model_ls$ModelDir,variantConfig$config))
   } # if no Config, move contents of scripts directory to installPath (hack for classic model)
+  configNames <- configNames[ ! configNames %in% c("config","description","ModelDir","stages") ]
 
-  # Get standard directories to copy (including stage directories if any)
-  modelTo <- c("scripts","inputs","defs","queries","scenarios")
-  modelTo <- modelTo[ modelTo %in% names(variantConfig) ]
+  # Get regular files and directories to copy
+  # Anything else listed as a key will become a sub-directory
+  # modelTo <- c("scripts","inputs","defs","queries","scenarios")
+  modelTo <- configNames[ ! configNames %in% c("description","config","stages") ]
   modelFrom <- unlist( variantConfig[modelTo] )
+
+  # Get model stage directories, if any
   modelStages <- unlist(variantConfig$stages)
   if ( is.null(modelStages) ) modelStages <- character(0)
   modelTo <- c(modelTo, modelStages)

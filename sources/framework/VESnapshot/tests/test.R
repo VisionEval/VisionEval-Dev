@@ -44,7 +44,7 @@ test_dynamic <- function(log="warn") {
   } else cat("Nothing to clean up\n")
 
   # 1. standard installation uses Dynamic inline message
-  testStep("Dynamic inline model")
+  testStep("Dynamic model with message configuration")
   # Need VEModel namespace resolution to work with pkgload, otherwise function
   # environment does not start with .Globalenv (it is nailed to the search()
   # that is in place when it is defined)
@@ -56,7 +56,7 @@ test_dynamic <- function(log="warn") {
   dyn.1$run(log=log)
   print(dyn.1)
 
-  testStep("Original dynamice configuration:")
+  testStep("Original dynamic configuration:")
   viewSetup(dyn.1)
   # make a new version using pre-packaged configuration in "dynamic" dir
   # which in the sample model is located in the model root. It can also be
@@ -66,23 +66,21 @@ test_dynamic <- function(log="warn") {
   # adjust its configuration
   updateSetup(dyn.2,drop="Dynamic",DynamicDir="dynamic")
   viewSetup(dyn.2)
+  testStep("Model configured, showing source parameters")
   dyn.2$configure()
   viewSetup(dyn.2)
+  testStep("Model configured, showing runtime parameters")
   viewSetup(dyn.2,fromFile=FALSE)
-
-  testStep("View dynamic configuration after configuring model")
-  viewSetup(dyn.2,fromFile=FALSE) # show runParam_ls
 
   testStep("Run with dynamic configuration file")
   dyn.2$run(log=log)
 
   testStep("View loaded parameters after run")
   viewSetup(dyn.2)
+
   testStep("View run parameters after run")
   viewSetup(dyn.2,fromFile=FALSE)
-  return(dyn.2)
 
-  
   # run with Dynamic requested but no configuration at all
   # should warn but continue
   testStep("Dynamic with no configuration")
@@ -98,6 +96,12 @@ test_dynamic <- function(log="warn") {
   dyn.fail$configure()
   dyn.fail$run()
 
+  invisible(list(
+    dyn.1=dyn.1,
+    dyn.2=dyn.2,
+    dyn.3=dyn.3,
+    dyn.fail=dyn.fail
+  ))
 }  
 
 # Test the Snapshot module

@@ -2,9 +2,16 @@
 
 Build and test VESnapshot.
 
-In the dynamic test model, the "dynamic" directory is not getting copied.
+Need to skip "DynamicDir" and "SnapshotDir" when considering model stages.
 
-It looks like we're good, except the "dynamic" directory is not there.
+Not finding or loading the DynamicDir. Somehow still loading Dynamic from the
+configuration file. Need to ignore that if we're doing interactive updates.
+
+So keep working on that: get the configuration correct, then never retreat to
+the disk version unless configure is asked to reload the file or the model is
+re-opened.
+
+Make sure the Dynamic module can find and load the configuration.
 
 ===============================================
 
