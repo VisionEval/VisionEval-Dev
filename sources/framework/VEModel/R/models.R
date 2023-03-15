@@ -263,22 +263,23 @@ ve.model.torun <- function() {
 }
 
 # configure installs the model parameters (initializing or re-initializing)
-# `fromFile` says to reload self$loadParam_ls, otherwise use self$runParam_ls; it is rarely desirable
-#   to change the default, which supports in-memory modifications.
+# `reloadFile` says to reload self$loadParam_ls from the model configuration in the file system,
+#  otherwise use self$runParam_ls; it is rarely desirable to change the default, which supports
+#  in-memory modifications to self$loadedParam_ls
 # 
-ve.model.configure <- function(modelPath=NULL, fromFile=TRUE, updateCheck=TRUE) {
+ve.model.configure <- function(modelPath=NULL, reloadFile=FALSE, updateCheck=TRUE) {
 
   if ( missing(modelPath) || ! is.character(modelPath) ) {
     modelPath <- self$modelPath
+  } else {
+    self$modelPath <- modelPath;
   }
-  
-  self$modelPath <- modelPath;
 
   # Load any configuration available in modelPath
   Param_ls <- getSetup() # runtime configuration
-  if ( fromFile || is.null(self$loadedParam_ls) ) {
+  if ( reloadFile || is.null(self$loadedParam_ls) ) {
     self$loadedParam_ls <- visioneval::loadConfiguration(ParamDir=modelPath)
-  } # if NOT fromFile, use existing loadedParam_ls to rebuild (may have in-memory changes)
+  } # if NOT reloadFile, use existing loadedParam_ls to rebuild (may have in-memory changes)
 
   modelParam_ls <- visioneval::mergeParameters(Param_ls,self$loadedParam_ls) # override runtime parameters
   if ( "Model" %in% modelParam_ls ) {
@@ -440,7 +441,7 @@ ve.model.configure <- function(modelPath=NULL, fromFile=TRUE, updateCheck=TRUE) 
   writeLog(paste(names(self$RunParam_ls),collapse=", "),Level="info")
 
   # Locate model stages
-  if ( fromFile || is.null(self$modelStages) ) {
+  if ( reloadFile || is.null(self$modelStages) ) {
     writeLog("Locating model stages",Level="info")
     self$modelStages <- NULL
     if ( ! "ModelStages" %in% names(self$RunParam_ls) ) {
@@ -492,7 +493,7 @@ ve.model.configure <- function(modelPath=NULL, fromFile=TRUE, updateCheck=TRUE) 
     }
   } else {
     # all stage edits in memory should be made to stage$RunParam_ls, not stage$loadedParam_ls
-    # stage changes mediated through their files should be reloaded with fromFile=TRUE
+    # stage changes mediated through their files should be reloaded with reloadFile=TRUE
     writeLog("Existing Model Stages",Level="info")
     modelStages <- self$modelStages
   }
@@ -507,7 +508,7 @@ ve.model.configure <- function(modelPath=NULL, fromFile=TRUE, updateCheck=TRUE) 
   self$modelStages <- modelStages
 
   # Load any scenarios from subfolder
-  scenarios <- self$scenarios(fromFile=fromFile)  # re-create VEModelScenario object from file
+  scenarios <- self$scenarios(reloadFile=reloadFile)  # re-create VEModelScenario object from file
   scenarioStages <- scenarios$stages()            # scenario stages may be an empty list
 
   if ( length(scenarioStages) > 0 ) { # some scenarios are defined
@@ -668,23 +669,23 @@ ve.model.copy <- function(newName=NULL,newPath=NULL,copyResults=TRUE,copyArchive
   dir.create(newModelPath,showWarnings=FALSE)
   # check that the directory produces the right results files
   model.files <- self$dir(root=TRUE,inputs=TRUE,results=copyResults,archive=copyArchives,showRootDir=FALSE)
-  message("Files to copy:")
-  print(model.files)
+  # message("Files to copy:")
+  # print(model.files)
   copy.subdir <- dirname(model.files)
   unique.dirs <- unique(copy.subdir)
   for ( d in unique.dirs ) {
     # Need to copy.date so "out of date" checking has a prayer of working
     copy.from <- file.path(self$modelPath,model.files[copy.subdir==d])
     copy.to <- newModelPath
-    message("Copying to: ",copy.to)
+    # message("Copying to: ",copy.to)
     if ( d == "." ) { # modelPath
-      message("Copying '.', i.e. modelPath to newModelPath:")
-      print(newModelPath)
+      # message("Copying '.', i.e. modelPath to newModelPath:")
+      # print(newModelPath)
       file.copy( copy.from, newModelPath, recursive=TRUE, copy.date=TRUE )
     } else {
-      message("Creating target directory to copy into:")
+      # message("Creating target directory to copy into:")
       copy.to <- file.path(copy.to,d)
-      print(copy.to)
+      # print(copy.to)
       if ( ! dir.exists(copy.to) ) dir.create(copy.to,recursive=TRUE)
       file.copy( copy.from, copy.to, copy.date=TRUE ) # non-recursive in stagesd
     }
@@ -2425,9 +2426,9 @@ ve.stage.watchlog <- function(stop=FALSE,delay=2) {
 #                              Model Configuration                             #
 ################################################################################
 
-ve.model.scenarios <- function( fromFile=FALSE  ) {
-  if ( is.null(self$modelScenarios) || fromFile ) {
-    self$modelScenarios <- VEModelScenarios$new(baseModel=self,fromFile=fromFile)
+ve.model.scenarios <- function( reloadFile=FALSE  ) {
+  if ( is.null(self$modelScenarios) || reloadFile ) {
+    self$modelScenarios <- VEModelScenarios$new(baseModel=self,reloadFile=reloadFile)
   }
   if ( is.null(self$modelScenarios) ) {
     writeLog("Programming error: scenarios structure is broken [ve.model.scenarios]",Level="error")
@@ -2762,6 +2763,8 @@ findStandardModel <- function( model, variant="", private=FALSE ) {
   model_ls$Name <- model
   model_ls$Variant <- variant
   variantConfig <- modelIndex[[model]][[variant]]
+
+  browser(expr=variant=="dynamic")
 
   # Get config file and description
   model_ls$ModelDir <- variantConfig$ModelDir

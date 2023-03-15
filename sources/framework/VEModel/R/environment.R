@@ -169,13 +169,13 @@ loadRuntimeConfig <- function() {
 #'   to retrieve. If not provided, return all defined parameters (but not any that are defaulted).
 #' @param object identifies which parameter set to get. NULL (default) returns runtime parameters.
 #'   Otherwise object should be a VEModel or a VEModelStage.
-#' @param fromFile a logical value; if TRUE, return configuration from file, otherwise parameters as
-#'   modified at runtime
+#' @param fromFile a logical value; if TRUE, return base configuration file (loadedParam_ls),
+#'   otherwise parameters as configured into model's RunParam_ls.
 #' @param reload a logical; if TRUE and retrieving ve.runtime configuration, re-read configuration
 #'   file
 #' @return A list of defined run parameters (possibly empty, if no parameters are defined)
 #' @export
-getSetup <- function(object=NULL,paramNames=NULL,fromFile=FALSE,reload=FALSE) {
+getSetup <- function(object=NULL,paramNames=NULL,fromFile=TRUE,reload=FALSE) {
   if ( is.list(object) ) { # assume its a Param_ls list
     RunParam_ls <- object
   } else if ( is.null(object) ) {
@@ -202,9 +202,11 @@ getSetup <- function(object=NULL,paramNames=NULL,fromFile=FALSE,reload=FALSE) {
 #' ve.runtime, Otherwise the object should be a VEModel, VEModelStage, or VEModelScenarios.
 #' @param Param_ls If provided (and object is NOT provided), view this list instead of looking up
 #'   via getSetup.
-#' @param fromFile if TRUE, shows only the parameters loaded from a visioneval.cnf file. If FALSE,
-#'   also shows parameters that were constructed when the model was loaded, or updated manually
-#'   after the configuration file was read.
+#' @param fromFile if TRUE, shows the parameters "loaded" from a visioneval.cnf file (i.e. the set
+#' that the RunParam_ls gets built from during model$configure). If FALSE, you can view the
+#' RunParam_ls itself, which is what the model would actually run with. Comparing these
+#' (ViewSetup(...,fromFile=TRUE) and ViewSetup(...,fromFile=FALSE) will show what got built or changed
+#' during the configure process.
 #' @param ... Additional arguments to \code{cat} used internally
 #' @importFrom yaml as.yaml
 #' @export
@@ -231,19 +233,21 @@ viewSetup <- function(object=NULL,Param_ls=NULL,fromFile=FALSE,...) {
 #'
 #' @param object identifies the parameter set to write. NULL (default) uses 
 #' ve.runtime. Otherwise the object should be a VEModel or VEModelStage.
-#' @param inFile a logical. If TRUE, alter the loadedParam_ls, otherwise alter runParam_ls
+#' @param inFile a logical. If TRUE, alter the loadedParam_ls, otherwise alter runParam_ls.
+#'   Generally, leave inFile=TRUE. If you alter runParam_ls you can re-run the model without
+#'   running model$configure, but that's risky since parameters can depend on each other in
+#'   sometimes unexpected ways
 #' @param Source a character string describing the source assigned to these parameters
 #' @param Param_ls a named list of parameters to add (or replace)
 #' @param drop a character vector of parameters names that will be dropped rather than replaced
 #' @param ... individual named parameters that will be added to (or replace) settings
 #' @import visioneval
 #' @export
-updateSetup <- function(object=NULL,inFile=FALSE,Source="interactive",Param_ls=list(),drop=character(0),...) {
-  # TODO: for purposes of model Run Status, change the LastUpdate time stamp of "object" to "now" so
-  # when we next run the model, stages with a "RunComplete" time stamp earlier than now will all be
-  # marked for reset.
+updateSetup <- function(object=NULL,inFile=TRUE,Source="interactive",Param_ls=list(),drop=character(0),...) {
+  # TODO: for purposes of model Run Status, change status of "object" to "now" so when we next run
+  # the model, stages with a "RunComplete" time stamp earlier than now will all be marked for reset.
 
-  # merge ... into Param_ls
+  # merge ... into Param_ls (expecting a named list of arbitrary parameters)
   Param_ls <- visioneval::mergeParameters(
     Param_ls,
     visioneval::addParameterSource(list(...),Source)
@@ -484,7 +488,7 @@ getModelIndex <- function(reset=FALSE) {
   for ( pkg.load in loaded.packages ) {
     pkg <- sub("package:","",pkg.load)
     if ( ! pkg %in% names(VE.pkgs) ) {
-      VE.pkg[pkg] <- pkg
+      VE.pkgs[pkg] <- pkg
     }
   }
   modelPaths <- sapply(VE.pkgs, function(p) system.file("models",package=p))

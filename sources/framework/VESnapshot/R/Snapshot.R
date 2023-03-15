@@ -6,7 +6,7 @@
 #<doc>
 #
 ## Snapshot Module
-#### December 7, 2022
+#### March 14, 2023
 #
 #This module illustrates the basic structure of a VE module and implements a useful test facility that can copy an
 #arbitrary field (or more than one) present in the Datastore into a new field. Useful for grabbing a picture of a field
@@ -20,10 +20,13 @@
 #
 ### How the Module Works
 #
-#The user specifies fields to copy in their visioneval.cnf script in the Snapshot: block. See the VESnap test model
-#that can be installed from this package. When the model runs and the runModule("Snapshot",...) instruction is
-#encountered, the specified fields are copied into new fields in the Datastore where they can later be extraced,
-#queried or otherwise used.
+#The user specifies fields to copy in their visioneval.cnf script in the Snapshot: block. In the model's run
+#script, add a series of runModule("Shapshot",...) commands, including the Instance parameter to distinguish
+#which entry in visioneval.cnf will apply to that Snapshot.
+#
+#See the VESnap test model that can be installed from this package. When the model runs and the
+#runModule("Snapshot",...) instruction is encountered, the specified fields are copied into new fields in the
+#Datastore where they can later be extraced, queried or otherwise used.
 #
 ### Configuring Snapshot
 #
@@ -35,24 +38,24 @@
 # '''
 # Snapshot:
 #   - Instance: "First"
-#     Group:
-#     Table:
-#     Name:
-#     SnapshotName:
+#     Group:        # The Datastore group (shortcut "Year" is acceptable)
+#     Table:        # The Datastore table within Group
+#     Name:         # The Datastore field with Table
+#     SnapshotName: # The name of the field that will be created (in the same Group/Table as the input)
 #   - Instance: "Second"
 #     Group:
 #     Table:
 #     Name:
 #     SnapshotName:
 #     LoopIndex: 1
-#       #If LoopIndex is missing, snapshot each time through the loop to the same place. Otherwise
-#       #only snapshoot on this loop index.
+#       # If LoopIndex is missing, snapshot each time through the loop, overwriting to the same place.
+#       # Otherwise only take the snapshot if the LoopIndex passed to runModule matches this number
 # '''
 #
 # The Instance is optional. If it is not specified, it will be ignored if it is passed from the
 # runModule instruction, and referred to as "NA" (literal character string, not an R NA value). A
 # minimal Snapshot will look like the following. Note the dash ahead of 'Group'. Snapshot must
-# define a list of objects, even if there is only one Snapshot
+# define a list of objects (that leading dash), even if there is only one Snapshot
 #
 # '''
 # Snapshot:
@@ -65,6 +68,34 @@
 # Any Group/Table/Name object must already have been specified in an earlier module call in the
 # ModelScript (i.e. before the `runModule("Snapshot",...)` step), and it will be looked up in the
 # AllSpecs_ls parameter for the properties required to construct a Get or Set specification.
+#
+# Finally, you can use Instance and LoopIndex together with this configuration:
+#
+# '''
+# # In visioneval.cnf:
+# Snapshot:
+#   - Instance:     "FirstLoop"
+#     Group:        "Year"
+#     Table:        "Household"
+#     Name:         "DVMT"
+#     SnapshotName: "HhDVMTFirstLoop"
+#     LoopIndex:    1
+#   - Instance:     "SecondLoop"
+#     Group:        "Year"
+#     Table:        "Household"
+#     Name:         "DVMT"
+#     SnapshotName: :HhDVMTSecondLoop
+#     LoopIndex:    2
+#
+# # In model run script (run_model.R):
+# ... # Earlier script lines
+# for (i in 1:2) {
+#   runModule("Snapshot", "VESnapshot", RunFor = "AllYear", RunYear = Year, Instance="FirstLoop", LoopIndex=i)
+#   runModule("Snapshot", "VESnapshot", RunFor = "AllYear", RunYear = Year, Instance="SecondLoop", LoopIndex=i)
+#   ... # Remainder of loop
+# }
+# ... # Remainder of run script
+# '''
 #
 # See the VESnap test model, variant snapshot, for a working example.
 #

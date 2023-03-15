@@ -3,6 +3,9 @@
 if ( ! requireNamespace("visioneval",quietly=TRUE) ) {
   stop("Missing required package: 'visioneval'")
 }
+if ( ! requireNamespace("VEModel",quietly=TRUE) ) {
+  stop("Missing required package: 'visioneval'")
+}
 
 message("Loading built VEModel package")
 suppressPackageStartupMessages(require("VEModel",quietly=TRUE))
@@ -12,7 +15,8 @@ logLevel <- function(log="info") {
 }
 
 testStep <- function(msg) {
-  cat("",paste(msg,collapse="\n"),"",sep="\n")
+  # Use 'message' to get contrasting color in RStudio
+  message(paste("\n",paste(msg,collapse="\n"),"\n",sep="\n"))
 }
 
 stopTest <- function(msg) {
@@ -33,52 +37,65 @@ test_dynamic <- function(log="warn") {
   # Need to require inside function if running via pkgloadd
   testStep("Clean up previous...")
   # Clean up prior VESnap models
-  for ( snapmodel in grep("^VESnap-",dir("models",full.names=TRUE) ) ) {
+  cleanups <- grep("VESnap-",dir("models",full.names=TRUE),value=TRUE)
+  if ( length(cleanups) > 0 ) for ( snapmodel in cleanups ) {
+    cat("Removing previous ",snapmodel,"\n")
     unlink(snapmodel,recursive=TRUE)
-  }
+  } else cat("Nothing to clean up\n")
 
   # 1. standard installation uses Dynamic inline message
-  testStep("Dynamic inline")
+  testStep("Dynamic inline model")
   # Need VEModel namespace resolution to work with pkgload, otherwise function
   # environment does not start with .Globalenv (it is nailed to the search()
   # that is in place when it is defined)
-  dyn.1 <- installModel("VESnap",var="dynamic",confirm=FALSE)
+  dyn.1 <- VEModel::installModel("VESnap",var="dynamic",confirm=FALSE)
   if ( is.data.frame(dyn.1) ) { # No model/variant found
     print(dyn.1)
     stopTest("Dynamic model not found")
   }
-  # dyn.1$run(log=log)
-  print(ve.runtime)
+  dyn.1$run(log=log)
   print(dyn.1)
-  print(getwd())
-  stopTest("Just installing")
 
+  testStep("Original dynamice configuration:")
+  viewSetup(dyn.1)
   # make a new version using pre-packaged configuration in "dynamic" dir
   # which in the sample model is located in the model root. It can also be
   # in "defs". It will print a message a summarize a field
-  testStep("Dynamic configuration file")
+  testStep("Copied model with dynamic configuration file")
   dyn.2 <- dyn.1$copy("VESnap-dynamic-cfgfile",copyResults=FALSE)
   # adjust its configuration
-  updateSetup(dyn.2,drop="Dynamic",DynamicDir="dynamic",inFile=TRUE)
+  updateSetup(dyn.2,drop="Dynamic",DynamicDir="dynamic")
   viewSetup(dyn.2)
-  dyn.2$configure(fromFile=FALSE)
+  dyn.2$configure()
+  viewSetup(dyn.2)
+  viewSetup(dyn.2,fromFile=FALSE)
+
+  testStep("View dynamic configuration after configuring model")
+  viewSetup(dyn.2,fromFile=FALSE) # show runParam_ls
+
+  testStep("Run with dynamic configuration file")
   dyn.2$run(log=log)
 
-  stopTest("After trying to change the configuration")
+  testStep("View loaded parameters after run")
+  viewSetup(dyn.2)
+  testStep("View run parameters after run")
+  viewSetup(dyn.2,fromFile=FALSE)
+  return(dyn.2)
 
+  
   # run with Dynamic requested but no configuration at all
   # should warn but continue
   testStep("Dynamic with no configuration")
   dyn.3 <- dyn.2$copy("VESnap-dynamic-noconfig",copyResults=FALSE)
   updateSetup(dyn.3,drop=c("Dynamic","DynamicDir"))
-  dyn.3$configure(fromFile=FALSE)
+  dyn.3$configure()
   dyn.3$run()
 
   # run with Dynamic requested, but bad configuration
   testStep("Dynamic mis-configured")
   dyn.fail <- dyn.3$copy("VESnap-dynamic-error",copyResults=FALSE)
   updateSetup(dyn.3,Dynamic="Failure")
-  dyn.fail$configure(fromFile=FALSE)
+  dyn.fail$configure()
   dyn.fail$run()
 
 }  

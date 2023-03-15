@@ -1077,7 +1077,7 @@ getModuleL <- function(ModuleName, PackageName, RunYear, Instance=character(0), 
 #' @param ... Additional parameters passed to the ModuleFunction at
 #'   runtime (see individual module documentation for additional
 #'   parameters it may understand. It's a runtime error to send something
-#'   through ... if the ModuleFunciton is not expecting it.
+#'   through ... if the ModuleFunction is not expecting it.
 #' @return list returned from module function, with Errors and Warnings as
 #'   attributes.
 #' @export

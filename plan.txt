@@ -2,6 +2,10 @@
 
 Build and test VESnapshot.
 
+In the dynamic test model, the "dynamic" directory is not getting copied.
+
+It looks like we're good, except the "dynamic" directory is not there.
+
 ===============================================
 
 Data export functions (for full set of results)
