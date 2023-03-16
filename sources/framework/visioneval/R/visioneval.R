@@ -161,7 +161,7 @@ requiredParameters <- c(
   "Model", "Scenario", "Description", "Region",
   "BaseYear", "Years",
 #  "DatastoreName", "DatastoreType", "Seed",
-#  These will get suitable default values when creating ModelState_ls, so don't require them here.
+#  The above will get suitable default values when creating ModelState_ls, so don't require them here.
   "InputPath","ParamPath","ModelScriptPath","DatastorePath"
 )
 
@@ -453,10 +453,10 @@ loadModel <- function(
   # built by VEModel). Default is a fixed string, "run_model.R"
   if ( ! "ParsedScript" %in% names(newRunParam_ls) ) {
     ModelScriptPath <- getRunParameter("ModelScriptPath",Default=NA,Param_ls=newRunParam_ls)
-    if ( ! file.exists(ModelScriptPath) ) {
+    if ( is.na(ModelScriptPath) || ! file.exists(ModelScriptPath) ) {
       stop(
         writeLog(
-          paste("Unable to locate ModelScript:",ModelScriptPath,sep="\n"),
+          paste("Unable to locate ModelScript on Path:",ModelScriptPath,sep="\n"),
           Level="error"
         )
       )

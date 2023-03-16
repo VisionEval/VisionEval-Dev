@@ -202,25 +202,49 @@ getSetup <- function(object=NULL,paramNames=NULL,fromFile=TRUE,reload=FALSE) {
 #' ve.runtime, Otherwise the object should be a VEModel, VEModelStage, or VEModelScenarios.
 #' @param Param_ls If provided (and object is NOT provided), view this list instead of looking up
 #'   via getSetup.
+#' @param viewSource If TRUE inject the parameter source into the display as "pseudo YAML",
+#'   otherwise just name and value for each parameter (as YAML).
+#' @param shorten If TRUE pass over returned parameters and trim off the RuntimeDirectory path
 #' @param fromFile if TRUE, shows the parameters "loaded" from a visioneval.cnf file (i.e. the set
-#' that the RunParam_ls gets built from during model$configure). If FALSE, you can view the
-#' RunParam_ls itself, which is what the model would actually run with. Comparing these
-#' (ViewSetup(...,fromFile=TRUE) and ViewSetup(...,fromFile=FALSE) will show what got built or changed
-#' during the configure process.
+#'   that the RunParam_ls gets built from during model$configure). If FALSE, you can view the
+#'   RunParam_ls itself, which is what the model would actually run with. Comparing these
+#'   (ViewSetup(...,fromFile=TRUE) and ViewSetup(...,fromFile=FALSE) will show what got built or changed
+#'   during the configure process.
+#' @param showParsedScript show the ParsedScript element in RunParam_ls (default FALSE; it's
+#'   usually not interesting)
 #' @param ... Additional arguments to \code{cat} used internally
 #' @importFrom yaml as.yaml
 #' @export
-viewSetup <- function(object=NULL,Param_ls=NULL,fromFile=FALSE,...) {
+viewSetup <- function(object=NULL,Param_ls=NULL,fromFile=FALSE,
+  shorten=TRUE,viewSource=FALSE,showParsedScript=FALSE,...) {
   if ( ! is.null(object) || is.null(Param_ls) ) {
     Param_ls <- getSetup(object=object,fromFile=fromFile)
   } # else view Param_ls from function parameters
-  Paraml <- yaml::as.yaml(Param_ls)
-  cat(Paraml,...)
-  # TODO: any way to add the parameter source as a comment to the YAML?
-  # Since only the top level YAML elements have a source (their inner components don't)
-  # we could just look at the top level names (pick them back out) line by line in the
-  # generated YAML, look up the item name, and then get its source...
-  # Add a "viewSource" parameter set to FALSE by default to trigger that deeper dive
+  if ( ! showParsedScript ) Param_ls <- Param_ls[ ! names(Param_ls) %in% "ParsedScript" ]
+  paramNames <- names(Param_ls)
+  for ( i in seq(Param_ls) ) { # format manually
+    nm <- paramNames[i]
+    param <- Param_ls[[i]]
+    cat(nm,":",sep="")
+    if ( is.list(param) ) {
+      if ( viewSource ) {
+        src <- attr(param,"source")
+        if ( shorten ) src <- sub( getRuntimeDirectory(),"", src ) # blunt brush to shorten directories
+        if ( ! is.null(src) ) {
+          cat("  #",src,"\n")
+        }
+      } else cat("\n")
+      cat( "  ",sub("  $","",gsub("\\n","\n  ",as.yaml(param))),sep="") 
+    } else {
+      yamlp <- as.yaml(param)
+      if ( shorten ) yamlp <- sub( getRuntimeDirectory(),"", yamlp )
+      if ( viewSource ) {
+        # change first newline plus name into a row with the src
+        cat( sub("\\n",paste0(" # ",src,"\n"),yamlp),sep="")
+      } else cat( yamlp )
+    }
+  }
+  # cat(Paraml,...)
 }
 
 #UPDATE SETUP

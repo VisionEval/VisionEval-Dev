@@ -114,7 +114,13 @@ dynamic.env <- new.env()
 #' @export
 getDynamicField <- function(AllSpecs_ls=NA,Cache=FALSE) {
   # Used cached specification when calling from runModule
-  if ( Cache && "Specs_ls" %in% names(dynamic.env) ) return( dynamic.env$Specs_ls )
+  if ( Cache && "Specs_ls" %in% names(dynamic.env) ) {
+    # Use cache
+    return( dynamic.env$Specs_ls )
+  } else {
+    # Clear cache
+    rm(list=ls(dynamic.env),envir=dynamic.env)
+  }
 
   # General instructions for building a dynamic Specification function:
   
@@ -137,17 +143,21 @@ getDynamicField <- function(AllSpecs_ls=NA,Cache=FALSE) {
   config <- visioneval::getRunParameter("Dynamic") # looking in the RunParam_ls for the current model stage
   Message <- if ( ! is.list(config) ) {
     # Could add any other directories you like
-    DynamicDir <- visioneval::getRunParameter("DynamicDir")
-    ModelDir   <- visioneval::getRunParameter("ModelDir")
-    ParamPath  <- visioneval::getRunParameter("ParamPath") # already expanded from ParamDir to absolute path
-    InputPath  <- visioneval::getRunParameter("InputPath") # already expanded to all the places to look for inputs
-    configDir  <- findFileOnPath( DynamicDir, c(ModelDir,ParamPath,InputPath) )
-    if ( !is.na(configDir) ) {
-      dynamicParam_ls <- readConfigurationFile(ParamDir=configDir) # look for visioneval.cnf or equivalent
-      config <- getRunParameter("Dynamic",Param_ls=dynamicParam_ls)
-      paste("Loaded:",configDir)
+    DynamicDir <- visioneval::getRunParameter("DynamicDir",Default=NA)
+    if ( is.character(DynamicDir) ) {
+      ModelDir   <- visioneval::getRunParameter("ModelDir")
+      ParamPath  <- visioneval::getRunParameter("ParamPath") # already expanded from ParamDir to absolute path
+      InputPath  <- visioneval::getRunParameter("InputPath") # already expanded to all the places to look for inputs
+      configDir  <- findFileOnPath( DynamicDir, c(ModelDir,ParamPath,InputPath) )
+      if ( !is.na(configDir) ) {
+        dynamicParam_ls <- readConfigurationFile(ParamDir=configDir) # look for visioneval.cnf or equivalent
+        config <- getRunParameter("Dynamic",Param_ls=dynamicParam_ls)
+        paste("Loaded:",configDir)
+      } else {
+        paste("Could not open Dynamic configuration file in",configDir)
+      }
     } else {
-      paste("Could not open Dynamic configuration file in",configDir)
+      paste("Dynamic or DynamicDir not provided in visioneval.cnf")
     }
   } else {
     if ( "Message" %in% names(config) ) config$Message else "No message supplied"
@@ -179,7 +189,12 @@ getDynamicField <- function(AllSpecs_ls=NA,Cache=FALSE) {
       fieldSpec <- NA
       for ( p in AllSpecs_ls ) {
         for ( spec in p$Specs$Set ) {
-          if ( all(spec$GROUP==field$Group && spec$TABLE==field$Table && spec$NAME==field$Name) ) {
+          if ( all
+            (
+              isTRUE(spec$GROUP==field$Group) &&
+              isTRUE(spec$TABLE==field$Table) &&
+              isTRUE(spec$NAME==field$Name)
+            ) ) {
             fieldSpec <- spec
             break
           }
@@ -234,7 +249,7 @@ Dynamic <- function( L ) {
       obj <- L[[dynamic.env$Field$Group]][[dynamic.env$Field$Table]][[dynamic.env$Field$Name]]
       summ <- with (dynamic.env, paste("Summarizing:",file.path(Field$Group,Field$Table,Field$Name)))
       summValue <- eval(parse(text=paste(operation,"(obj)")))
-      c(summ,paste("Operation",operation,"results:",summValue))
+      c(summ,paste("Operation",operation),paste("Results:",summValue))
     } else {
       "Field requested for Dynamic, but no Specification"
     }

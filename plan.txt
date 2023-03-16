@@ -2,16 +2,10 @@
 
 Build and test VESnapshot.
 
-Need to skip "DynamicDir" and "SnapshotDir" when considering model stages.
+Dynamic module is now working.
+Snapshot module needs to be confirmed.
 
-Not finding or loading the DynamicDir. Somehow still loading Dynamic from the
-configuration file. Need to ignore that if we're doing interactive updates.
-
-So keep working on that: get the configuration correct, then never retreat to
-the disk version unless configure is asked to reload the file or the model is
-re-opened.
-
-Make sure the Dynamic module can find and load the configuration.
+Regression test needed on running models.
 
 ===============================================
 

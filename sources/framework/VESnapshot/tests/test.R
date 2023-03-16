@@ -4,7 +4,7 @@ if ( ! requireNamespace("visioneval",quietly=TRUE) ) {
   stop("Missing required package: 'visioneval'")
 }
 if ( ! requireNamespace("VEModel",quietly=TRUE) ) {
-  stop("Missing required package: 'visioneval'")
+  stop("Missing required package: 'VEModel'")
 }
 
 message("Loading built VEModel package")
@@ -25,6 +25,9 @@ stopTest <- function(msg) {
 
 # Test the Dynamic module
 test_dynamic <- function(log="warn") {
+
+  logLevel(log)
+
   # 1. Dynamic: only a message from model's configuration
   # 2. Dynamic: show summary of a field in the model run (from dynamic
   #    configuration file)
@@ -48,38 +51,30 @@ test_dynamic <- function(log="warn") {
   # Need VEModel namespace resolution to work with pkgload, otherwise function
   # environment does not start with .Globalenv (it is nailed to the search()
   # that is in place when it is defined)
-  dyn.1 <- VEModel::installModel("VESnap",var="dynamic",confirm=FALSE)
+  dyn.1 <- VEModel::installModel("VESnap",var="dynamic",confirm=FALSE,log=log)
+  print(dyn.1)
   if ( is.data.frame(dyn.1) ) { # No model/variant found
-    print(dyn.1)
     stopTest("Dynamic model not found")
   }
   dyn.1$run(log=log)
-  print(dyn.1)
 
   testStep("Original dynamic configuration:")
   viewSetup(dyn.1)
   # make a new version using pre-packaged configuration in "dynamic" dir
   # which in the sample model is located in the model root. It can also be
   # in "defs". It will print a message a summarize a field
-  testStep("Copied model with dynamic configuration file")
+  testStep("Copied model")
   dyn.2 <- dyn.1$copy("VESnap-dynamic-cfgfile",copyResults=FALSE)
   # adjust its configuration
-  updateSetup(dyn.2,drop="Dynamic",DynamicDir="dynamic")
-  viewSetup(dyn.2)
-  testStep("Model configured, showing source parameters")
+  updateSetup(dyn.2,drop="Dynamic",DynamicDir="snap-dynamic")
+  viewSetup(dyn.2,viewSource=TRUE)
+  testStep("Reconfiguring model")
   dyn.2$configure()
-  viewSetup(dyn.2)
-  testStep("Model configured, showing runtime parameters")
-  viewSetup(dyn.2,fromFile=FALSE)
-
+  viewSetup(dyn.2$modelStages[[1]],viewSource=TRUE)
   testStep("Run with dynamic configuration file")
   dyn.2$run(log=log)
-
-  testStep("View loaded parameters after run")
-  viewSetup(dyn.2)
-
-  testStep("View run parameters after run")
-  viewSetup(dyn.2,fromFile=FALSE)
+  cat("\n")
+  print(dyn.2)
 
   # run with Dynamic requested but no configuration at all
   # should warn but continue
@@ -87,13 +82,15 @@ test_dynamic <- function(log="warn") {
   dyn.3 <- dyn.2$copy("VESnap-dynamic-noconfig",copyResults=FALSE)
   updateSetup(dyn.3,drop=c("Dynamic","DynamicDir"))
   dyn.3$configure()
+  viewSetup(dyn.3$modelStages[[1]],viewSource=TRUE)
   dyn.3$run()
 
   # run with Dynamic requested, but bad configuration
   testStep("Dynamic mis-configured")
   dyn.fail <- dyn.3$copy("VESnap-dynamic-error",copyResults=FALSE)
-  updateSetup(dyn.3,Dynamic="Failure")
+  updateSetup(dyn.fail,drop="DynamicDir",Dynamic="Failure")
   dyn.fail$configure()
+  viewSetup(dyn.fail$modelStages[[1]],viewSource=TRUE)
   dyn.fail$run()
 
   invisible(list(
@@ -106,12 +103,21 @@ test_dynamic <- function(log="warn") {
 
 # Test the Snapshot module
 test_snapshot <- function(log="warn") {
-  # 1. Snapshot with a single instance, defined in model's configuration
-  # 2. Snapshot with two instances, defined in snapshot directory
-  # 3. Snapshot unconfigured (warning issued, model still runs)
-  # 4. Snapshot defective configuration (error issued, model stops)
+  logLevel(log)
 
-  if ( ! missing(log) ) logLevel(log)
-
-  testStep("No tests yet for Snapshot")
+  testStep("Install VESnap-snapshot")
+  snap <- installModel("VESnap","snapshot",overwrite=TRUE,confirm=FALSE)
+  print(snap)
+  testStep("Run the snapshot model")
+  snap$run(log=log)
+  testStep("Show available fields")
+  print(snap$list())
+  testStep("Extract source and snapshot fields")
+  result <- snap$results()$select()$find(".*HhSize.*",Table="Household")
+  print(result)
+  df <- result$extract()[[1]] # first data.frame in a list
+  testStep("Compare result fields")
+  nm <- names(df)
+  cat(sep="","all(",nm[1]," == ",nm[2],"): ",all(df[[nm[1]]]==df[[nm[2]]]),"\n")
+  return(snap)
 }
