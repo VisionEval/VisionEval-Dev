@@ -1,20 +1,26 @@
 Updates to visualization long form output:
 
-Add Measure Category field to query description (can add arbitrary metadata, which should be
-included by default - in addition to Units and Description at QuerySpec top level).
+Added ability to have arbitrary fields in a Query Specification. Need to test.
+Those become "metadata" and should be attached to the measures when the query
+is run and picked properly in both long and wide format. Need to check printing the query
+specifications (metadata should show).
 
-Data export functions (for full set of results)
+Probably a lot of tedious debugging...
 
 Extra geography fields can be injected, and these are attached (by Bzone) to the any table
 that has Bzone geography (they are inserted at the Bzone level, and not for Azone or Marea).
 Carry those through into the query output by geography. Implemented this already, but need
 to confirm how it happens: extra geography does NOT have to add up to Azone or Marea.
 
-Tableau output format. Change the "Export" field to "Primary" or "Visualize".
-Reorder the fields per F&P return example.
+I think it's okay, but need to test that extra geography fields also show up in the query
+output (join those on to long format Bzone records...)
+
+Tableau output format. Still TODO: Reorder the fields per F&P return example.
 
 Convert the VDOT model to VE 3.0 with scenario stages. Run and Query those.
 Look at performance metrics extracted for VDOT and use those for visualization.
+
+## EXPORT TO SQL
 
 Start with the query results.
 
