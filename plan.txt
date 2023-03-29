@@ -1,15 +1,20 @@
-=======================================================
+Updates to visualization long form output:
 
-Build and test VESnapshot.
-
-Dynamic module is now working.
-Snapshot module needs to be confirmed.
-
-Regression test needed on running models.
-
-===============================================
+Add Measure Category field to query description (can add arbitrary metadata, which should be
+included by default - in addition to Units and Description at QuerySpec top level).
 
 Data export functions (for full set of results)
+
+Extra geography fields can be injected, and these are attached (by Bzone) to the any table
+that has Bzone geography (they are inserted at the Bzone level, and not for Azone or Marea).
+Carry those through into the query output by geography. Implemented this already, but need
+to confirm how it happens: extra geography does NOT have to add up to Azone or Marea.
+
+Tableau output format. Change the "Export" field to "Primary" or "Visualize".
+Reorder the fields per F&P return example.
+
+Convert the VDOT model to VE 3.0 with scenario stages. Run and Query those.
+Look at performance metrics extracted for VDOT and use those for visualization.
 
 Start with the query results.
 
