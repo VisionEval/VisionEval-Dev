@@ -293,6 +293,7 @@ ve.query.add <- function(obj,location=0,before=FALSE,after=TRUE) {
   # If you use "update", specs not already present will be ignored with a warning.
 
   # Start by getting the specification list to add
+  browser()
   if ( is.list(obj) ) {
     spec <- asSpecList(obj)
     # Don't try to recover if the spec has invalid elements
@@ -576,7 +577,6 @@ ve.query.getlist <- function() {
 
 # List of standard Metadata. Can ask for any field from VEQuerySpec
 # "Name" is always included to support cbind
-# Additional fields (see specOptionalElements) can be added
 defaultMetadata <- c("Units","Description")
 
 # make a data.frame of all (and only) the valid query results
@@ -690,13 +690,15 @@ ve.query.extract <- function(
         theseResults <- makeWideMeasureDataframe(scenario[[year]],ScenarioName,year,wantMetadata=wantMetadata,metadata=metadata)
         if ( is.null(results.df) ) { # first set of measures
           if ( wantMetadata ) {
-            results.df <- theseResults[,c("Measure",attr(theseResults,"Metadata")] # makeWideMeasureDataframe picked out the metadata
+            results.df <- theseResults[,c("Measure",attr(theseResults,"Metadata"))] # makeWideMeasureDataframe picked out the metadata
             wantMetadata <- FALSE
           } else {
             # Just put out the measure names if not gathering metadata
             # Data will then be attached below
             results.df <- theseResults[,c("Measure"),drop=FALSE]
           }
+          message("Initializing results.df names:",paste(names(results.df),collapse=","))
+          message("theseResults names: ",paste(names(theseResults),collapse=","))
         }
         if ( ! wantData ) break # Only gathering metadata
 
@@ -706,6 +708,9 @@ ve.query.extract <- function(
         if ( !is.null(metadata) && length(metadata)>0 ) byFields <- c(byFields,metadata)
         mergeResults <- theseResults[,byFields,drop=FALSE]
         mergeResults[paste(ScenarioName,year,sep=".")] <- theseResults$Value
+        message("byFields: ",paste(byFields,collapse=","))
+        message("results.df names: ",paste(names(results.df),collapse=","))
+        message("mergeResults names: ",paste(names(mergeResults),collapse=","))
         results.df <- merge(results.df,mergeResults,by=byFields,all=TRUE)
       } else {
         # Long format always produces minimal metadata plus data...
@@ -736,7 +741,7 @@ ve.query.extract <- function(
     # TODO: remove any metadata column that only has NA values (not present in any specification)
   } else {
     ScenarioColumns <- "Scenario" # or whatever we used inside makeLongMeasureDataframe...
-    if ( !is.null(Geo_df) && "Bzone" %in% names(results_df) ) {
+    if ( !is.null(Geo_df) && "Bzone" %in% names(results.df) ) {
       # Merge extra fields in geography if Bzone is a By field in the results and extra geography
       # is present
       results.df <- merge(results.df,Geo_df,all.x=TRUE,by="Bzone")
@@ -1276,8 +1281,8 @@ ve.queryresults.measures <- function() {
 
 ve.queryresults.metadata <- function(metadata=specExportElements) {
   if ( ! self$valid() ) return( character(0) )
-  metadata <- unique(unlist(sapply( self$Results$Specifications, function(s) { names(s) )))
-  metadata <- metadata[ ! metadata %in% c("Name","Function","Summarize","Export")
+  metadata <- unique(unlist(sapply( self$Results$Specifications, names )))
+  metadata <- metadata[ ! metadata %in% c("Name","Function","Summarize","Export") ]
   return(metadata) # Leave out Name, which we pick up anyway
 }
 
@@ -1378,7 +1383,7 @@ deepPrint <- function(ell,join=" = ",suffix="",newline=TRUE) { # x may be a list
 
 specMetadataElements <- defaultMetadata
 
-specOptionaElements <- c( "Export" )
+specExportElements <- c( "Export" )
 
 specRequiredElements <- c(
   # These elements are "required" (except that "Function" and "Summarize" are
@@ -1402,7 +1407,7 @@ ve.spec.print <- function() {
     spec.print <- function(s,spec) { cat("   ",s,"= "); cat(deepPrint(spec[[s]]),"\n") }
     nm.req <- specRequiredElements[ specRequiredElements %in% names(self$QuerySpec) ]
     dummy <- lapply(nm.req,spec=self$QuerySpec,spec.print)
-    nm.export <- specOptionalElements[specOptionalElements %in% names(self$QuerySpec)]
+    nm.export <- specExportElements[specExportElements %in% names(self$QuerySpec)]
     if ( length(nm.export) > 0 ) {
       dummy <- lapply(nm.export,spec=self$QuerySpec,spec.print)
     }
@@ -1440,7 +1445,7 @@ ve.spec.check <- function(Names=character(0)) {
     }
 
     # Gather extra metadata names and keep a list of them in the QuerySpec
-    extra.names <- ! nm.test.spec %in% c(specRequiredElements,specOptionalElements)
+    extra.names <- ! nm.test.spec %in% c(specRequiredElements,specExportElements,"MetadataNames")
     metadata <- specMetadataElements
     if ( any(extra.names) ) {
       metadata <- c(metadata, nm.test.spec[extra.names])
@@ -1531,17 +1536,35 @@ ve.spec.copy <- function() {
 # with a new list.
 ve.spec.update <- function(
   # Replaces this QuerySpec from another one
+  # To edit this spec, use getlist() to get the internal QuerySpec,
+  #   then send it back into this function.
   # See ve.spec.check: can pass a QuerySpec through this with no
   #   override parameters to get the names filtered to just those
   #   that are legal.
   QuerySpec=list(), # a list or another VEQuerySpec
-  Name = NULL
+  Name = NULL,
+  ...               # dots must have names - they will replace same-named elements in self$QuerySpec
 ) {
   if ( ! is.null(Name) ) {
-    QuerySpec[ "Name" ] <- Name # replace list elements with named arguments
-  } else {
-    # Merge the resulting QuerySpec into self$QuerySpec
-    self$QuerySpec <- QuerySpec
+    self$QuerySpec[["Name"]] <- Name # replace query name if provided
+    
+  }
+  if ( ! missing(QuerySpec) ) {
+    if ( inherits(QuerySpec,"VEQuerySpec") ) {
+      QuerySpec <- QuerySpec$getlist()
+    }
+    if ( is.list(QuerySpec) && length(QuerySpec)>0 ) {
+      # Merge the resulting QuerySpec into self$QuerySpec
+      self$QuerySpec <- QuerySpec
+    } else {
+      writeLogMessage("Attempted update with invalid QuerySpec:")
+      print(QuerySpec)
+    }
+  }
+  if ( ...length() > 0 ) {
+    newElements <- list(...)
+    newElements <- newElements[ !is.na(names(newElements)) ] # ignore unnamed elements in ...
+    self$QuerySpec[ names(newElements) ] <- newElements # replace slice of self$QuerySpect
   }
   # Then return the checked version of self
   return( self$check() ) # does the check, then returns "self"
@@ -1834,6 +1857,8 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
   outputMetadata <- list()
   outputLength   <- 0 # to facilitate adding new metadata fields from later measures
 
+  filterMetadata <- length(metadata)>0 # if metadata names not provided, show all
+
   # Values is a named list of data.frames
   for ( measureName in names(Values) ) {
 
@@ -1841,7 +1866,7 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
     measure      <- Values[[measureName]] # A data.frame with By columns plus Measure
     if ( wantMetadata ) {
       metadataNames <- attr(measure,"MetadataNames") # The ones actually in this Measure
-      if ( length(metadata)>0 ) {
+      if ( filterMetadata ) {
         # leave out anything not explicitly requested, otherwise include all metadata
         metadataNames <- metadataNames[ metadataNames %in% metadata ]
       }
@@ -1873,15 +1898,16 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
     outputNames    <- c( outputNames, measureNames)
     outputMeasures <- c( outputMeasures, measure$Measure )
     if ( wantMetadata ) {
-      lapply( # outputMetadata is a list of vectors of the same length
+      outputMetadata <- sapply( simplify=FALSE, USE.NAMES=TRUE,
         metadataNames,
         function(mname) {
-          if ( outputLength>0 && ! mname %in% names(outputMetdata) ) {
+          if ( outputLength>0 && ! mname %in% names(outputMetadata) ) {
             outputMetadata[[mname]] <- rep(as.character(NA),outputLength) # WARNING: presuming all metadata is character type
           }
           c( outputMetadata[[mname]], rep(measureMetadata[[mname]],length(measure$Measure)) )
         }
       )
+      names(outputMetadata) <- metadataNames
     }
     outputLength <- length(outputMeasures)
   }
@@ -1891,7 +1917,7 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
     outputNames    <- c( "Year", outputNames )
     outputMeasures <- c( as.integer(Year), outputMeasures )
     if ( wantMetadata ) {
-      lapply( 
+      outputMetadata <- sapply( simplify=FALSE, USE.NAMES=TRUE,
         metadataNames,
         function(mname) {
           metavalue <- if ( mname=="Units" ) {
@@ -1908,7 +1934,7 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
     outputNames    <- c( "Scenario", outputNames )
     outputMeasures <- c( Scenario[1], outputMeasures )
     if ( wantMetadata ) {
-      lapply( 
+      outputMetadata <- sapply( simplify=FALSE, USE.NAMES=TRUE,
         metadataNames,
         function(mname) {
           metavalue <- if ( mname=="Units" ) {
@@ -1926,7 +1952,7 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
   # DANGER / TODO: is it a problem that the Value/Measure column may have different types for each
   # row? Worst case we should return a named list whose elements are lists rather than vectors.
   # Then manage tabular output by forcing each inner list element to character
-  
+
   Data_df <- data.frame(Measure = outputNames)
   if ( length(outputMetadata) > 0 ) Data_df <- cbind(Data_df, outputMetadata) # More than zero metadata fields requested
   Data_df <- cbind(Data_df,Value=outputMeasures)
@@ -1988,6 +2014,7 @@ makeLongMeasureDataframe <- function(Values,Scenario="",Year=NULL,Metadata=chara
       byFieldsData <- names(value)[! names(value) %in% "Value"]
       Add_df <- if ( length(measureMetadata) > 0 ) {
         Meta_df <- data.frame(measureMetadata)
+        byFieldsData <- c(byFieldsData,names(Meta_df))
         data.frame(Meta_df,value)
       } else value # Already a data.frame
       Add_df$Measure <- measureName
@@ -1998,18 +2025,20 @@ makeLongMeasureDataframe <- function(Values,Scenario="",Year=NULL,Metadata=chara
       if ( length(addNewFields) > 0 ) {
         byFieldsData <- c(byFieldsData,addNewFields)
       }
+
       # Also add any new metadata fields
       Add_df <- if ( length(measureMetadata) > 0 ) {
-        Meta_df <- data.frame(measureMetadata))
-        addNewFields <- names(Meta_df)[ ! names(Meta_df) %in% byFieldsData ]
-        if( length(addNewFields) > 0 ) {
-          byFieldsData <- c(byFieldsData,addNewFields)
+        Meta_df <- data.frame(measureMetadata)
+        addMetaFields <- names(Meta_df)[ ! names(Meta_df) %in% byFieldsData ]
+        if( length(addMetaFields) > 0 ) {
+          byFieldsData <- c(byFieldsData,addMetaFields)
+          addNewFields <- c(addNewFields,addMetaFields)
         }
         data.frame(Meta_df,value)
       } else value # already a data.frame
       for ( field in addNewFields ) Data_df[[field]] <- as.character(NA)
 
-      # Add any metadata or other fields that were present in earlier meastures
+      # Add any metadata or other fields that were present in earlier measures
       # but that may not be in this one.
       addOldFields <- names(Data_df)[!names(Data_df) %in% names(Add_df)]
       for ( field in addOldFields ) Add_df[[field]] <- as.character(NA)

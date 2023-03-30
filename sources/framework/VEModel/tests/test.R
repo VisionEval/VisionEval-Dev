@@ -31,7 +31,7 @@ logLevel <- function(log="info") {
 
 testStep <- function(msg) {
   # Use 'message' to get contrasting color in RStudio
-  message(paste(paste(msg,collapse="\n"),sep="\n"))
+  message(paste("\n",paste(msg,collapse="\n"),sep="\n"))
 }
 
 stopTest <- function(msg="Stop Test") {
@@ -880,7 +880,7 @@ test_03_select <- function( log="info" ) {
 
 test_05_query_extract <- function(log="info") {
   testStep("Set up model")
-  mod <- test_01_run("VERSPM-query",baseModel="VERSPM",variant="pop",log=log)
+  mod <- test_01_run("VERSPM-query",baseModel="VERSPM",variant="pop",log="warn")
   testStep("Build a query spec...")
   spec <- VEQuerySpec$new()
   QuerySpec <- list(
@@ -991,7 +991,7 @@ test_05_build_query <- function(log="info",break.query=TRUE,reset=FALSE) {
 
   testStep("Set up Queries")
   testStep("Opening test model and caching its results...")
-  mod <- test_01_run("VERSPM-query",baseModel="VERSPM",variant="pop",log=log,reset=reset)
+  mod <- test_01_run("VERSPM-query",baseModel="VERSPM",variant="pop",log="warn",reset=reset)
   rs <- mod$results()
 
   testStep("Show query directory (may be empty)...")
@@ -1002,7 +1002,7 @@ test_05_build_query <- function(log="info",break.query=TRUE,reset=FALSE) {
   qry <- mod$query("Test-Query",load=FALSE) # Don't open it if file exists already
   cat("Query valid:",qry$valid(),"\n")
   cat("Print qry$checkResults:"); print(qry$checkResults)
-  cat("Print query\n")
+  cat("Print query:\n")
   print(qry)
 
   testStep("Add a query specification formulated as a list element...")
@@ -1023,7 +1023,7 @@ test_05_build_query <- function(log="info",break.query=TRUE,reset=FALSE) {
   qry$add(VEQuerySpec$new(spec))
   qry$print(details=TRUE)
 
-  testStep("Names of specifications in added query...")
+  testStep("Names of specifications in added query (just one)...")
   print(qry$names())    # List names of QuerySpecifications in order
   testStep("Print function for added queries...")
   print(qry)
@@ -1032,6 +1032,7 @@ test_05_build_query <- function(log="info",break.query=TRUE,reset=FALSE) {
   print(qry)
   spec <- VEQuerySpec$new(spec)
   spec <- spec$update(Name="UrbanHhDvmt_before")
+  print(spec)
   cat("Adding spec:\n")
   print(spec)
   qry$add(spec,before=TRUE) # Should be placed at location=1 (first element); existing list after
@@ -1054,12 +1055,12 @@ test_05_build_query <- function(log="info",break.query=TRUE,reset=FALSE) {
   print(qry)
 
   testStep("Remove test specifications...")
-  cat("Removing:\n")
+  cat("Removing by name:\n")
   print( nm <- qry$names()[1:3] )
   qry$remove(nm) # remove by name (bye-bye before,loc2 and loc0)
   print(qry)
-  cat("Removing:\n")
-  print(c("2",qry$names()[2]))
+  cat("Removing by position:\n")
+  cat("2: ",qry$names()[2],"\n",sep="")
   qry$remove(2) # remove by position (bye-bye loc45)
   print(qry)
 
@@ -1068,6 +1069,7 @@ test_05_build_query <- function(log="info",break.query=TRUE,reset=FALSE) {
     # TODO: Throw some additional specific broken queries at it to see if errors are correct.
     # TODO: destroy that object once we're done abusing it.
   }
+
   return(qry)
 }
 
@@ -1076,7 +1078,7 @@ test_05_query <- function(log="info",Force=TRUE,runModel=FALSE) {
 
   testStep("Set up Queries and Run on Model Results")
   testStep("Opening test model and caching its results...")
-  mod <- test_01_run("VERSPM-query",baseModel="VERSPM",variant="pop",log=log,reset=runModel)
+  mod <- test_01_run("VERSPM-query",baseModel="VERSPM",variant="pop",log="warn",reset=runModel)
   rs <- mod$results()
 
   testStep("Show query directory (may be empty)...")
@@ -1162,9 +1164,6 @@ test_05_query <- function(log="info",Force=TRUE,runModel=FALSE) {
       Description = "Daily vehicle miles traveled by households residing in the urban area"
     )
   )
-  qry$add(spec)
-
-  print(qry)
   qry$add(spec,location=1,after=TRUE)
   print(qry)
 
@@ -1686,8 +1685,11 @@ test_06_scenarios <- function(
 }
 
 test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
+
   testStep("Will modify a version of VERSPM-base as VERSPM-export")
-  mod <- test_01_run("VERSPM-export",reset=reset,log=log)
+  mod <- test_01_run("VERSPM-export",reset=reset,log="warn")
+  print(mod)
+
   testStep("Get existing geo.csv")
   paramPath <- mod$setting("ParamPath",shorten=FALSE)
   geoFile <- mod$setting("GeoFile")
@@ -1695,21 +1697,22 @@ test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
   if ( ! file.exists(geoPath) ) stop("Failed to locate geo.csv")
   Geo_df <- read.csv(geoPath, colClasses="character") # currently will only support character field extensions
   print(names(Geo_df))
+
   testStep("Tag half the Bzones randomly with a new label")
   TagField <- sample(paste("Tag",1:2,sep="_"),nrow(Geo_df),replace=TRUE)
   Geo_df$TagField <-TagField
   write.csv(Geo_df,file.path(paramPath,geoFile),row.names=FALSE,na="NA")
+
   testStep("Re-open the model and run it to add updated geography to Datastore")
   mod <- openModel("VERSPM-export")
-  mod$run("reset",log=log)
+  mod$run("reset",log="warn")
+
   testStep("See Global/Bzone/TagField in selection fields")
   rs <- mod$results()
   print( sl <- rs$find(Group="Global",Table="Bzone",select=TRUE) )
-  message("The framework query function requires joined tables to be in the same group...")
-  message("Three solutions are obvious:")
-  message(" (1) return data.frames from two group selections and merge/aggregate manually [needs R chops]")
-  message(" (2) fix visioneval::summarizeDatasets to add Group/Table structure to Tables specification [difficult]")
-  message(" (3) [Used Here] export to SQL and run a simple query there")
+  # Tables with Bzone in them will also get the extra fields.
+  # Doublecheck that extra fields show up in Households (for example)
+
   if ( ( ! require(DBI) || ! require(RSQLite) ) && installSQL ) {
     install.into <- .libPaths()[1]     # Pick a better lib location if you have one
     install.packages("DBI",lib=install.into)
@@ -1720,7 +1723,38 @@ test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
   }
   df <- sl$extract()
 
-  testStep("Display table of query results")
+  testStep("Construct a query that does multi-level breakpoints on Azone + Field Tags")
+
+  spec <- list(
+    list(
+      Summarize = list(
+        Expr = "sum(Dvmt)",
+        By = c("Azone","TagField"),
+        Units = c(
+          Bzone = "",
+          Azone = "",
+          TagField = "",
+          Dvmt = "MI/DAY"
+        ),
+        Table = list(
+          Household = c("Dvmt","Bzone"),
+          Bzone = c("Azone","TagField")
+        ),
+        Key = "Bzone"
+      ),
+      Name = "VMTbyAzoneTagField",
+      Description = "VMT broken out by Azone and TagField",
+      Units = "Daily Household VMT"
+    )
+  )
+  print(spec)
+  qry <- VEQuery$new(QuerySpec=spec)
+  print(qry)
+
+  testStep("Display table of query results (wide format)")
+
+  testStep("Display table of query results (long format)")
+
   return(mod)
 }
 
