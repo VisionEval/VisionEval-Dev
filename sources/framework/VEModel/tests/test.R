@@ -1778,13 +1778,14 @@ test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
   mod$dir()
 
   testStep("Run the query")
-  qry$run()
+  qry$run(Force=TRUE)
   print(qry)
 
   testStep("Display table of query results (wide format)")
   print(qry$extract())
 
   testStep("Display table of query results (long format)")
+  print(qry$extract(longScenarios=TRUE))
 
   return(mod)
 }
