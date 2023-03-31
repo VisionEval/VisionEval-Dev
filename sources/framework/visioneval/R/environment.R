@@ -823,17 +823,15 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
     # files in ParamDir or InputPath can also screw things up
     # InputPath especially when developing scenarios
     filepaths <- dir(newRP$InputPath,full.names=TRUE)
+    filepaths <- filepaths[ ! filepaths== ModelDir ]
+    message("ModelDir:")
+    message(ModelDir)
+    message("InputPath:")
+    for ( f in filepaths ) message(f)
     
-    # Don't worry about the "queries" file path - it didn't participate in the run...;
-    # Could eventually add other harmless directories...
-    querydir <- if ( ! is.null(newRP$QueryDir) ) {
-      newRP$QueryDir
-    } else "queries"
-    queryPresent <- grepl(querydir,filepaths)
-    if ( any(queryPresent) ) filepaths <- filepaths[ ! queryPresent ]
-
-    # Check for changes in the directory that matter
+    # Check for changes to files in key directory
     for ( filepath in filepaths ) changed <- changedFile(changed, "InputPath", filepath)
+
     filepaths <- dir(newRP$ParamPath,full.names=TRUE)
     # Might get display_units.csv or some other file that doesn't matter in ParamPath...
     filepaths <- filepaths[ sub("\\.(csv|json)$","",basename(filepaths)) %in% c("geo","units","deflators","run_parameters") ]
