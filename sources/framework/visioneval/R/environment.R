@@ -823,11 +823,10 @@ checkUpToDate <- function( baseRP, newRP, lastRun=NULL ) {
     # files in ParamDir or InputPath can also screw things up
     # InputPath especially when developing scenarios
     filepaths <- dir(newRP$InputPath,full.names=TRUE)
-    filepaths <- filepaths[ ! filepaths== ModelDir ]
-    message("ModelDir:")
-    message(ModelDir)
-    message("InputPath:")
-    for ( f in filepaths ) message(f)
+
+    # Eliminate ModelDir if there are other InputPath elements (so as
+    # not to pick up things like ResultsDir itself).
+    if ( length(filepaths) > 1 ) filepaths <- filepaths[ ! filepaths== ModelDir ]
     
     # Check for changes to files in key directory
     for ( filepath in filepaths ) changed <- changedFile(changed, "InputPath", filepath)
