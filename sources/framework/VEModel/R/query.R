@@ -1956,7 +1956,7 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
   if ( length(outputMetadata) > 0 ) Data_df <- cbind(Data_df, outputMetadata) # More than zero metadata fields requested
   Data_df <- cbind(Data_df,Value=outputMeasures)
 
-  rownames(Data_df) <- outputNames # rows are named after measures...
+  rownames(Data_df) <- 1:nrow(Data_df) # rows are named after measures...
   return(
     structure(
       Data_df,
