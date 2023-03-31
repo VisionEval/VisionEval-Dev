@@ -109,8 +109,8 @@ ve.query.init <- function(
   }
 
   # Add remaining defaults for saving the query out again
-  # If FileName was provided outside the ModelPath, the resulting destination will amount to
-  # identification of a copy of that source query.
+  # If FileName was provided outside the ModelPath, the resulting
+  # destination will identify a copy of that source query.
   self$attach(OtherQuery=OtherQuery,ModelPath=ModelPath,QueryDir=QueryDir,QueryName=QueryName)
 
   # if "load==TRUE" and null QuerySpec/FileName, build the output name and
@@ -293,7 +293,6 @@ ve.query.add <- function(obj,location=0,before=FALSE,after=TRUE) {
   # If you use "update", specs not already present will be ignored with a warning.
 
   # Start by getting the specification list to add
-  browser()
   if ( is.list(obj) ) {
     spec <- asSpecList(obj)
     # Don't try to recover if the spec has invalid elements
