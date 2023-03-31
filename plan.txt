@@ -1,19 +1,12 @@
+Continue using the extra fields to debug queries and long/wide output format.
+
+Join query with Key (Bzone) in extra field extraction is generating
+lots of rows (all with reproduced measure) - but it should just give
+us one row per Azone... Look at interaction of Key and By and see
+where those are coming from (Start by examining the measure that is
+computed in the results).
+
 Updates to visualization long form output:
-
-Added ability to have arbitrary fields in a Query Specification. Need to test.
-Those become "metadata" and should be attached to the measures when the query
-is run and picked properly in both long and wide format. Need to check printing the query
-specifications (metadata should show).
-
-Probably a lot of tedious debugging...
-
-Extra geography fields can be injected, and these are attached (by Bzone) to the any table
-that has Bzone geography (they are inserted at the Bzone level, and not for Azone or Marea).
-Carry those through into the query output by geography. Implemented this already, but need
-to confirm how it happens: extra geography does NOT have to add up to Azone or Marea.
-
-I think it's okay, but need to test that extra geography fields also show up in the query
-output (join those on to long format Bzone records...)
 
 Tableau output format. Still TODO: Reorder the fields per F&P return example.
 

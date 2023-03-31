@@ -39,6 +39,11 @@ stopTest <- function(msg="Stop Test") {
 }
 
 getModelDirectory <- function() { # hack to support pkgload which won't see the function as exported for some reason
+  # NOTE: probably obsolete: since pkgload loads from sources/modules or sources/framework, there's
+  # no NAMESPACE by default. I added NAMESPACE to .gitignore, and setting up to do "live
+  # development" with ve.test just requires that the package be built once and the NAMESPACE copied
+  # back from /built/.../src/VEModel/NAMESPACE. As long as the development doesn't produce any new
+  # functions, we're fine.
   return(
     if ( ! "getModelDirectory" %in% getNamespaceExports("VEModel") ) {
       # Hack to support pkgload from source folder which does not have a Namespace
@@ -1690,22 +1695,36 @@ test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
   mod <- test_01_run("VERSPM-export",reset=reset,log="warn")
   print(mod)
 
-  testStep("Get existing geo.csv")
+  testStep("Get existing geo.csv and see if TagField is there")
+  # Could also consider looking for Geo_df in the model state for the first stage
   paramPath <- mod$setting("ParamPath",shorten=FALSE)
   geoFile <- mod$setting("GeoFile")
   geoPath <- file.path(paramPath,geoFile)
   if ( ! file.exists(geoPath) ) stop("Failed to locate geo.csv")
   Geo_df <- read.csv(geoPath, colClasses="character") # currently will only support character field extensions
-  print(names(Geo_df))
+  print(geoNames <- names(Geo_df))
+  hasTagField <- "TagField" %in% geoNames
 
-  testStep("Tag half the Bzones randomly with a new label")
-  TagField <- sample(paste("Tag",1:2,sep="_"),nrow(Geo_df),replace=TRUE)
-  Geo_df$TagField <-TagField
-  write.csv(Geo_df,file.path(paramPath,geoFile),row.names=FALSE,na="NA")
+  if ( hasTagField ) {
+    testStep("Also check that the model has been run and output includes TagField")
+    geoNames <- mod$results()$find(Group="Global",Table="Bzone")$fields()
+    cat("Show geography names in model output (if any)\n")
+    print(geoNames)
+    hasTagField <- any(grepl("/TagField$",geoNames))
+    cat("Has TagField:",hasTagField,"\n")
+  }
+  
+  if ( ! hasTagField ) {
+    testStep("Building TagField: Tag half the Bzones randomly with a new label")
+    TagField <- sample(paste("Tag",1:2,sep="_"),nrow(Geo_df),replace=TRUE)
+    Geo_df$TagField <-TagField
+    print(geoNames <- names(Geo_df))
+    write.csv(Geo_df,file.path(paramPath,geoFile),row.names=FALSE,na="NA")
 
-  testStep("Re-open the model and run it to add updated geography to Datastore")
-  mod <- openModel("VERSPM-export")
-  mod$run("reset",log="warn")
+    testStep("Re-open the model and run it to add updated geography to Datastore")
+    mod <- openModel("VERSPM-export")
+    mod$run("reset",log="warn")
+  }
 
   testStep("See Global/Bzone/TagField in selection fields")
   rs <- mod$results()
@@ -1714,6 +1733,7 @@ test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
   # Doublecheck that extra fields show up in Households (for example)
 
   if ( ( ! require(DBI) || ! require(RSQLite) ) && installSQL ) {
+    testStep("Install DBI and RSQLite...")
     install.into <- .libPaths()[1]     # Pick a better lib location if you have one
     install.packages("DBI",lib=install.into)
     require(DBI)
@@ -1721,7 +1741,10 @@ test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
     install.packages("RSQLite",lib=install.into)
     require(RSQLite)
   }
-  df <- sl$extract()
+  testStep("Extract the Bzone table and review")
+  df <- sl$extract() # df is actually a list of data.frames, one for each table
+  print(names(df))
+  print(df[["Global.Bzone"]][sample(nrow(df[["Global.Bzone"]]),10),])
 
   testStep("Construct a query that does multi-level breakpoints on Azone + Field Tags")
 
@@ -1748,10 +1771,18 @@ test_07_extrafields <- function(reset=FALSE,installSQL=TRUE,log="info") {
     )
   )
   print(spec)
-  qry <- VEQuery$new(QuerySpec=spec)
+  qry <- VEQuery$new(QueryName="TagField-Query",Model=mod,QuerySpec=spec)
+  print(qry)
+  qry$save()
+  mod$query() # list available queries; should include TagField-Query.VEqry
+  mod$dir()
+
+  testStep("Run the query")
+  qry$run()
   print(qry)
 
   testStep("Display table of query results (wide format)")
+  print(qry$extract())
 
   testStep("Display table of query results (long format)")
 
