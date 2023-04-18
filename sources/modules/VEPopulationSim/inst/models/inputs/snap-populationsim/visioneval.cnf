@@ -1,0 +1,31 @@
+Dynamic:
+    Message : Message for Dynamic from model root configuration; no field configured
+    PopSimDictionary: PopulationSim_DataDictionary.csv
+    VESimHouseholdDictionary: VESimHousehold_DataDictionary.csv
+    ACSYear: 2017
+    PopSimOutputDir:
+      2010: PopulationSim_Example\PopulationSim_Run\PopulationSim_Template\output
+      2038: PopulationSim_Example\PopulationSim_Run\PopulationSim_Template\output
+    PopSimFiles:
+      household_id: household_id
+      households:
+        filename: synthetic_households.csv
+        columns:
+          - hh_id     #Fixed
+          - NP        #Fixed
+          - NW        #Fixed
+          - HHINCADJ  #Fixed
+          - ACCESS    #New
+          - HTYPE     #New
+      persons:
+        filename: synthetic_persons.csv
+        columns:
+          - per_id    #Fixed
+          - per_num   #Fixed
+          - AGEP      #Fixed
+          - PINCADJ   #Fixed
+          - WORKER    #Fixed
+          - RAC1P     #New
+          - ENG       #New
+          - COW       #New
+    BzoneField: BG

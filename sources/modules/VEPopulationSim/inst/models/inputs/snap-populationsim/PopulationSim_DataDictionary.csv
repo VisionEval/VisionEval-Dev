@@ -1,0 +1,6 @@
+﻿NAME,TABLE,GROUP,TYPE,UNITS,NAVALUE,PROHIBIT,ISELEMENTOF,DESCRIPTION
+ACCESS,Household,Year,integer,category,"""NA""","c("""")","c(1,2,3,4)",Access to internet
+HTYPE,Household,Year,character,category,"""NA""","c("""")","c(""SF"", ""MF"", ""MH"", ""DUP"")",Household residential type
+PINCADJ,Person,Year,currency,USD,-1,"c(""NA"", ""< 0"")",,Total annual personal income
+RAC1P,Person,Year,integer,category,-1,"c(""NA"", ""< 0"")",c(1:9),Coded race of a person (PUMS 2020 definition)
+ENG,Person,Year,integer,category,"""NA""","c(""NA"", ""< 0"")","c(1,2,3,4)",English Speaking Ability

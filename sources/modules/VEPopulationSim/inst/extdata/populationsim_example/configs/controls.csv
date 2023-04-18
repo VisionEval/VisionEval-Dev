@@ -1,0 +1,33 @@
+target,geography,seed_table,importance,control_field,expression
+num_hh,BG,households,1000000000,HHBASE,(households.WGTP > 0) & (households.WGTP < np.inf)
+hh_size_1,BG,households,5000,HHSIZ1,households.NP == 1
+hh_size_2,BG,households,5000,HHSIZ2,households.NP == 2
+hh_size_3,BG,households,5000,HHSIZ3,households.NP == 3
+hh_size_4_plus,BG,households,5000,HHSIZ4,households.NP >= 4
+hh_inc_0_21,BG,households,500,HHINC1,(households.HHINCADJ > -999999999) & (households.HHINCADJ <= 21297)
+hh_inc_21_42,BG,households,500,HHINC2,(households.HHINCADJ >21297) & (households.HHINCADJ <= 42593)
+hh_inc_42_85,BG,households,500,HHINC3,(households.HHINCADJ > 42593) & (households.HHINCADJ <= 85185)
+hh_inc_85_plus,BG,households,500,HHINC4,(households.HHINCADJ > 85185) & (households.HHINCADJ <= 999999999)
+hh_wrks_0,TRACT,households,1000,HHWRK0,households.NW == 0
+hh_wrks_1,TRACT,households,1000,HHWRK1,households.NW == 1
+hh_wrks_2,TRACT,households,1000,HHWRK2,households.NW == 2
+hh_wrks_3_plus,TRACT,households,1000,HHWRK3,households.NW >= 3
+hh_by_type_sf,TRACT,households,1000,SF,households.HTYPE == 1
+hh_by_type_mf,TRACT,households,1000,MF,households.HTYPE == 2
+hh_by_type_mh,TRACT,households,1000,MH,households.HTYPE == 3
+hh_by_type_dup,TRACT,households,1000,DUP,households.HTYPE == 4
+num_per,BG,persons,500,POPBASE,(persons.PWGTP > 0) & (persons.PWGTP < np.inf)
+per_race_white,BG,persons,500,PRACWHT,persons.RAC1P == 1
+per_race_black,BG,persons,500,PRACBLK,persons.RAC1P == 2
+per_race_native,BG,persons,500,PRACNAT,"persons.RAC1P.isin([3,4,5])"
+per_race_asian,BG,persons,500,PRACASN,persons.RAC1P == 6
+per_race_pacific,BG,persons,500,PRACPAC,persons.RAC1P == 7
+per_race_other,BG,persons,500,PRACOTH,persons.RAC1P == 8
+per_race_multi,BG,persons,500,PRACMUL,persons.RAC1P == 9
+per_age_0_14,BG,persons,500,PAGE0TO14,(persons.AGEP <= 14)
+per_age_15_19,BG,persons,500,PAGE15TO19,(persons.AGEP > 15) & (persons.AGEP <= 19)
+per_age_20_29,BG,persons,500,PAGE20TO29,(persons.AGEP > 19) & (persons.AGEP <= 29)
+per_age_30_54,BG,persons,500,PAGE30TO54,(persons.AGEP > 29) & (persons.AGEP <= 54)
+per_age_55_64,BG,persons,500,PAGE55TO64,(persons.AGEP > 54) & (persons.AGEP <= 64)
+per_age_65_plus,BG,persons,500,PAGE65PLUS,(persons.AGEP > 64) & (persons.AGEP <= np.inf)
+avg_percap_inc,BG,persons,500,PINC,persons.PINCADJ

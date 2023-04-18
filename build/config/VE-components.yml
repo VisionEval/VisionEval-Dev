@@ -169,7 +169,15 @@ Components:
     VE:
       - VELandUse
       - VESimLandUseData
-
+  VEPopulationSim:
+    Type: module
+    Path: sources/modules
+    Test:
+      Group: 3
+    CRAN:
+      - data.table
+    VE:
+      - VELandUse
 # Group 4 Packages
   VETravelPerformance:
     Type: module

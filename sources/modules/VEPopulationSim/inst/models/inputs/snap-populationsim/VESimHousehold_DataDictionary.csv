@@ -1,0 +1,30 @@
+﻿NAME,TABLE,GROUP,TYPE,UNITS,NAVALUE,PROHIBIT,ISELEMENTOF,DESCRIPTION
+NumHh,Azone,Year,households,HH,-1,"c(""NA"", ""< 0"")",,Number of households (non-group quarters)
+NumGq,Azone,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Number of people in non-institutional group quarters
+NumWkr,Azone,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Number of workers residing in the zone
+HhId,Household,Year,character,ID,"""NA""","c("""")",,Unique household ID
+Azone,Household,Year,character,ID,"""NA""","c("""")",,Azone ID
+Bzone,Household,Year,character,ID,"""NA""","c("""")",,Bzone ID
+Marea,Household,Year,character,ID,"""NA""","c("""")",,Marea ID
+HhSize,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Number of persons
+Age0to14,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 0 to 14 year old age group
+Age15to19,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 15 to 19 year old age group
+Age20to29,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 20 to 29 year old age group
+Age30to54,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 30 to 54 year old age group
+Age55to64,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 55 to 64 year old age group
+Age65Plus,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 65 or older age group
+HhType,Household,Year,character,category,"""NA""","c("""")",,Coded household age composition (e.g. 2-1-0-2-0-0) or Grp for group quarters
+Income,Household,Year,currency,USD,-1,"c(""NA"", ""< 0"")",,Total annual household (non-qroup & group quarters) income
+Wkr15to19,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 0 to 14 year old age group
+Wkr20to29,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 15 to 19 year old age group
+Wkr30to54,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 20 to 29 year old age group
+Wkr55to64,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 30 to 54 year old age group
+Wkr65Plus,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 55 to 64 year old age group
+Workers,Household,Year,people,PRSN,-1,"c(""NA"", ""< 0"")",,Persons in 65 or older age group
+PerId,Person,Year,character,ID,"""NA""","c("""")",,Unique person ID
+HhId,Person,Year,character,ID,"""NA""","c("""")",,Unique household ID
+Azone,Person,Year,character,ID,"""NA""","c("""")",,Azone ID
+Bzone,Person,Year,character,ID,"""NA""","c("""")",,Bzone ID
+Marea,Person,Year,character,ID,"""NA""","c("""")",,Marea ID
+Age,Person,Year,time,YR,"""NA""","c(""NA"", ""< 0"")",,Age of a person
+Worker,Person,Year,integer,binary,-1,"c(""NA"", ""< 0"","">1"")","c(0,1)",Flag for person as a worker

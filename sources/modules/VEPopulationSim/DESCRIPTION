@@ -1,0 +1,21 @@
+Package: VEPopulationSim
+Type: Package
+Title: Transform External PopulationSim Output to VisionEval
+Version: 0.0.1
+Date: 2022-07-31
+Authors@R: person("Nick", "Fourier", , "nick.fourier@rsginc.com", role = c("aut", "cre"))
+Maintainer@R: person("Aditya", "Gore", , "aditya.gore@rsginc.com", role = c("cre"))
+Description: This package contains a module which convert existing PopulationSim
+    output into VisionEval framework and creates additional variables as produced by
+	VESimHouseholds
+License: file LICENSE
+LazyData: TRUE
+Depends: R (>= 4.1.2)
+Imports:
+    visioneval
+Encoding: UTF-8
+Roxygen: list(load='source')
+RoxygenNote: 7.1.2
+Collate:  
+    'ReadPopulationSimOutput.R'
+    'LocateEmployment.R'
