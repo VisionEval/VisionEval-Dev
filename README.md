@@ -42,7 +42,7 @@ There are five repositories in the VisionEval organization to serve different pu
    Developers / power-users should [create issues](https://github.com/VisionEval/VisionEval-Dev/issues)
    and [pull requests](https://github.com/VisionEval/VisionEval-Dev/pulls) to this repository.
  
- - **[VisionEval.org](https://github.com/VisionEval/VisionEval.org)**: Website repository. You can
+ - **[VisionEval.github.io](https://github.com/VisionEval/VisionEval.github.io)**: Website repository. You can
    [create issues](https://github.com/VisionEval/VisionEval.org/issues) here for website-related change
    requests.
  
