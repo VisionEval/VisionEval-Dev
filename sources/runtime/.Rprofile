@@ -13,7 +13,7 @@ local( {
   }
 
   start.from <- setwd(VE.home) # get ready to run the startup file
-  if ( VE.developer ) {
+  if ( VE.developer ) { # developer launch
     VE.build.dir <- Sys.getenv("VE_BUILD",VE.home)
     cat("Build directory:",VE.build.dir,"\n")
     dev.lib <- file.path(VE.build.dir,"dev/lib",this.R)
@@ -38,7 +38,7 @@ local( {
       cat("VE lib:",ve.lib,"\n")
       if ( dir.exists(ve.lib) ) {
         .libPaths(c(ve.lib,.libPaths()))
-        source("build/VisionEval-dev.R")  # Will return to VE_RUNTIME set above
+        source("build/VisionEval-dev.R")
         loaded <- TRUE
       }
     }      
@@ -47,14 +47,17 @@ local( {
       message("However, VisionEval from ",VE.home," is not available.")
       message("Please run ve.build()")
       setwd(VE.home)
+      source("build/VisionEval-dev.R") # Load ve.build etc. so we can set it up
     } else {
+      # Built VisionEval is available - move over to runtime and start VisionEval
       ve.runtime <- Sys.getenv("VE_RUNTIME",unset=start.from) # can also set VE_RUNTIME in .Renviron
       ve.run(ve.runtime)  # Ready to run development version
     }
-  } else {
-    # VisionEval will run in VE_RUNTIME - generally leaving the default is preferred
+  } else { # End user launch
+    # VisionEval will run in VE_RUNTIME
+    # Best to set that to a location separate from VisionEval code (see detailed installation docs)
     ve.runtime <- Sys.getenv("VE_RUNTIME",unset=start.from) # can also set VE_RUNTIME in .Renviron
-    Sys.setenv(VE_RUNTIME=ve.runtime) # propagate into standard startup
+    Sys.setenv(VE_RUNTIME=ve.runtime) # propagate into standard startup if VE_RUNTIME was not set
     source("VisionEval.R") # Run end-user version
   }
   invisible(NULL)
