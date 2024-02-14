@@ -397,7 +397,15 @@ ve.results.init <- function(ResultsPath,ResultsName=NULL,ModelStage=NULL) {
   self$RunParam_ls <- self$ModelState()$RunParam_ls
   self$loadedParam_ls <- self$RunParam_ls # establish interface for environment.R/getSetup
   self$modelStage <- ModelStage # may be NULL; only used to get stage elements for category scenarios via the R visualizer
+  self$BaseYear <- BaseYear(self$RunParam_ls) 
   return(self$valid())
+}
+
+# return structure indicating if the current result set contains Base Year results
+BaseYear <- function(RunParam_ls) {
+  baseYear <- RunParam_ls$BaseYear
+  containsBaseYear <- as.character(RunParam_ls$BaseYear) %in% as.character(RunParam_ls$Years) # make sure types are consistent (int vs char)
+  return ( list(BaseYear=baseYear,isBaseYear=containsBaseYear) )
 }
 
 # Get tables of data from the Datastore for a specific stage/scenario
@@ -870,6 +878,7 @@ VEResults <- R6::R6Class(
     modelIndex     = NULL,
     RunParam_ls    = NULL,
     loadedParam_ls = NULL,
+    BaseYear       = NULL,
 
     # methods
     initialize=ve.results.init,

@@ -613,7 +613,7 @@ interleave <- function(x,y) {
 ve.query.extract <- function(
   Results=NULL, Measures=NULL, Years=NULL,
   wantMetadata=TRUE, wantData=TRUE, nameMeasureBy=TRUE,
-  longScenarios=FALSE, exportOnly=FALSE) {
+  longScenarios=FALSE, exportOnly=FALSE, NA.default=NA) {
   # "Results" is a list of VEResults (or a VEResultsList) from a VEModel
   # Visit each of the valid results in the Model (or Results list) and add its years as columns
   #  to the resulting data.frame, then return the accumulated result
@@ -630,6 +630,7 @@ ve.query.extract <- function(
   #   keep the By columns (if any) as part of default metadata per metric;
   # exportOnly, if TRUE, only includes metrics with the Export attribute set (conventionally to
   #   TRUE, but we're considering only present/missing)
+  # NA.default applies to Long Scenarios - any "NA" in the Values column will be replaced by zero
 
   Results <- self$results(Results) # generate list of valid VEQueryResults
   if ( length(Results)==0 ) {
@@ -637,7 +638,7 @@ ve.query.extract <- function(
     return( data.frame() )
   }
 
-  scenarioList <- lapply(Results,function(r) r$values() )
+  scenarioList <- lapply(Results,function(r) structure(r$values()) )
   scenarioList <- scenarioList[ ! sapply(scenarioList,is.null) ] # Should be no NULLs, but just in case...
 
   if ( is.character(wantMetadata) ) {
@@ -711,9 +712,28 @@ ve.query.extract <- function(
   ScenarioElements <- list()
   longScenarios <- longScenarios && wantData # if only metadata, always do wide format
 
+  # Pull out set of metrics and values for first scenario containing model BaseYear
+
+  if ( longScenarios ) {
+    BaseYearValues = NULL # Should be available, but might not be if Scenario or Year got filtered out above
+    for ( scenario in scenarioList ) {
+      if ( is.null(BaseYear <- attr(scenario,"BaseYear")) ) {
+        next
+      } else {
+        if ( all(c("BaseYear","isBaseYear") %in% names(BaseYear)) && BaseYear$isBaseYear ) {
+          BaseYearValues <- scenario[[BaseYear$BaseYear]] # set of values for Year==BaseYear
+          break
+        }
+      }
+    }
+  }
+
+  # Compile results into output data.frames
+
   for ( scenario in scenarioList ) { # single set of filtered results
     ScenarioName <- attr(scenario,"ScenarioName")
     Elements <- attr(scenario,"ScenarioElements")
+    BaseYearConfig <- attr(scenario,"BaseYear")
     for ( year in names(scenario) ) {
       if ( ! longScenarios ) { # will also use wide format if we're only getting Metadata
         longScenarios <- FALSE # so we don't add extra geography at the end
@@ -754,7 +774,11 @@ ve.query.extract <- function(
         results.df <- results.df[ ordering, ] # Keep the original ordering (merge screws it up...)
       } else {
         # Long format always produces metadata plus data...
-        theseResults <- makeLongMeasureDataframe(scenario[[year]],ScenarioName,year,metadata)
+        showBaseYear <- list(
+          Values=BaseYearValues,
+          isBaseYear=(BaseYearConfig$isBaseYear && as.character(year)==as.character(BaseYearConfig$BaseYear))
+        )
+        theseResults <- makeLongMeasureDataframe(scenario[[year]],ScenarioName,year,metadata,BaseYear=showBaseYear,NA.default=NA.default)
         results.df <- rbind(results.df,theseResults) # Columns should conform...
       }
       Scenarios <- c( Scenarios, ScenarioName ) # dupes if multiple years for scenarios
@@ -779,7 +803,7 @@ ve.query.extract <- function(
       ScenarioColumns <- character(0)
     }
     # TODO: (harmless not to do) remove any metadata column that only has NA values (not present in any specification)
-  } else {
+  } else { # longScenarios
     ScenarioColumns <- "Scenario" # or whatever we used inside makeLongMeasureDataframe...
 
     # Add geography tags to query results, if not present.
@@ -1455,7 +1479,8 @@ ve.queryresults.values <- function() {
   if ( self$valid() ) {
     structure(self$Results$Values,
       ScenarioName=self$Source$Name,
-      ScenarioElements=self$Source$elements() # expanded list of ScenarioElements
+      ScenarioElements=self$Source$elements(),  # expanded list of ScenarioElements
+      BaseYear=self$Source$BaseYear             # identifies BaseYear and presence in this set of results
     )
   } else NULL
 }
@@ -2246,11 +2271,15 @@ makeWideMeasureDataframe <- function(Values,Scenario="",Year=NULL, wantMetadata=
 #
 # DANGER/TODO: presuming each Value/Measure has the same (probably numeric) type. less of a
 # danger in this format than in the Wide format.
-
-makeLongMeasureDataframe <- function(Values,Scenario="",Year=NULL,Metadata=character(0)) {
+# BaseYear is expected to be a structure with "Values" for BaseYear measures and a flag isBaseYear if Scenario/Year is BaseYear
+# If not NULL, it will be injected as an additional value column, otherwise ignored.
+# NA.default (default = NA) will be used for any Value of NA
+makeLongMeasureDataframe <- function(Values,Scenario="",Year=NULL,Metadata=character(0),BaseYear=NULL,NA.default=NA) {
   # Values is a named list of measure data.frames for a single scenario year (scenarios may have
   # more than one year)
   # Will inject any requested Metadata fields (or all of them if none provided)
+
+  hasBaseYear = ! is.null(BaseYear)
 
   Data_df <- NULL
   measureNames <- names(Values)
@@ -2261,6 +2290,12 @@ makeLongMeasureDataframe <- function(Values,Scenario="",Year=NULL,Metadata=chara
   for ( measure in seq(Values) ) {
     measureName <- measureNames[[measure]]
     value <- Values[[measure]]
+    if ( hasBaseYear ) {
+      value$BaselineValue <- BaseYear$Values[[measureName]]$Measure
+      value$BaselineValue[is.na(value$BaselineValue)] <- NA.default # redundant if NA.default=NA
+      value$BaselineScenario <- if ( BaseYear$isBaseYear ) 1 else 0
+    } # Creates new fields in output data.frame for BaseYear measure values...
+    # Check that the result propagates to longScenarios data.frame...
 
     metadataNames <- attr(value,"MetadataNames")
     if ( is.null(metadataNames) ) {
@@ -2281,6 +2316,7 @@ makeLongMeasureDataframe <- function(Values,Scenario="",Year=NULL,Metadata=chara
     metadataFields <- unique(c(metadataFields,names(measureMetadata)))
 
     names(value) <- sub("^Measure$","Value",names(value)) # value is a data.frame
+    value$Value[ is.na(value$Value) ] <- NA.default # redundant if NA.default is NA
     if ( is.null(Data_df) ) {
       # First metric => create new Data_df
       byFieldsData <- names(value)[! names(value) %in% "Value"]
@@ -2402,6 +2438,9 @@ doQuery <- function (
     queryEnv$Specifications <- Specifications
     queryEnv$Timestamp <- Timestamp
     queryEnv$Values <- list()
+    queryEnv$BaseYear <- results$BaseYear # Flag base year to include values in longScenarios for baseline estimate
+    # BaseYear identifies the model BaseYear and also "isBaseYear" flag which is TRUE if this result set contains
+    #   base year data.
 
     makeManifest = TRUE # only do it for the first year of results; presume later years are the same
 
