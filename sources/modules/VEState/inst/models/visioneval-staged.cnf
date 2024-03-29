@@ -15,7 +15,7 @@ ParamDir       : defs    # Each stage shares the same defs files
 # Model description
 Model          : VE-State 3.0
 Region         : Oregon
-Stage          : OR
+State          : OR
 ModelStages    :
   Stage-1 : 
     Dir : Stage-1

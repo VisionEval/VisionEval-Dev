@@ -1,5 +1,5 @@
 Notes:
-- VE-State "all in one" implementation (takes a LONG time to run)
+- VE-State "vertical" stages (Years)
 - Model Structural Parameters: ScriptsDir,ModelScript,InputDir,ParamDir,GeoFile,ModelParamFile
 - Model Description: Model, Region, Stage
 - Scenario Description: Seed, Scenario, Description, BaseYear, Years
@@ -17,9 +17,17 @@ Model          : VE-State 3.0
 Region         : Oregon
 State          : OR
 
-# Scenario description
+# Common Scenario elements
 Seed           : 1
 Scenario       : VE-State Oregon
-Description    : Base Year 2010 + Future 2040
 BaseYear       : 2010
-Years          : [ 2010, 2040 ]
+
+# Model Stages
+ModelStages:
+  base-year-2010:
+    Years : [2010]
+    Description : Oregon Base Year 2010
+  future-year-2040:
+    StartFrom : base-year-2010
+    Years : [2040]
+    Description : Oregon Future Year 2040

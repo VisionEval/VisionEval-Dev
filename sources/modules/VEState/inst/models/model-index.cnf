@@ -13,9 +13,15 @@ VE-State:
       defs: defs
       # queries: queries # TODO: Sample queries in 3.0 format
     staged:
-      description: VE-Stage 3.0 Staged (Horizontal)
+      description: VE-Stage 3.0 Staged (just executing slices of the model)
       config: visioneval-staged.cnf
       scripts: scripts-staged # contains stage scripts and visioneval.cnf files
       inputs: inputs # Some files are overridden in stages
       defs: defs
       # queries: queries # TODO: Sample queries in 3.0 format
+    years:
+      description: VE-Stage 3.0 Staged in Years (one stage per model run year)
+      config: visioneval-years.cnf
+      scripts: scripts-base
+      inputs: inputs
+      defs: defs
