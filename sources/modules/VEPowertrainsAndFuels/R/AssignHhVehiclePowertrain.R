@@ -839,7 +839,7 @@ AssignHhVehiclePowertrain <- function(L, M) {
 
   #Calculate the proportion of DVMT that is electric
   #-------------------------------------------------
-  PhevElecProp_ls <- loadPackageDataset("PhevElecProp_ls","VEPowertrainsAndFuels")
+  PhevElecProp_ls <- loadPackageDataset("PhevElecProp_ls") # Removed package name - force to model-loaded package
   ElecDvmtProp_Ve <- local({
     IsPhev_Ve <- Powertrain_Ve == "PHEV"
     IsMetro_Ve <- L$Year$Household$LocType[HhToVehIdx_Ve] == "Urban"
