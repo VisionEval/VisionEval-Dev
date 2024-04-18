@@ -741,16 +741,20 @@ Initialize <- function(L) {
     for (ma in Ma) {
       Az <- AzonesByMarea_ls[[ma]]
       IsYearAndMarea <- with(PropMetroJobs_df, Year == yr & Geo %in% Az)
+      writeLog(paste("Azones in Marea",ma,":",paste(Az,collapse=", ")),Level="info")
       PropMetroJobs_ <- with(PropMetroJobs_df, PropMetroJobs[IsYearAndMarea])
       names(PropMetroJobs_) <- with(PropMetroJobs_df, Geo[IsYearAndMarea])
+      writeLog(paste("Azone",names(PropMetroJobs_),"has prop",PropMetroJobs_),Level="info")
       TotProp <- sum(PropMetroJobs_)
+      writeLog(paste("Marea",ma,"TotProp",TotProp),Level="info")
       Diff <- abs(1 - TotProp)
       if (Diff >= 0.01) {
         Msg <- paste0(
           "Error in input values for 'PropMetroJobs' for Marea ",
           ma, " and Year ", yr,
-          ". The sum of values for Azones in the Marea is off by more than 1%. ",
-          "They should add up to 1."
+          ". The sum of values for Azones in the Marea is off by more than 1% (",
+          TotProp,
+          "). They should add up to 1."
         )
         Errors_ <- c(Errors_, Msg)
       } else {
@@ -759,8 +763,8 @@ Initialize <- function(L) {
             "Warning regarding input values for 'PropMetroJobs' for Marea ",
             ma, " and Year ", yr,
             ". The sum of values for Azones in the Marea do not add up to 1 ",
-            "but are off by less than 1%. ",
-            "They have been adjusted to add up to 1."
+            "but are off by less than 1% (",TotProp,
+            "). They have been adjusted to add up to 1."
           )
           Warnings_ <- c(Warnings_, Msg)
           PropMetroJobs_ <- PropMetroJobs_ / sum(PropMetroJobs_)
@@ -832,7 +836,7 @@ Initialize <- function(L) {
         WkrPopAdj_AzRe <- as.matrix(data.frame(L$Data$Year$Azone)[IsYear, Re])
       } else {
         # Create a dummy matrix with all proportions set to 1
-        MkrPopAdj_AzRe <- matrix(1,nrow=length(which(IsYear)),ncol=length(Re))
+        WkrPopAdj_AzRe <- matrix(1,nrow=length(which(IsYear)),ncol=length(Re))
       }
       rownames(WkrPopAdj_AzRe) <- L$Data$Year$Azone$Geo[IsYear]
       WkrProp_AzAg <- sweep(WkrPopAdj_AzRe, 2, WkrProp_Ag, "*")

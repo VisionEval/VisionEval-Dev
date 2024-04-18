@@ -54,12 +54,12 @@ if ( ! dir.exists(TempDir_) ) {
   dir.create(TempDir_, recursive=TRUE, showWarnings=FALSE )
 }
 
-# Short-circuit if the contents of "/man" is not newer than "/inst/function_docs".
+# Short-circuit if the contents of "/man" is not newer than "/inst/framework_docs".
 need.new.docs <- newerThan(framework.rd,ve.framework.docs)
 
 if ( need.new.docs ) {
 
-  cat("Building Framework Documentation into:\n",ve.framework.docs,"\n")
+  cat("Framework Documentation is out of date -- Rebuilding...\n")
 
   #Make a vector of function documentation file paths
   #Look in the "src" directory for the documents (as built)
@@ -70,8 +70,7 @@ if ( need.new.docs ) {
 
   cat("Associating .Rd files with their source .R file\n")
   # Make a note of which VisionEval source file led to creation of which .Rd file
-  # Warning: requires working RTools40 installation on Windows...
-  # Should work on Mac or Linux using "system" instead of "shell"
+  # Warning: requires working RTools4x installation on Windows...
   grep.paths <- paste(DocFilePaths_,collapse=" ")
   # t <- system(paste("bash -c \"echo grep -n \\'document in R/\\' ",grep.paths,"\""),intern=TRUE)
 
@@ -127,8 +126,10 @@ if ( need.new.docs ) {
   #Iterate through documentation files
   for (DocFile in DocFilePaths_) {
     cat("Parsing file:",DocFile)
-    ParsedRd_ls <- Rd2md::parseRd(tools::parse_Rd(DocFile))
-    Group <- getGroup(ParsedRd_ls)
+#    ParsedRd_ls <- Rd2md::parseRd(tools::parse_Rd(DocFile))
+    # The following does not work.
+    ParsedRd_ls <- lapply(tools::parse_Rd(DocFile),Rd2md::as_markdown)
+    group <- getGroup(ParsedRd_ls)
     if ( length(Group)==0 ) {
       Group <- "control"
       cat(" (default)","\n")
@@ -163,10 +164,14 @@ if ( need.new.docs ) {
 
   #Function to compose markdown for a function
   #-------------------------------------------
+  # Note: Rd2md package changed and got much worse!
   makeFunctionMarkdown <- function(RdFilePath, FunctionCalls_, RdFileSource) {
     #Convert function Rd file to markdown and save to temporary file
     outfile <- file.path(TempDir_,"temp.md")
     Rd2md::Rd2markdown( rdfile=RdFilePath, outfile=outfile )
+    # Above is deprecated; use the following:
+    # cat(Rd2md::as_markdown(Rd2md::read_rdfile(RdFilePath)), file = outfile)
+
     #Read the contents of the temporary file
     MdContents_ <- readLines(outfile)
     #Insert the file origin after the first row (which has the function name)

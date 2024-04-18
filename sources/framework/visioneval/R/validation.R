@@ -1477,90 +1477,95 @@ parseInputFieldNames <- function(FieldNames_, Specs_ls, FileName) {
     Fields_ls <- list()
     #Make an index to the specified field names
     SpecdNames_ <- unlist(lapply(Specs_ls, function(x) x$NAME))
-    for (i in 1:length(FieldNames_)) {
-      Fields_ls[[i]] <- list()
-      FieldName <- FieldNames_[i]
-      Fields_ls[[i]]$Error <- character(0)
+    specField <- 1
+    for (FieldName in FieldNames_) {
       #Split the parts of the units specification
       NameSplit_ <- unlist(strsplit(FieldName, "\\."))
       #The field name is the first element
       Name <- NameSplit_[1]
-      Fields_ls[[i]]$Name <- Name
-      #If the field name is "Geo" or "Year" move on to next field
-      if (Name %in% c("Geo", "Year")) next()
-      #Check that the parsed name is one of the specified field names
-      if (!(Name %in% SpecdNames_)) {
-        Fields_ls[[i]]$Year <- NA
-        Fields_ls[[i]]$Multiplier <- NA
-        Msg <-
-          paste0("Field name ", FieldName, " does not parse to a name that ",
-                 "can be recognized as one of the names specified for the ",
-                 "input file ", FileName)
-        Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
-      } else {
-        #Decode the Year and Multiplier portions
-        FieldType <- Specs_ls[[which(SpecdNames_ == Name)]]$TYPE
-        if (FieldType == "currency") {
-          whereIsCompound <- grep("/",NameSplit_) # returns 2 if just a Year, or 3 if a Multiplier too or numeric(0) if not compound
-          if ( length(whereIsCompound)>1 ) {
-            Msg <-
-              paste0("Field name ", FieldName, " appears to be compound but it cannot be parsed",
-                     "for input file ", FileName)
-            Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
-          } else if ( length(whereIsCompound)==1 ) { # compound currency unit
-            # Handling something like "USD.2010/DAY"
-            CompoundCurrency_ <- unlist(strsplit(NameSplit_[whereIsCompound],"[*/]"))
-            if ( length(CompoundCurrency_) > 2 ) {
-              # only split on the first "/" (handling USD.2008/PRSN/DAY => USD/PRSN/DAY with YEAR=2008
-              CompoundCurrency_ <- c(CompoundCurrency_[1],paste(CompoundCurrency_[-1],collapse="/"))
-            }
-            # Move the compound part to Spec_ls$UNITS specification
-            Fields_ls[[i]]$Name <- paste0(Fields_ls[[i]]$Name,"/",CompoundCurrency_[2])
-            NameSplit_[whereIsCompound] <- CompoundCurrency_[1] # The actual Year or Multiplier part
+
+      # If the name is unknown, just skip it (allowing for total columns and
+      # other helpers during data preparation.
+      if ( !(Name %in% c(SpecdNames_,"Geo","Year")) ) {
+        writeLog(paste("Skipping field",Name,"during input validation"),Level="info")
+        next()
+      }
+
+      Fields_ls[[specField]] <- list()
+      Fields_ls[[specField]]$Error <- character(0)
+      Fields_ls[[specField]]$Name <- Name
+
+      #If the field name is "Geo" or "Year" don't do any specification checking but leave a placeholder
+      if (Name %in% c("Geo", "Year") ) {
+        specField <- specField + 1
+        next()
+      }
+
+      #Decode the Year and Multiplier portions
+      FieldType <- Specs_ls[[which(SpecdNames_ == Name)]]$TYPE
+      if (FieldType == "currency") {
+        whereIsCompound <- grep("/",NameSplit_) # returns 2 if just a Year, or 3 if a Multiplier too or numeric(0) if not compound
+        if ( length(whereIsCompound)>1 ) {
+          Msg <-
+            paste0("Field name ", FieldName, " appears to be compound but it cannot be parsed",
+                   "for input file ", FileName)
+          Fields_ls[[specField]]$Error <- c(Fields_ls[[specField]]$Error, Msg)
+        } else if ( length(whereIsCompound)==1 ) { # compound currency unit
+          # Handling something like "USD.2010/DAY"
+          CompoundCurrency_ <- unlist(strsplit(NameSplit_[whereIsCompound],"[*/]"))
+          if ( length(CompoundCurrency_) > 2 ) {
+            # only split on the first "/" (handling USD.2008/PRSN/DAY => USD/PRSN/DAY with YEAR=2008
+            CompoundCurrency_ <- c(CompoundCurrency_[1],paste(CompoundCurrency_[-1],collapse="/"))
           }
-          Fields_ls[[i]]$Year <- getYear(NameSplit_[2])
-          Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[3]) # NA if no multiplier, which is good
-        } else {
-          Fields_ls[[i]]$Year <- NA
-          Fields_ls[[i]]$Multiplier <- getMultiplier(NameSplit_[2])
+          # Move the compound part to Spec_ls$UNITS specification
+          Fields_ls[[specField]]$Name <- paste0(Fields_ls[[specField]]$Name,"/",CompoundCurrency_[2])
+          NameSplit_[whereIsCompound] <- CompoundCurrency_[1] # The actual Year or Multiplier part
         }
-        #If currency type, check that value is correct or give an error
-        if (FieldType == "currency") {
-          AllowedYears_ <- as.character(getModelState()$Deflators$Year)
-          if (is.na(Fields_ls[[i]]$Year)) {
+        Fields_ls[[specField]]$Year <- getYear(NameSplit_[2])
+        Fields_ls[[specField]]$Multiplier <- getMultiplier(NameSplit_[3]) # NA if no multiplier, which is good
+      } else {
+        Fields_ls[[specField]]$Year <- NA
+        Fields_ls[[specField]]$Multiplier <- getMultiplier(NameSplit_[2])
+      }
+      #If currency type, check that value is correct or give an error
+      if (FieldType == "currency") {
+        AllowedYears_ <- as.character(getModelState()$Deflators$Year)
+        if (is.na(Fields_ls[[specField]]$Year)) {
+          Msg <-
+            paste0("Field name ", FieldName, " in input file ", FileName,
+                   " has a specification TYPE of currency, but the parsed year ",
+                   "component is missing or is not a valid year. ",
+                   "See documentation for details on how to properly name ",
+                   "a field name that has a year component. ")
+          Fields_ls[[specField]]$Error <- c(Fields_ls[[specField]]$Error, Msg)
+          rm(Msg)
+        } else {
+          if (!(Fields_ls[[specField]]$Year %in% AllowedYears_)) {
             Msg <-
               paste0("Field name ", FieldName, " in input file ", FileName,
                      " has a specification TYPE of currency, but the parsed year ",
-                     "component is missing or is not a valid year. ",
-                     "See documentation for details on how to properly name ",
-                     "a field name that has a year component. ")
-            Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
+                     "component is not one for which there is a deflator. ",
+                     "If the year component is correct, then the deflators file ",
+                     "must be corrected to include a deflator for the year. ",
+                     "See documentation for details on the deflator file requirements.")
+            Fields_ls[[specField]]$Error <- c(Fields_ls[[specField]]$Error, Msg)
             rm(Msg)
-          } else {
-            if (!(Fields_ls[[i]]$Year %in% AllowedYears_)) {
-              Msg <-
-                paste0("Field name ", FieldName, " in input file ", FileName,
-                       " has a specification TYPE of currency, but the parsed year ",
-                       "component is not one for which there is a deflator. ",
-                       "If the year component is correct, then the deflators file ",
-                       "must be corrected to include a deflator for the year. ",
-                       "See documentation for details on the deflator file requirements.")
-              Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
-              rm(Msg)
-            }
           }
         }
-        #Check whether multiplier is correct or give an error
-        if (is.nan(Fields_ls[[i]]$Multiplier)) {
-          Msg <-
-            paste0("Field name ", FieldName, " in input file ", FileName,
-                   " has parsed multiplier component that is not valid. ",
-                   "See documentation for details on how to properly name ",
-                   "a field name that has a multiplier component. ")
-          Fields_ls[[i]]$Error <- c(Fields_ls[[i]]$Error, Msg)
-          rm(Msg)
-        }
       }
+      #Check whether multiplier is correct or give an error
+      if (is.nan(Fields_ls[[specField]]$Multiplier)) {
+        Msg <-
+          paste0("Field name ", FieldName, " in input file ", FileName,
+                 " has parsed multiplier component that is not valid. ",
+                 "See documentation for details on how to properly name ",
+                 "a field name that has a multiplier component. ")
+        Fields_ls[[specField]]$Error <- c(Fields_ls[[specField]]$Error, Msg)
+        rm(Msg)
+      }
+
+      # Increment the field that we're processing
+      specField <- specField + 1
     }
     DataNames_ <- unlist(lapply(Fields_ls, function(x) x$Name))
     names(Fields_ls) <- DataNames_

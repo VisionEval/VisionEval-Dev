@@ -1769,6 +1769,8 @@ inputsToDatastore <- function(Inputs_ls, ModuleSpec_ls, ModuleName, envir=modelE
   G <- getModelState(envir=envir)
   #Make sure the inputs are error free
   if (length(Inputs_ls$Errors) != 0) {
+    # This error should already have been picked off and reported when we were reading in the input files
+    # It's retained here as a backstop. See function processInputFiles in initialization.R
     Msg <-
     paste0(
       "Unable to write module inputs for module '", ModuleName, "' ",

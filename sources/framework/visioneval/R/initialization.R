@@ -2121,6 +2121,8 @@ processInputFiles <- function(AllSpecs_ls) {
       # Process inputs with Initialize function
       if (length(ProcessedInputs_ls[[EntryName]]$Errors) == 0) {
         if (Module == "Initialize") {
+          # Run the Initialize function here so we can swap in defaults for Optional inputs
+          # and do Package-level cross-file input checking.
           initFunc <- eval(parse(text = paste(Package, Module, sep = "::")))
           InitData_ls <- ProcessedInputs_ls[[EntryName]]
           InitializedInputs_ls <- initFunc(InitData_ls)
@@ -2128,10 +2130,26 @@ processInputFiles <- function(AllSpecs_ls) {
           ProcessedInputs_ls[[EntryName]]$Errors <- InitializedInputs_ls$Errors
           if (length(InitializedInputs_ls$Warnings > 0)) {
             writeLog(InitializedInputs_ls$Warnings,Level="warn")
+          } else {
+            writeLog(paste0("Initialized ",EntryName," with no errors."),Level="info")
+          }
+        } else {
+          if (length(ProcessedInputs_ls[[EntryName]]$Warnings > 0)) {
+            writeLog(paste("Input File warnings for",EntryName),Level="warn")
+            writeLog(ProcessedInputs_ls[[EntryName]]$Warnings,Level="warn")
+          } else if (length(ProcessedInputs_ls[[EntryName]]$Errors > 0)) {
+            writeLog(paste("Input File Errors for",EntryName),Level="error")
+            writeLog(ProcessedInputs_ls[[EntryName]]$Errors,Level="error")
+            stop("Input File Errors")
+          } else {
+            writeLog(paste0("Initialized ",EntryName," with no errors."),Level="info")
           }
         }
-      } else {
-        writeLog(paste0("Error in inputs for ",EntryName),Level="info")
+      }
+      # The Errors may have been updated by calling ::Initialize
+      if ( length(ProcessedInputs_ls[[EntryName]]$Errors) > 0 ) {
+        writeLog(paste0("Error in inputs for ",EntryName),Level="error")
+        writeLog(ProcessedInputs_ls[[EntryName]]$Errors,Level="error")
         InpErrors_ <- c( InpErrors_, ProcessedInputs_ls[[EntryName]]$Errors )
       }
     }
@@ -2141,6 +2159,8 @@ processInputFiles <- function(AllSpecs_ls) {
   if (HasErrors) {
     writeLog(InpErrors_,Level="error")
     stop("Input files have errors. Check the log for details.")
+  } else {
+    writeLog(paste("No errors:",length(InpErrors_)),Level="info")
   }
   rm(InpErrors_)
 
