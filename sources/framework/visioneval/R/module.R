@@ -181,6 +181,7 @@ processEstimationInputs <- function(Inp_ls, FileName, ModuleName) {
   }
   #Expand the specifications
   Inp_ls <- processComponent(Inp_ls)
+
   #Try to load the estimation file
   FilePath <- paste0("inst/extdata/", FileName)
   if (!file.exists(FilePath)) {
@@ -199,13 +200,27 @@ processEstimationInputs <- function(Inp_ls, FileName, ModuleName) {
     stop(Message)
   }
   Data_df <- Data_df[, Names]
+
+  #Identify the data class for each input file field
+  ColClasses_ <- unlist(lapply(Inp_ls, function(x) {
+    Type <- x$TYPE
+    Class <- Types()[[Type]]$mode # unknown Type will generate NA and leave out the column
+    if (Class == "double") Class <- "numeric"
+    Class
+  }))
+  names(ColClasses_) <- Names
+  #Convert NA values into "NULL" (columns in data not to be read in)
+  ColClasses_[is.na(ColClasses_)] <- "NULL"
+
   #Iterate through each column and check whether data meets specifications
   Errors_ <- character(0)
   Warnings_ <- character(0)
-  for (i in 1:length(Inp_ls)) {
-    Spec_ls <- Inp_ls[[i]]
+  for ( Spec_ls in Inp_ls ) {
+    # for (i in 1:length(Inp_ls)) {
+    #   Spec_ls <- Inp_ls[[i]]
     DatasetName <- Spec_ls$NAME
     Data_ <- Data_df[[DatasetName]]
+    writeLog(paste("Convert",DatasetName,"to type",ColClasses_[DatasetName]),Level="info")
     #Calculate SIZE of data if character data
     #This is only necessary because checkDataConsistency requires a SIZE attribute
     if (typeof(Data_) == "character") {
@@ -235,10 +250,14 @@ processEstimationInputs <- function(Inp_ls, FileName, ModuleName) {
   #Print any warnings if there are any
   if (length(Warnings_) != 0) {
     print("The following data items match data conditions that are UNLIKELY:")
-    for (i in length(Warnings_)) {
-      print(Warnings_[i])
+    for (wrng in Warnings_) {
+      print(wrng)
     }
   }
+
+  # TODO: develop ColClasses_ above and just apply the conversion here to Data_df then return Data_df without
+  # re-reading the input file.
+
   #Identify the data class for each input file field
   ColClasses_ <- unlist(lapply(Inp_ls, function(x) {
     Type <- x$TYPE
@@ -254,6 +273,7 @@ processEstimationInputs <- function(Inp_ls, FileName, ModuleName) {
   #Convert NA values into "NULL" (columns in data not to be read in)
   ColClasses_[is.na(ColClasses_)] <- "NULL"
   #Read the data file with the assigned column classes
+  
   read.csv(FilePath, colClasses = ColClasses_)[, Names]
 }
 
@@ -1457,8 +1477,11 @@ doProcessInpSpec <- function(InpSpecs_ls) {
   Out_ls <- list()
   j <- 1
   G <- getModelState() # To resolve InputPath
-  for (i in 1:length(InpSpecs_ls)) {
-    Spec_ls <- InpSpecs_ls[[i]]
+  for ( Spec_ls in InpSpecs_ls ) {
+    #   for (i in 1:length(InpSpecs_ls)) {
+    #     Spec_ls <- InpSpecs_ls[[i]]
+    # TODO: "File" should be an abstract data source/connection
+    # INPUTDIR shoudl describe the connection
     # findRuntimeInputFile looks on InputPath by default
     File <- findRuntimeInputFile(Spec_ls$FILE,Param_ls=G$RunParam_ls,StopOnError=FALSE)
     if ( is.na(File) ) {

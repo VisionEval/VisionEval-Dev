@@ -1487,7 +1487,7 @@ parseInputFieldNames <- function(FieldNames_, Specs_ls, FileName) {
       # If the name is unknown, just skip it (allowing for total columns and
       # other helpers during data preparation.
       if ( !(Name %in% c(SpecdNames_,"Geo","Year")) ) {
-        writeLog(paste("Skipping field",Name,"during input validation"),Level="info")
+        writeLog(paste("Skipping field",Name,"during input validation of",FileName),Level="info")
         next()
       }
 
@@ -1655,6 +1655,8 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
   SortSpec_ls <- list()
   FilePath_ <- character(0)
   for (i in 1:length(InpSpec_ls)) {
+    # TODO: FILEPATH / INPUTDIR is only relevant for
+    # TODO: Change InputDir to be a connection specification
     Spec_ls <- InpSpec_ls[[i]]
     File <- basename(Spec_ls$FILE) # should already be a base name
     Spec_ls$FILEPATH <- file.path(Spec_ls$INPUTDIR,File)
@@ -1718,6 +1720,7 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
       next()
     }
     #Read in the data file and check that it is properly formatted
+    #TODO: create facade
     Data_df <- try(read.csv(FilePath_[File], as.is = TRUE), silent = TRUE)
     if ( inherits(Data_df,"try-error") ) {
       Msg <- c(
@@ -1794,11 +1797,11 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
       #Check that there are 'Year' and 'Geo' fields
       HasYearField <- "Year" %in% names(Data_df)
       HasGeoField <- "Geo" %in% names(Data_df)
-      if (!(HasYearField & HasGeoField)) {
+      if (!(HasYearField && HasGeoField)) {
         Msg <-
         paste0(
           "Input file error for module '", PackageName,"::",ModuleName,
-          "' for input file '", File, "'. ",
+          "' for file '", File, "'. ",
           "'Group' specification is 'Year' or 'RunYear' ",
           "but the input file is missing required 'Year' ",
           "and/or 'Geo' fields."
@@ -1807,14 +1810,15 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
         FileErr_ls <- c(FileErr_ls, FileErr_)
         next()
       }
+      # Quick trap here to remove trailing spaces on Data_df$Geo
+      Data_df$Geo <- sub("\\s+$","",Data_df$Geo)
       #Remove rows from Data_df for years other than model run years
       Data_df <- Data_df[Data_df$Year %in% G$Years,]
       #Check that the file thas inputs for all years and geographic units
       #If so, save Year and Geo to table
-      CorrectYearGeo <-
-      checkInputYearGeo(Data_df$Year, Data_df$Geo, Group, Table)
+      CorrectYearGeo <- checkInputYearGeo(Data_df$Year, Data_df$Geo, Group, Table)
       if (CorrectYearGeo$CompleteInput & !CorrectYearGeo$DupInput) {
-        #If Year and Geo data have not be added to the table then add them
+        #If Year and Geo data have not been added to the table then add them
         if (is.null(Data_ls[[Group]][[Table]]$Year)) {
           Data_ls[[Group]][[Table]]$Year <- Data_df$Year
           Data_ls[[Group]][[Table]]$Geo <- Data_df$Geo
@@ -1879,30 +1883,30 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
         next()
       }
       #Check that the 'Geo' field is complete and not duplicated
-      GeoDuplicated <- any(duplicated(Data_df$Geo))
-      GeoIncomplete <- any(!(G$Geo_df[[Table]] %in% Data_df$Geo))
+      GeoDuplicated <- duplicated(Data_df$Geo)
+      GeoIncomplete <- !(G$Geo_df[[Table]] %in% Data_df$Geo)
       #If duplicated or incomplete print out errors
-      if (GeoDuplicated || GeoIncomplete) {
-        if (GeoDuplicated) {
+      if ( any(GeoDuplicated) || any(GeoIncomplete) ) {
+        if (any(GeoDuplicated)) {
           DupGeo_ <- unique(Data_df$Geo[GeoDuplicated])
           Msg <-
           paste0(
             "Input file error for module '", PackageName,"::",ModuleName,
             "' for input file '", File, "'. ",
-            "Has duplicate inputs for the following geographic areas: ",
-            paste(DupGeo_)
+            "Has duplicate inputs for the following geographic areas:\n",
+            paste(unique(DupGeo_),collapse=",")
           )
           FileErr_ <- c(FileErr_, Msg)
           rm(DupGeo_)
         }
-        if (GeoIncomplete) {
+        if (any(GeoIncomplete)) {
           IncompleteGeo_ <- G$Geo_df[[Table]][GeoIncomplete]
           Msg <-
           paste0(
             "Input file error for module '", PackageName,"::",ModuleName,
             "' for input file '", File, "'.",
-            "Is missing inputs for the following geographic areas: ",
-            paste(IncompleteGeo_)
+            "Is missing inputs for the following geographic areas:\n",
+            paste(unique(IncompleteGeo_),collapse=",")
           )
           FileErr_ <- c(FileErr_, Msg)
           rm(IncompleteGeo_)
@@ -1954,7 +1958,7 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
             "Input file error for module '", PackageName,"::",ModuleName,
             "' for input file '", File, "'. ",
             "Has duplicate inputs for the following years: ",
-            paste(DupYear_)
+            paste(DupYear_,collapse=",")
           )
           FileErr_ <- c(FileErr_, Msg)
           rm(DupYear_)
@@ -1966,7 +1970,7 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
             "Input file error for module '", PackageName,"::",ModuleName,
             "' for input file '", File, "'.",
             "Is missing inputs for the following years: ",
-            paste(IncompleteYear_)
+            paste(IncompleteYear_,collapse=",")
           )
           FileErr_ <- c(FileErr_, Msg)
           rm(IncompleteYear_)
