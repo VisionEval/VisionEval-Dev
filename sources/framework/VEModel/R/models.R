@@ -2556,14 +2556,17 @@ ve.model.findstages <- function(stage=character(0),Reportable=TRUE) {
 # stages are named explicitly, the results for the named stages will be included even if they are
 # "StartFrom" stages or are otherwise not reportable.
 # This function will return even if the model has not been run, or has incomplete stages: the
-# stages with missing results will show up as "Not Run Yet" and will be ignored for export, etc.
+# stages with missing results will show up as "Not Run Yet" and will
+# be ignored for export, etc.
+# TODO: allow results from partial model stage runs if an explicit stage is provided to $results()
+# In general, validity should be evaluated stage-by-stage if a specific stage was compared...
 ve.model.results <- function(stage=character(0)) {
 
   if ( ! private$p.valid ) {
     writeLog(paste0("Invalid model: ",self$printStatus()),Level="error")
     return( NULL )
   }
-
+  
   stages <- self$findstages(stage) # empty vector (default) gets all Reportable stages
   if ( length(stages)==0 ) {
     writeLog(paste("Available stages:",names(self$modelStages),collapse=", "),Level="error")

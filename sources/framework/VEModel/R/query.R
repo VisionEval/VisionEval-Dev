@@ -613,7 +613,8 @@ interleave <- function(x,y) {
 ve.query.extract <- function(
   Results=NULL, Measures=NULL, Years=NULL,
   wantMetadata=TRUE, wantData=TRUE, nameMeasureBy=TRUE,
-  longScenarios=FALSE, exportOnly=FALSE, NA.default=NA) {
+  longScenarios=FALSE, exportOnly=FALSE, NA.default=NA,
+  baseScenario=NULL) {
   # "Results" is a list of VEResults (or a VEResultsList) from a VEModel
   # Visit each of the valid results in the Model (or Results list) and add its years as columns
   #  to the resulting data.frame, then return the accumulated result
@@ -631,6 +632,8 @@ ve.query.extract <- function(
   # exportOnly, if TRUE, only includes metrics with the Export attribute set (conventionally to
   #   TRUE, but we're considering only present/missing)
   # NA.default applies to Long Scenarios - any "NA" in the Values column will be replaced by zero
+  # baseScenario can be a one or two element character vector. First element is the name of a
+  #   model stage, and the second element is the year to use (default is overall model's BaseYear).
 
   Results <- self$results(Results) # generate list of valid VEQueryResults
   if ( length(Results)==0 ) {
@@ -693,6 +696,7 @@ ve.query.extract <- function(
 
   # Keep only measures that are being sought
   # Filter the measures using for loops rather than lapply to ensure names stay up to date
+  # Need to index with seq since we're changing the list elements in place (removing measures)
   for ( scenario in seq(scenarioList) ) {
     for ( year in names(scenarioList[[scenario]]) ) {
       scenarioList[[scenario]][[year]] <- scenarioList[[scenario]][[year]][seekMeasures]
@@ -713,17 +717,35 @@ ve.query.extract <- function(
   longScenarios <- longScenarios && wantData # if only metadata, always do wide format
 
   # Pull out set of metrics and values for first scenario containing model BaseYear
+  # Let's do a function that takes baseScenario and scenario and returns TRUE/FALSE for isBaseYear
 
   if ( longScenarios ) {
-    BaseYearValues = NULL # Should be available, but might not be if Scenario or Year got filtered out above
-    for ( scenario in scenarioList ) {
-      if ( is.null(BaseYear <- attr(scenario,"BaseYear")) ) {
-        next
-      } else {
-        if ( all(c("BaseYear","isBaseYear") %in% names(BaseYear)) && BaseYear$isBaseYear ) {
-          BaseYearValues <- scenario[[BaseYear$BaseYear]] # set of values for Year==BaseYear
-          break
+    BaseYearValues <- NULL # Should be available, but might not be if Scenario or Year got filtered out above
+
+    getBaseYearScenario <- function(scenario,baseScenario) {
+      if ( is.character(baseScenario) ) {
+        if ( attr(scenario,"ScenarioName") == baseScenario[1] ) {
+          baseScenarioYear <- baseScenario[2]
+          if ( ! baseScenarioYear %in% names(scenario) ) {
+            # Default "base" year is first year in named scenario
+            baseScenarioYear <- names(scenario)[1]
+          }
+          BaseYear <- list(BaseYear=baseScenarioYear,isBaseYear=TRUE)
+        } else {
+          BaseYear <- NULL
         }
+      } else {
+        BaseYear <- attr(scenario,"BaseYear") # may be NULL or not be BaseYear
+      }
+      return( BaseYear )
+    }
+
+    for ( scenario in scenarioList ) {
+     seekBaseYear <- getBaseYearScenario(scenario,baseScenario)
+     if ( is.null(seekBaseYear ) )next
+     if ( all(c("BaseYear","isBaseYear") %in% names(seekBaseYear)) && seekBaseYear$isBaseYear ) {
+       BaseYearValues <- scenario[[seekBaseYear$BaseYear]] # set of values for Year==BaseYear
+       break
       }
     }
   }
@@ -733,7 +755,6 @@ ve.query.extract <- function(
   for ( scenario in scenarioList ) { # single set of filtered results
     ScenarioName <- attr(scenario,"ScenarioName")
     Elements <- attr(scenario,"ScenarioElements")
-    BaseYearConfig <- attr(scenario,"BaseYear")
     for ( year in names(scenario) ) {
       if ( ! longScenarios ) { # will also use wide format if we're only getting Metadata
         longScenarios <- FALSE # so we don't add extra geography at the end
@@ -774,10 +795,15 @@ ve.query.extract <- function(
         results.df <- results.df[ ordering, ] # Keep the original ordering (merge screws it up...)
       } else {
         # Long format always produces metadata plus data...
-        showBaseYear <- list(
-          Values=BaseYearValues,
-          isBaseYear=(BaseYearConfig$isBaseYear && as.character(year)==as.character(BaseYearConfig$BaseYear))
-        )
+        if ( !is.null(BaseYearValues) ) {
+          # We have a set if BaseYearValues to compare
+          BaseYearConfig <- getBaseYearScenario(scenario,baseScenario)
+          showBaseYear <- list(
+            Values=BaseYearValues,
+            isBaseYear=(!is.null(BaseYearConfig) && BaseYearConfig$isBaseYear && as.character(year)==as.character(BaseYearConfig$BaseYear))
+          )
+        } else showBaseYear <- NULL # no base year values, so don't show
+
         theseResults <- makeLongMeasureDataframe(scenario[[year]],ScenarioName,year,metadata,BaseYear=showBaseYear,NA.default=NA.default)
         results.df <- rbind(results.df,theseResults) # Columns should conform...
       }
@@ -1800,6 +1826,7 @@ ve.spec.outputconfig <- function() {
 }
 
 # S3 helper - turn the R6 object into a standard list
+#' @export
 as.list.VEQuerySpec <- function(spec) return(spec$QuerySpec)
 
 #' @export
