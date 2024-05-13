@@ -604,7 +604,7 @@ Initialize <- function(L) {
     }
   } else {
     Msg <- paste0(
-      "marea_transit_fuel.csv input file is present but not complete (Missing VanProp...ev)"
+      "marea_transit_powertrain_prop.csv input file is present but not complete (Missing VanProp...ev)"
     )
     Errors_ <- c(Errors_, Msg)
   }
@@ -626,7 +626,7 @@ Initialize <- function(L) {
     }
   } else {
     Msg <- paste0(
-      "marea_transit_fuel.csv input file is present but not complete (missing BusBrop...ev)"
+      "marea_transit_powertrain_prop.csv input file is present but not complete (missing BusBrop...ev)"
     )
     Errors_ <- c(Errors_, Msg)
   }
@@ -648,7 +648,7 @@ Initialize <- function(L) {
     }
   } else {
     Msg <- paste0(
-      "marea_transit_fuel.csv input file is present but not complete (missing RailProp...ev)"
+      "marea_transit_powertrain_prop.csv input file is present but not complete (missing RailProp...ev)"
     )
     Errors_ <- c(Errors_, Msg)
   }
