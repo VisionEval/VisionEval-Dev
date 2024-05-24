@@ -12,7 +12,7 @@ $(info $(shell git branch --show-current 2>/dev/null))
 $(info VE_BRANCH is $(VE_BRANCH))
 VE_BRANCH?=$(shell git branch --show-current 2>/dev/null || echo visioneval)
 ifeq ($(OS),Windows_NT)
-  VE_R_VERSION?=4.3.2
+  VE_R_VERSION?=4.4.0
   RTERM:="$(shell scripts/find-R.bat $(VE_R_VERSION))"
   WINDOWS=TRUE
 else
