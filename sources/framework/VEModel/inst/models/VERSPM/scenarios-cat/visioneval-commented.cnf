@@ -87,6 +87,7 @@ ScenarioElements:
     Files:
       - region_prop_externalities_paid.csv
       - azone_hh_veh_own_taxes.csv
+      - azone_payd_insurance_prop.csv
     Levels:
       - Name: 1
         Label: "Steady Ownership Cost/Tax"
