@@ -2021,6 +2021,7 @@ processModuleInputs <- function(ModuleSpec_ls, ModuleName, PackageName) {
     #-----------------------------
     # These checks examine individual data columns based on column Inp Specification
     for (Name in names(Spec_ls)) {
+      writeLog(paste0("Checking ",Name," in ",PackageName,"::",ModuleName," File ",File),Level="debug")
       ThisSpec_ls <- Spec_ls[[Name]]
       Data_ <- Data_df[[Name]]
       DataCheck_ls <-
