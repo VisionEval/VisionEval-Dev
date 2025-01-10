@@ -76,5 +76,8 @@
     BioC:      https://www.bioconductor.org/packages/3.19/bioc
     CRAN:      https://cloud.r-project.org
 4.4.1:
-    BioC:      https://www.bioconductor.org/packages/3.19/bioc
+    BioC:      https://www.bioconductor.org/packages/3.20/bioc
+    CRAN:      https://cloud.r-project.org
+4.4.2:
+    BioC:      https://www.bioconductor.org/packages/3.20/bioc
     CRAN:      https://cloud.r-project.org
