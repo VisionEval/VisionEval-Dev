@@ -2640,7 +2640,7 @@ ve.model.exporter <- function(file=NULL,tag=NULL,connection=NULL,partition=NULL)
 #' Open a VisionEval Model
 #'
 #' @description
-#' /code{openModel} opens a VisionEval model and returns a VEModel object (q.v.) through
+#' \code{openModel} opens a VisionEval model and returns a VEModel object (q.v.) through
 #'    which it can be manipulated (run or queried)
 #'
 #' @details

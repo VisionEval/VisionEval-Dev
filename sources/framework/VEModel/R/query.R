@@ -1827,7 +1827,7 @@ ve.spec.outputconfig <- function() {
 
 # S3 helper - turn the R6 object into a standard list
 #' @export
-as.list.VEQuerySpec <- function(spec) return(spec$QuerySpec)
+as.list.VEQuerySpec <- function(x,...) return(x$QuerySpec)
 
 #' @export
 VEQuerySpec <- R6::R6Class(

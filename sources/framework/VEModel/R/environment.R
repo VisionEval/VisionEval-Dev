@@ -307,6 +307,8 @@ updateSetup <- function(object=NULL,inFile=TRUE,Source="interactive",Param_ls=li
 #' ve.runtime/visioneval.cnf. Otherwise the object should be a VEModel or VEModelStage.
 #' @param filename the name of the configuration file to write. If NULL (the default), write to the
 #'   file associated with the existing parameter list of the object.
+#' @param fromFile a logical value; if TRUE, return base configuration file (loadedParam_ls),
+#'   otherwise parameters as configured into model's RunParam_ls.
 #' @param overwrite if TRUE, overwrite any existing configuration file; otherwise abort with error
 #' @return The filename that was written, or character(0) with a warning if the file could not
 #'   be written
